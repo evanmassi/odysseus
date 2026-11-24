@@ -11,6 +11,7 @@ import {
 import { withMovedPrepValues } from '../dilutions/movedPrepValues';
 import { withMovedMarkerDilutions } from '../flowCytometry/movedMarkerDilutions';
 import { withSettledWords } from '../terms/termUpgrade';
+import { withWellVolumeInAssaySetup } from '../values/wellVolumeInAssaySetup';
 
 export class ProtocolFileError extends Error {}
 
@@ -35,7 +36,7 @@ export function readProtocolFile(text: string): Protocol {
     withMovedPrepValues(protocol, movedPrepValues),
     movedMarkerDilutions
   );
-  return withSettledWords(moved);
+  return withWellVolumeInAssaySetup(withSettledWords(moved));
 }
 
 interface ParsedFile {

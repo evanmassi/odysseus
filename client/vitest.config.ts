@@ -13,6 +13,7 @@ export default defineConfig({
       '@shared': resolve(__dirname, './src/shared'),
       '@infra': resolve(__dirname, './src/infrastructure'),
       '@': resolve(__dirname, './src'),
+      '@odysseus/shared-schemas': resolve(__dirname, '../packages/shared-schemas/src/index.ts'),
     },
   },
   test: {

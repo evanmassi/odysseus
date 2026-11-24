@@ -15,7 +15,7 @@ import { matchesWordStarts } from '../../../utils/formulas/nameMatching';
 import { listedMaterials } from '../../../utils/materials/materialLookup';
 import { STEP_PRESETS } from '../../../utils/steps/stepPresets';
 import { templateText } from '../../../utils/steps/stepTemplate';
-import { generalTitleOf } from '../../../utils/values/valueNames';
+import { assaySetupTitleOf } from '../../../utils/values/valueNames';
 import { LEADER_LINE } from '../board/leaderLineClass';
 import { SECTION_RULE } from '../board/sectionRuleClass';
 
@@ -67,15 +67,15 @@ export function WorkbenchNameTray() {
 
   const mode = target?.mode;
   const materials = useMemo(() => listedMaterials(protocol), [protocol]);
-  const generalTitle = generalTitleOf(protocol.cards);
+  const assaySetupTitle = assaySetupTitleOf(protocol.cards);
   const customGroups =
     protocol.cards.find(card => card.type === 'materials')?.customGroups ?? NO_CUSTOM_GROUPS;
   const allGroups = useMemo(
     () =>
       mode
-        ? insertListGroups(board, materials, customGroups, mode === 'formula', generalTitle)
+        ? insertListGroups(board, materials, customGroups, mode === 'formula', assaySetupTitle)
         : [],
-    [board, materials, customGroups, mode, generalTitle]
+    [board, materials, customGroups, mode, assaySetupTitle]
   );
   const groups = useMemo(
     () =>

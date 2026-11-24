@@ -34,10 +34,11 @@ const board = calculateBoard([
   },
   { kind: 'count', id: 'c1', name: 'Drug X wells', count: 24 },
   { kind: 'value', id: 'v2', name: 'Total volume', value: '9.6', unit: 'mL' },
+  { kind: 'value', id: 'v3', name: 'Total well vol.', value: '80', unit: 'µL' },
 ]);
 
 const outline = (isForFormula: boolean) =>
-  insertListGroups(board, [drug, pbs], [], isForFormula, 'WHOLE EXPERIMENT').map(group => ({
+  insertListGroups(board, [drug, pbs], [], isForFormula, 'ASSAY SETUP').map(group => ({
     title: group.title,
     kind: group.kind,
     headingName: group.headingName,
@@ -45,7 +46,7 @@ const outline = (isForFormula: boolean) =>
   }));
 
 describe('insertListGroups', () => {
-  it('lists each material with its own numbers first, then worked-out lines, then the whole experiment', () => {
+  it('lists each material with its own numbers first, then worked-out lines, then Assay setup, then unsorted values', () => {
     expect(outline(false)).toEqual([
       {
         title: 'Drug X',
@@ -54,14 +55,16 @@ describe('insertListGroups', () => {
         rows: ['Stock concentration', 'Wells', 'Stock to take'],
       },
       { title: 'PBS', kind: 'Buffer', headingName: 'PBS', rows: [] },
-      { title: 'WHOLE EXPERIMENT', kind: '', headingName: undefined, rows: ['Total volume'] },
+      { title: 'ASSAY SETUP', kind: '', headingName: undefined, rows: ['Total well vol.'] },
+      { title: 'Unsorted', kind: '', headingName: undefined, rows: ['Total volume'] },
     ]);
   });
 
   it('leaves materials out of a formula, keeping only their numbers', () => {
     expect(outline(true).map(group => [group.title, group.headingName])).toEqual([
       ['Drug X', undefined],
-      ['WHOLE EXPERIMENT', undefined],
+      ['ASSAY SETUP', undefined],
+      ['Unsorted', undefined],
     ]);
   });
 });

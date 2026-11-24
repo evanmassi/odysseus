@@ -1,5 +1,6 @@
 import { createCard } from '../utils/cards/createCard';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
+import { moveValueToRow } from '../utils/values/valueEdits';
 
 import { selectIsDirty, useWorkbenchStore } from './workbenchStore';
 
@@ -64,6 +65,17 @@ describe('workbenchStore', () => {
     expect(getState().protocol.pages[0].steps[0].text).toBe('Add {Volume per well} to each well');
     expect(getState().board.results.get('f1')).toMatchObject({ status: 'ok' });
     expect(selectIsDirty(getState())).toBe(true);
+  });
+
+  it('carries a value moved onto a material’s row into formulas and step references', () => {
+    const valuesCardId = cardOf('values').id;
+    getState().updateProtocol(draft =>
+      moveValueToRow(draft, valuesCardId, 'v1', { kind: 'material', materialId: 'm1' })
+    );
+    expect(cardOf('values').items).toMatchObject([{ id: 'v1', name: 'Per well' }]);
+    expect(cardOf('calculations').items[0].formula).toBe('Drug per well * 96');
+    expect(getState().protocol.pages[0].steps[0].text).toBe('Add {Drug per well} to each well');
+    expect(getState().board.results.get('f1')).toMatchObject({ status: 'ok' });
   });
 
   it('carries a material rename into the names built from it', () => {

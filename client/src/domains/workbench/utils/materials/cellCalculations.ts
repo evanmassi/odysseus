@@ -23,21 +23,24 @@ import {
   VIABILITY,
   VOLUME,
   VOLUME_PER_WELL,
+  WELLS,
+  perLabwareKind,
   type Term,
 } from '../terms/termList';
-import { findTerm } from '../terms/termLookup';
-import { joinValueName } from '../values/valueNames';
+import { findTerm, findTermOn } from '../terms/termLookup';
+import { joinValueName, lowerLead } from '../values/valueNames';
 
 import { cellPartId, CELLS_TO_PREPARE } from './cellCounts';
 import { donorListName } from './materialDonors';
 import { nameWithoutNotes } from './materialLookup';
-import { platedCells, type PlatedCells } from './platedCells';
+import { platedCells, type CellPlacement, type PlatedCells } from './platedCells';
 
 const isCellConcentration = (unit: string) =>
   UNIT_REGISTRY.some(entry => entry.id === unit && entry.kind === 'count-conc');
 const CELLS = 'cells';
 const CELLS_PER_ML = 'cells/mL';
 const PER_VIAL_FIELD = 'cells-per-vial';
+const VOLUME_TO_TAKE = 'Vol. to take';
 
 const isFilled = (entry: BoardName | undefined): entry is BoardName =>
   !!entry && (entry.kind !== 'value' || !!entry.value.trim());
@@ -51,12 +54,13 @@ function subjectNames(
   names: ReadonlyMap<string, BoardName>,
   materialsCardId: string | undefined
 ): BoardName[] {
-  const { subject, material, donor } = plated;
+  const { subject, material, donor, placements } = plated;
   const donorList = donorListName(material);
-  const materialOwners = [material.name.trim(), nameWithoutNotes(material.name)];
+  const materialName = nameWithoutNotes(material.name);
+  const materialOwners = [material.name.trim(), materialName];
   const owners = donor ? [subject] : [subject, ...materialOwners];
+  const isSplit = placements.length > 1;
   const id = (part: string) => cellPartId(subject, part);
-  const named = (term: Term, from: readonly string[]) => findTerm(names, term, from)?.name;
   const filled = (term: Term) => {
     const entry = findTerm(names, term, owners);
     return isFilled(entry) ? entry.name : undefined;
@@ -90,80 +94,110 @@ function subjectNames(
       ...gap,
     });
 
-  const wellsName = `${subject} wells`;
-  if (!names.has(nameKey(wellsName))) {
-    inputs.push({
-      kind: 'count',
-      id: id('wells'),
-      name: wellsName,
-      count: plated.wells,
-      workedOut: group,
-    });
-  }
-  const onPlate = input('plated', `${subject} cells on the plate`, String(plated.cells), CELLS);
-  const [onlyPerWell] = plated.perWell;
-  const perWell =
-    plated.perWell.size === 1
-      ? (named(CELLS_PER_WELL, [subject]) ??
-        input('per-well', joinValueName(subject, CELLS_PER_WELL.word), String(onlyPerWell), CELLS))
-      : undefined;
+  const extra = findTerm(names, EXTRA, [...owners, ...materialOwners, ''])?.name;
+  const prepFor = ({ noun, wells, cells, perWell: perWellCounts }: CellPlacement) => {
+    const word = (term: Term) => perLabwareKind(term, noun).word;
+    const find = (term: Term, from: readonly string[]) =>
+      (isSplit ? findTermOn(names, term, from, noun) : findTerm(names, term, from, noun))?.name;
+    const plural = lowerLead(word(WELLS));
+    const forThem = isSplit ? ` for the ${plural}` : '';
+    const part = (name: string) => (isSplit ? `${name}:${noun}` : name);
+
+    const wellsName = `${subject} ${plural}`;
+    if (!names.has(nameKey(wellsName))) {
+      inputs.push({
+        kind: 'count',
+        id: id(part('wells')),
+        name: wellsName,
+        count: wells,
+        workedOut: group,
+      });
+    }
+    const placed =
+      noun === 'well' ? 'on the plate' : `in ${noun === 'sample' ? 'all' : 'the'} ${plural}`;
+    const onPlate = input(part('plated'), `${subject} cells ${placed}`, String(cells), CELLS);
+    const [onlyPerWell] = perWellCounts;
+    const perWell =
+      perWellCounts.size === 1
+        ? (find(CELLS_PER_WELL, [subject]) ??
+          input(
+            part('per-well'),
+            joinValueName(subject, word(CELLS_PER_WELL)),
+            String(onlyPerWell),
+            CELLS
+          ))
+        : undefined;
+    const volume = find(VOLUME_PER_WELL, [...owners, ...materialOwners]);
+
+    const needed = `${joinValueName(subject, TOTAL_NEEDED.word)}${forThem}`;
+    addCalculation(part('needed'), needed, extra ? `${onPlate} × (1 + ${extra})` : onPlate, CELLS);
+    const plating = `${joinValueName(subject, PLATING_CONCENTRATION.word)}${forThem}`;
+    const platingProblem: CalculationGap | undefined = !perWell
+      ? { problem: `${word(CELLS_PER_WELL)} differ between ${plural}` }
+      : !volume
+        ? {
+            problem: `Needs "${word(VOLUME_PER_WELL)}" in Values, the volume of cells added to each ${noun}`,
+            need: joinValueName(materialName, word(VOLUME_PER_WELL)),
+          }
+        : undefined;
+    addCalculation(
+      part('plating'),
+      plating,
+      platingProblem ? '' : `${perWell} ÷ ${volume}`,
+      CELLS_PER_ML,
+      platingProblem
+    );
+    return { forThem, part, needed, plating, platingProblem };
+  };
+  const preps = placements.map(prepFor);
+
+  const needed = isSplit ? joinValueName(subject, TOTAL_NEEDED.word) : preps[0].needed;
+  if (isSplit) addCalculation('needed', needed, preps.map(prep => prep.needed).join(' + '), CELLS);
   const perVialValue = donor?.values[PER_VIAL_FIELD]?.trim();
   const perVial =
-    named(CELLS_PER_VIAL, [subject]) ??
+    findTerm(names, CELLS_PER_VIAL, [subject])?.name ??
     (perVialValue
       ? input('per-vial', `${subject} cells per vial`, perVialValue, CELLS)
       : undefined);
   const liveCells = filled(LIVE_CELLS);
+  const liveConcentration = filled(LIVE_CELL_CONCENTRATION);
   const stockEntry = donor ? undefined : findTerm(names, STOCK_CONCENTRATION, owners);
   const stock =
-    filled(LIVE_CELL_CONCENTRATION) ??
+    liveConcentration ??
     (stockEntry?.kind === 'value' && stockEntry.value.trim() && isCellConcentration(stockEntry.unit)
       ? stockEntry.name
       : undefined);
-  const extra = named(EXTRA, [...owners, ...materialOwners, '']);
-  const volume = named(VOLUME_PER_WELL, [...owners, ...materialOwners]);
-
-  const needed = joinValueName(subject, TOTAL_NEEDED.word);
-  addCalculation('needed', needed, extra ? `${onPlate} × (1 + ${extra})` : onPlate, CELLS);
-  const plating = joinValueName(subject, PLATING_CONCENTRATION.word);
-  const platingProblem: CalculationGap | undefined = !perWell
-    ? { problem: `${CELLS_PER_WELL.word} differ between wells` }
-    : !volume
-      ? {
-          problem: `Needs "${VOLUME_PER_WELL.word}" in Values, the volume of cells added to each well`,
-          need: joinValueName(nameWithoutNotes(material.name), VOLUME_PER_WELL.word),
-        }
-      : undefined;
-  addCalculation(
-    'plating',
-    plating,
-    platingProblem ? '' : `${perWell} ÷ ${volume}`,
-    CELLS_PER_ML,
-    platingProblem
-  );
 
   const isResuspended = !!donor || !!perVial || (!stock && !!liveCells);
   if (!isResuspended) {
-    const suspension = `${subject} suspension to make`;
-    const stockToTake = `${subject} stock to take`;
     const missingStock = stock
       ? undefined
       : missingCount(LIVE_CELL_CONCENTRATION, TOTAL_CELL_CONCENTRATION, VIABILITY);
-    addCalculation(
-      'suspension',
-      suspension,
-      platingProblem ? '' : `${needed} ÷ ${plating}`,
-      '',
-      platingProblem
-    );
-    addCalculation('stock', stockToTake, stock ? `${needed} ÷ ${stock}` : '', '', missingStock);
-    addCalculation(
-      'diluent',
-      `${subject} diluent to add`,
-      stock && !platingProblem ? `${suspension} − ${stockToTake}` : '',
-      '',
-      missingStock ?? platingProblem
-    );
+    for (const prep of preps) {
+      const suspension = `${subject} suspension to make${prep.forThem}`;
+      const stockToTake = `${subject} stock to take${prep.forThem}`;
+      addCalculation(
+        prep.part('suspension'),
+        suspension,
+        prep.platingProblem ? '' : `${prep.needed} ÷ ${prep.plating}`,
+        '',
+        prep.platingProblem
+      );
+      addCalculation(
+        prep.part('stock'),
+        stockToTake,
+        stock ? `${prep.needed} ÷ ${stock}` : '',
+        '',
+        missingStock
+      );
+      addCalculation(
+        prep.part('diluent'),
+        `${subject} diluent to add${prep.forThem}`,
+        stock && !prep.platingProblem ? `${suspension} − ${stockToTake}` : '',
+        '',
+        missingStock ?? prep.platingProblem
+      );
+    }
   } else {
     if (donor !== undefined || perVial !== undefined) {
       addCalculation(
@@ -174,13 +208,32 @@ function subjectNames(
         perVial ? undefined : { problem: `Needs cells per vial in ${donorList}` }
       );
     }
-    addCalculation(
-      'resuspend',
-      `${subject} resuspend volume`,
-      liveCells && !platingProblem ? `${liveCells} ÷ ${plating}` : '',
-      '',
-      liveCells ? platingProblem : missingCount(LIVE_CELLS, LIVE_CELL_CONCENTRATION, VOLUME)
-    );
+    if (!isSplit) {
+      const [{ plating, platingProblem }] = preps;
+      addCalculation(
+        'resuspend',
+        `${subject} resuspend volume`,
+        liveCells && !platingProblem ? `${liveCells} ÷ ${plating}` : '',
+        '',
+        liveCells ? platingProblem : missingCount(LIVE_CELLS, LIVE_CELL_CONCENTRATION, VOLUME)
+      );
+    }
+    for (const prep of isSplit ? preps : []) {
+      addCalculation(
+        prep.part('take'),
+        `${joinValueName(subject, VOLUME_TO_TAKE)}${prep.forThem}`,
+        liveConcentration ? `${prep.needed} ÷ ${liveConcentration}` : '',
+        '',
+        liveConcentration ? undefined : missingCount(LIVE_CELL_CONCENTRATION, LIVE_CELLS, VOLUME)
+      );
+      addCalculation(
+        prep.part('resuspend'),
+        `${subject} resuspend volume${prep.forThem}`,
+        prep.platingProblem ? '' : `${prep.needed} ÷ ${prep.plating}`,
+        '',
+        prep.platingProblem
+      );
+    }
   }
   if (isResuspended || liveCells) {
     addCalculation(

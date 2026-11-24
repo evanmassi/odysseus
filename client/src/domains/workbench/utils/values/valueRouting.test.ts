@@ -57,7 +57,7 @@ const routed = (text: string) => {
 };
 
 describe('routing a typed value', () => {
-  it('keeps a line that starts with no material or mix for the whole experiment', () => {
+  it('keeps a line that starts with no material or mix for Assay setup or Unsorted', () => {
     expect(routed('Well volume 80 µL')).toMatchObject({
       destination: { kind: 'general' },
       fullName: 'Total well vol.',

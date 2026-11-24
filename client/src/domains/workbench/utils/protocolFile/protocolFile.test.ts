@@ -12,6 +12,7 @@ import everyCardV4 from './fixtures/everyCard.v4.json';
 import everyCardV5 from './fixtures/everyCard.v5.json';
 import everyCardV6 from './fixtures/everyCard.v6.json';
 import everyCardV7 from './fixtures/everyCard.v7.json';
+import everyCardV8 from './fixtures/everyCard.v8.json';
 import { ProtocolFileError, readProtocolFile, writeProtocolFile } from './protocolFile';
 
 import type { Protocol, ProtocolCard, ProtocolCardType } from '@odysseus/shared-schemas';
@@ -724,7 +725,7 @@ function savedFacts(protocol: Protocol) {
     },
     customField: material('Drug X').values['batch-note'],
     valueRows: values.rows.map(row => ('mixName' in row ? row.mixName : nameOf(row.materialId))),
-    wholeExperimentTitle: values.generalTitle,
+    assaySetupTitle: values.assaySetupTitle,
     calculations: cardOf(protocol, 'calculations').items.map(
       item => `${item.name} = ${item.formula}`
     ),
@@ -832,7 +833,7 @@ const EVERY_CARD_FACTS = {
   },
   customField: 'Batch 2',
   valueRows: ['Cell line A', 'Medium A + Supplement Y', 'Drug X'],
-  wholeExperimentTitle: 'Plate setup',
+  assaySetupTitle: 'Plate setup',
   calculations: ['Cell line A vol. needed = Cell line A vol./well × 2'],
   otherLabware: ['T75 × 2', 'facs × 3'],
   otherLabwareTabName: 'Culture flasks',
@@ -880,9 +881,10 @@ describe.each([
   ['version 4', everyCardV4],
   ['version 5', everyCardV5],
   ['version 6', everyCardV6],
+  ['version 7', everyCardV7],
 ])('a %s file holding every card', (_, sample) => {
   it('opens in today’s words with every saved value kept', () => {
-    expect(read(sample)).toEqual(everyCardV7.protocol);
+    expect(read(sample)).toEqual(everyCardV8.protocol);
   });
 
   it('survives a save and reopen unchanged', () => {
@@ -895,12 +897,12 @@ describe.each([
   });
 });
 
-describe('a version 7 file holding every card', () => {
+describe('a version 8 file holding every card', () => {
   it('opens exactly as it was saved', () => {
-    expect(read(everyCardV7)).toEqual(everyCardV7.protocol);
+    expect(read(everyCardV8)).toEqual(everyCardV8.protocol);
   });
 
   it('still holds everything it was saved with', () => {
-    expect(savedFacts(read(everyCardV7))).toEqual(EVERY_CARD_FACTS);
+    expect(savedFacts(read(everyCardV8))).toEqual(EVERY_CARD_FACTS);
   });
 });

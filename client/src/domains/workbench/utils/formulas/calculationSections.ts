@@ -1,7 +1,7 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { displayNameOf, findMaterial } from '../materials/materialLookup';
-import { WHOLE_EXPERIMENT } from '../values/valueNames';
+import { GENERAL } from '../values/valueNames';
 
 import { type CalculationName, type SolvedBoard, type WorkedOutGroup } from './boardCalculation';
 import { calculationMaterial, nameWithinOwner } from './formulaScopes';
@@ -27,7 +27,7 @@ export function sectionKeyOf(
   workedOut: WorkedOutGroup | undefined,
   materials: readonly MaterialItem[]
 ): string {
-  if (!workedOut) return calculationMaterial(name, materials)?.id ?? WHOLE_EXPERIMENT;
+  if (!workedOut) return calculationMaterial(name, materials)?.id ?? GENERAL;
   return (
     findMaterial(materials, workedOut.subject)?.id ??
     `subject:${normalizeMaterialKey(workedOut.subject)}`
@@ -39,16 +39,16 @@ export function calculationSections(
   materials: readonly MaterialItem[],
   board: SolvedBoard,
   showsWorkedOut: boolean,
-  generalTitle: string
+  assaySetupTitle: string
 ): CalculationSection[] {
   const sections = new Map<string, CalculationSection>([
     [
-      WHOLE_EXPERIMENT,
+      GENERAL,
       {
-        key: WHOLE_EXPERIMENT,
+        key: GENERAL,
         material: undefined,
         owner: '',
-        title: generalTitle,
+        title: assaySetupTitle,
         items: [],
         groups: [],
       },
@@ -91,7 +91,7 @@ export function calculationSections(
   }
   return [...sections.values()].filter(
     section =>
-      section.key === WHOLE_EXPERIMENT ||
+      section.key === GENERAL ||
       section.items.length ||
       section.groups.length ||
       (section.material && card.materialSections.includes(section.material.id))

@@ -9,14 +9,14 @@ export const upperLead = (label: string): string =>
 export const joinValueName = (owner: string, label: string): string =>
   owner ? `${owner} ${lowerLead(label.trim())}` : label;
 
-export const WHOLE_EXPERIMENT = '';
-export const WHOLE_EXPERIMENT_TITLE = 'Whole experiment';
+export const GENERAL = '';
+export const ASSAY_SETUP_TITLE = 'Assay setup';
 
-export function generalTitleOf(cards: Protocol['cards']): string {
+export function assaySetupTitleOf(cards: Protocol['cards']): string {
   const title = cards
     .find((card): card is ValuesCard => card.type === 'values')
-    ?.generalTitle?.trim();
-  return title ? title : WHOLE_EXPERIMENT_TITLE;
+    ?.assaySetupTitle?.trim();
+  return title ? title : ASSAY_SETUP_TITLE;
 }
 
 export const columnKey = (label: string): string => label.trim().toLowerCase().replace(/\s+/g, ' ');

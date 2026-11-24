@@ -13,8 +13,9 @@ import {
 } from '../materials/materialCatalog';
 import { shortNameOf } from '../materials/materialLookup';
 import { recipeCalculationNames } from '../materials/materialRecipeCalculations';
-import { materialWellCounts, plateAmounts, plateMapCounts } from '../plateMap/plateMapNames';
-import { joinValueName } from '../values/valueNames';
+import { materialSampleCounts, plateAmounts, plateMapCounts } from '../plateMap/plateMapNames';
+import { perLabwareKind, WELLS } from '../terms/termList';
+import { joinValueName, lowerLead } from '../values/valueNames';
 
 import { nameKey, type BoardName } from './boardCalculation';
 
@@ -124,7 +125,7 @@ function valueNames(
   });
 }
 
-function vesselMapNames(card: CardOf<'plateMap'>): BoardName[] {
+function plateMapNames(card: CardOf<'plateMap'>): BoardName[] {
   const counts = plateMapCounts(card).map(
     (count): BoardName => ({
       kind: 'count',
@@ -163,12 +164,15 @@ function wellCountNames(
   const plateMaps = protocol.cards.filter(
     (card): card is CardOf<'plateMap'> => card.type === 'plateMap'
   );
-  return [...materialWellCounts(plateMaps, materials)].flatMap(([material, count]): BoardName[] => {
-    const name = `${material.name.trim()} wells`;
-    return takenKeys.has(nameKey(name))
-      ? []
-      : [{ kind: 'count', id: `${material.id}:wells`, name, count }];
-  });
+  return [...materialSampleCounts(plateMaps, materials)].flatMap(([material, byNoun]) =>
+    [...byNoun].flatMap(([noun, count]): BoardName[] => {
+      const plural = lowerLead(perLabwareKind(WELLS, noun).word);
+      const name = `${material.name.trim()} ${plural}`;
+      return takenKeys.has(nameKey(name))
+        ? []
+        : [{ kind: 'count', id: `${material.id}:${plural}`, name, count }];
+    })
+  );
 }
 
 export function collectBoardNames(protocol: Protocol): BoardName[] {
@@ -187,7 +191,7 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
       case 'values':
         return valueNames(card, materialsById);
       case 'plateMap':
-        return vesselMapNames(card);
+        return plateMapNames(card);
       case 'calculations':
         return calculationNames(card);
       default:

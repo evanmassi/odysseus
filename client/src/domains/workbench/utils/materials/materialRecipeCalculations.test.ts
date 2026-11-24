@@ -77,6 +77,37 @@ describe('recipe finals in the well', () => {
     expect(answer(board, recipeFinalId('mix', 'r1'))).toBe('5 ng/mL');
   });
 
+  it('works out a final for each container a mix goes into, from its own volumes', () => {
+    const protocol = protocolWith([
+      ['Working dilution', '2000', '1:N'],
+      ['Vol./tube', '250', 'µL'],
+    ]);
+    const values = protocol.cards.find(card => card.type === 'values');
+    if (values?.type !== 'values') throw new Error('no values block');
+    values.items.push({ id: 'tube', name: 'Total tube vol.', value: '500', unit: 'µL' });
+    const mix = { valueId: 'th17' };
+    protocol.cards.push({
+      id: 'plate',
+      type: 'plateMap',
+      page: 'page',
+      plates: [{ id: 'p', labware: '96', name: '' }],
+      otherLabware: [{ id: 't', labware: 'facs', count: 1 }],
+      lines: [{ id: 'l', name: '', role: 'auto', values: [{ id: 'th17', text: 'Th17 cocktail' }] }],
+      samples: { 'p:A1': { l: mix }, 'p:A2': { l: mix }, 't#1:1': { l: mix } },
+      series: {},
+      counts: {},
+      amountNames: {},
+      side: 'assay',
+      stain: {},
+      stainedIn: {},
+    } as unknown as Protocol['cards'][number]);
+    const board = calculate(protocol);
+    expect(answer(board, `${recipeFinalId('mix', 'r1')}:well`)).toBe('5 ng/mL');
+    expect(answer(board, `${recipeFinalId('mix', 'r1')}:tube`)).toBe('10 ng/mL');
+    expect(answer(board, `${mixFinalId('mix')}:tube`)).toBe('2×');
+    expect(board.names.has('th17 cocktail il-6 final conc. in the tubes')).toBe(true);
+  });
+
   it('reads the well total and the mix’s per-well volume under their other spellings', () => {
     const protocol = protocolWith([['Working dilution', '2000', '1:N']]);
     const values = protocol.cards.find(card => card.type === 'values');

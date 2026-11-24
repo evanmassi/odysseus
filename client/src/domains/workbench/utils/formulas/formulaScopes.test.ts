@@ -95,6 +95,30 @@ describe('formula scopes', () => {
     ]);
   });
 
+  it('adds up each container’s cells for a material in wells and tubes', () => {
+    const count = (name: string, counted: number): BoardName => ({
+      kind: 'count',
+      id: name,
+      name,
+      count: counted,
+    });
+    const split = calculateBoard([
+      count('Raji wells', 24),
+      count('Raji tubes', 6),
+      value('Raji cells/well', '10000', 'cells'),
+      value('Raji cells/tube', '500000', 'cells'),
+      value('Extra (dead vol.)', '10', '%'),
+    ]);
+    expect(calculationSuggestions(split, raji)).toEqual([
+      {
+        label: 'Total needed',
+        name: 'Raji total needed',
+        formula:
+          '(Raji cells/well × Raji wells + Raji cells/tube × Raji tubes) × (1 + Extra (dead vol.))',
+      },
+    ]);
+  });
+
   it('does not treat a per-well mass as cells', () => {
     const medium = material('Medium');
     const masses = calculateBoard([

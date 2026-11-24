@@ -1,8 +1,17 @@
 import { calculateBoard, type BoardName } from '../formulas/boardCalculation';
 
-import { CELLS_PER_WELL, EXTRA, MASS_PER_WELL, TOTAL_WELL_VOLUME } from './termList';
+import {
+  CELLS_PER_WELL,
+  EXTRA,
+  MASS_PER_WELL,
+  perLabwareKind,
+  TOTAL_WELL_VOLUME,
+  VOLUME_PER_WELL,
+  WELLS,
+} from './termList';
 import {
   findTerm,
+  isAssaySetting,
   settledValue,
   termMeaning,
   unitMismatch,
@@ -19,6 +28,28 @@ const value = (name: string, unit = ''): BoardName => ({
 
 const namesOf = (...entries: BoardName[]) => calculateBoard(entries).names;
 
+describe('isAssaySetting', () => {
+  it('knows the settings the math reads for the whole assay, under any spelling or prefix', () => {
+    for (const name of ['Total well vol.', 'Overage', 'Full Stain cocktail vol./well']) {
+      expect(isAssaySetting(name)).toBe(true);
+    }
+  });
+
+  it('leaves anything else unsorted', () => {
+    for (const name of ['Spin speed', 'Incubation', 'Total volume', '']) {
+      expect(isAssaySetting(name)).toBe(false);
+    }
+  });
+});
+
+describe('perLabwareKind', () => {
+  it('swaps well for the container’s word anywhere in a word, plural too', () => {
+    expect(perLabwareKind(TOTAL_WELL_VOLUME, 'tube').word).toBe('Total tube vol.');
+    expect(perLabwareKind(VOLUME_PER_WELL, 'sample').word).toBe('Vol./sample');
+    expect(perLabwareKind(WELLS, 'dish').word).toBe('Dishes');
+  });
+});
+
 describe('findTerm', () => {
   it('finds a value under its word or any accepted spelling, whatever its capitals', () => {
     for (const spelling of ['Well volume', 'Total well vol.', 'total WELL volume']) {
@@ -27,7 +58,16 @@ describe('findTerm', () => {
     }
   });
 
-  it('prefers the material’s own value over the whole experiment’s', () => {
+  it('finds a per-well word in any container’s form, the subject’s own container first', () => {
+    const names = namesOf(value('Total tube vol.', 'µL'), value('Raji vol./well', 'µL'));
+    expect(findTerm(names, TOTAL_WELL_VOLUME, [''])?.name).toBe('Total tube vol.');
+    const both = namesOf(value('Raji vol./well', 'µL'), value('Raji vol./tube', 'mL'));
+    expect(findTerm(both, VOLUME_PER_WELL, ['Raji'])?.name).toBe('Raji vol./well');
+    expect(findTerm(both, VOLUME_PER_WELL, ['Raji'], 'tube')?.name).toBe('Raji vol./tube');
+    expect(isAssaySetting('Cocktail vol./tube')).toBe(true);
+  });
+
+  it('prefers the material’s own value over Assay setup’s', () => {
     const names = namesOf(value('Overage', '%'), value('Raji extra (dead vol.)', '%'));
     expect(findTerm(names, EXTRA, ['Raji', ''])?.name).toBe('Raji extra (dead vol.)');
     expect(findTerm(names, EXTRA, ['Jurkat', ''])?.name).toBe('Overage');

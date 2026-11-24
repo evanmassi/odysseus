@@ -48,11 +48,7 @@ import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { recipeWarnings } from '../../../../utils/materials/materialRecipeCalculations';
 import { TOTAL_WELL_VOLUME, WELLS_USED } from '../../../../utils/terms/termList';
 import { addNamedValue } from '../../../../utils/values/valueEdits';
-import {
-  generalTitleOf,
-  joinValueName,
-  WHOLE_EXPERIMENT,
-} from '../../../../utils/values/valueNames';
+import { assaySetupTitleOf, joinValueName, GENERAL } from '../../../../utils/values/valueNames';
 import { CARD_ICONS } from '../../board/cardIcons';
 import { WorkbenchAddBar } from '../../board/WorkbenchAddBar';
 
@@ -162,12 +158,12 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
     [protocol]
   );
   const swatchOf = usePlateSwatches();
-  const generalTitle = generalTitleOf(protocol.cards);
+  const assaySetupTitle = assaySetupTitleOf(protocol.cards);
   const showsWorkedOut =
     protocol.cards.find(candidate => candidate.type === 'calculations')?.id === card.id;
   const sections = useMemo(
-    () => calculationSections(card, materials, board, showsWorkedOut, generalTitle),
-    [card, materials, board, showsWorkedOut, generalTitle]
+    () => calculationSections(card, materials, board, showsWorkedOut, assaySetupTitle),
+    [card, materials, board, showsWorkedOut, assaySetupTitle]
   );
   const warnings = useMemo(
     () =>
@@ -236,7 +232,7 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
     }, [layout, protocol, board, warnings])
   );
 
-  const sectionOf = (name: string) => calculationMaterial(name, materials)?.id ?? WHOLE_EXPERIMENT;
+  const sectionOf = (name: string) => calculationMaterial(name, materials)?.id ?? GENERAL;
   const edit = (mutate: (draft: Protocol) => void) => updateProtocol(mutate);
 
   const addCalculation = (material: MaterialItem | undefined, text: string) => {
@@ -253,7 +249,7 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
         card.id,
         { name, formula: expr },
         item => sectionOf(item.name),
-        material?.id ?? WHOLE_EXPERIMENT
+        material?.id ?? GENERAL
       );
     });
     setOpenId(added);
@@ -270,7 +266,7 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
   const [onlyPart] = layout.parts;
   const isTitled =
     layout.parts.length > 1 ||
-    (onlyPart?.kind === 'section' && onlyPart.section.key !== WHOLE_EXPERIMENT) ||
+    (onlyPart?.kind === 'section' && onlyPart.section.key !== GENERAL) ||
     onlyPart?.kind === 'table';
   const isEmpty = !layout.parts.length && !layout.missing.length;
 
@@ -284,7 +280,7 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
         card.id,
         { name: savedName, formula: expr },
         item => sectionOf(item.name),
-        material?.id ?? WHOLE_EXPERIMENT
+        material?.id ?? GENERAL
       );
     });
     if (!expr || typedCheck?.problem) setOpenId(added);
@@ -298,7 +294,7 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
         card.id,
         { name: suggestion.name, formula: suggestion.formula },
         item => sectionOf(item.name),
-        material?.id ?? WHOLE_EXPERIMENT
+        material?.id ?? GENERAL
       );
     });
 

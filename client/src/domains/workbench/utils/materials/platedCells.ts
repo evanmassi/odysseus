@@ -8,19 +8,26 @@ import {
 
 import { calculateBoard, nameKey } from '../formulas/boardCalculation';
 import { cellCount } from '../plateMap/cellRatios';
+import { labwareOf, labwareTypeAt } from '../plateMap/labwareCatalog';
+import { SAMPLE_NOUNS, type SampleNoun } from '../terms/termList';
 
 import { findDonor, donorsIn } from './materialDonors';
 import { findMaterial, listedMaterials, nameWithoutNotes } from './materialLookup';
 
 const NO_NAMES = calculateBoard([]);
 
+export interface CellPlacement {
+  noun: SampleNoun;
+  wells: number;
+  cells: number;
+  perWell: Set<number>;
+}
+
 export interface PlatedCells {
   subject: string;
   material: MaterialItem;
   donor: ExperimentDonor | undefined;
-  wells: number;
-  cells: number;
-  perWell: Set<number>;
+  placements: CellPlacement[];
 }
 
 export function platedCells(protocol: Pick<Protocol, 'cards'>): PlatedCells[] {
@@ -42,16 +49,24 @@ export function platedCells(protocol: Pick<Protocol, 'cards'>): PlatedCells[] {
           subject,
           material,
           donor: found?.donor,
-          wells: 0,
-          cells: 0,
-          perWell: new Set<number>(),
+          placements: [],
         };
-        entry.wells += 1;
-        entry.cells += count;
-        entry.perWell.add(count);
+        const noun = labwareOf(labwareTypeAt(plateMap, key)).kind;
+        let placement = entry.placements.find(candidate => candidate.noun === noun);
+        if (!placement) {
+          placement = { noun, wells: 0, cells: 0, perWell: new Set<number>() };
+          entry.placements.push(placement);
+        }
+        placement.wells += 1;
+        placement.cells += count;
+        placement.perWell.add(count);
         plated.set(nameKey(subject), entry);
       }
     }
   }
-  return [...plated.values()];
+  const order = (placement: CellPlacement) => SAMPLE_NOUNS.indexOf(placement.noun);
+  return [...plated.values()].map(entry => ({
+    ...entry,
+    placements: [...entry.placements].sort((a, b) => order(a) - order(b)),
+  }));
 }

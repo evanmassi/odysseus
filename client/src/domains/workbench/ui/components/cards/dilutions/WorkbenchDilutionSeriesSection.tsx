@@ -23,7 +23,7 @@ interface WorkbenchDilutionSeriesSectionProps {
   color: string | undefined;
   swatch: PlateSwatch;
   prep: DilutionPrep;
-  generalTitle: string;
+  assaySetupTitle: string;
   diluent: string;
   diluentPlaceholder: string;
   diluentChoices: readonly AutocompleteOption[];
@@ -51,7 +51,7 @@ export function WorkbenchDilutionSeriesSection({
   color,
   swatch,
   prep,
-  generalTitle,
+  assaySetupTitle,
   diluent,
   diluentPlaceholder,
   diluentChoices,
@@ -111,12 +111,7 @@ export function WorkbenchDilutionSeriesSection({
           key === 'extra' ? NO_EXTRA : undefined
         )
       );
-    return settingBox(
-      label,
-      control,
-      field.unit,
-      field.isWholeExperiment ? generalTitle : undefined
-    );
+    return settingBox(label, control, field.unit, field.isAssaySetup ? assaySetupTitle : undefined);
   };
 
   return (

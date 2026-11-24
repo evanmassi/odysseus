@@ -13,14 +13,15 @@ import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage, usageSummary, usageTitle } from '../../../../utils/formulas/nameUsage';
 import { displayValue } from '../../../../utils/formulas/quantities';
+import { materialGroup } from '../../../../utils/materials/materialCatalog';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
-import { materialFromGuess } from '../../../../utils/materials/materialItems';
+import { materialFromGuess, UNSORTED_GROUP } from '../../../../utils/materials/materialItems';
 import { materialKnowledge } from '../../../../utils/materials/materialMemory';
 import { plateNameOffers } from '../../../../utils/materials/plateNameOffers';
 import { labwareTitleOf } from '../../../../utils/plateMap/plateMapTabs';
 import { acceptStepReadings, readStepReadings } from '../../../../utils/steps/stepReadings';
 import { TOTAL_WELL_VOLUME, VOLUME_PER_WELL } from '../../../../utils/terms/termList';
-import { unitMismatch } from '../../../../utils/terms/termLookup';
+import { isAssaySetting, unitMismatch } from '../../../../utils/terms/termLookup';
 import { removePlateRow, type PlateValueRow } from '../../../../utils/values/plateValueRows';
 import {
   addRoutedValue,
@@ -28,6 +29,7 @@ import {
   addValueLines,
   addValueRow,
   materialsById,
+  moveValueToRow,
   removeValue,
   removeValueRow,
   renameValue,
@@ -37,6 +39,7 @@ import {
   setValueAmount,
   setValueUnit,
   type RemovedValues,
+  type ValueRowTarget,
 } from '../../../../utils/values/valueEdits';
 import {
   columnUnit,
@@ -46,7 +49,7 @@ import {
   writeCellUnit,
   writeCellValue,
 } from '../../../../utils/values/valueFill';
-import { WHOLE_EXPERIMENT, WHOLE_EXPERIMENT_TITLE } from '../../../../utils/values/valueNames';
+import { ASSAY_SETUP_TITLE, GENERAL } from '../../../../utils/values/valueNames';
 import { neededForText, valueNeeds } from '../../../../utils/values/valueNeeds';
 import {
   routeValueLine,
@@ -64,6 +67,7 @@ import {
 import { ADD_ICON } from '../../board/addIconClass';
 import { CARD_ICONS } from '../../board/cardIcons';
 import { WorkbenchMaterialPlateNamesSection } from '../materials/WorkbenchMaterialPlateNamesSection';
+import { WorkbenchMaterialSection } from '../materials/WorkbenchMaterialSection';
 
 import { WorkbenchValueAddField } from './WorkbenchValueAddField';
 import { WorkbenchValueGroupTable } from './WorkbenchValueGroupTable';
@@ -71,11 +75,13 @@ import {
   WorkbenchValueItem,
   type GeneralValueActions,
   type ValueItemField,
+  type ValueMoveTarget,
   type ValueRowData,
 } from './WorkbenchValueItem';
 import { WorkbenchValueNeededRow } from './WorkbenchValueNeededRow';
 import { WorkbenchValueReadingsSection } from './WorkbenchValueReadingsSection';
 import { WorkbenchValueSection } from './WorkbenchValueSection';
+import { WorkbenchValueUnsortedList } from './WorkbenchValueUnsortedList';
 
 import type { ValueCellView } from './WorkbenchValueCell';
 import type { ValueColumnActions } from './WorkbenchValueHeaderRow';
@@ -90,6 +96,7 @@ interface WorkbenchValuesPanelProps {
 interface GeneralEdit {
   itemId: string;
   cell: ValueItemField;
+  isInSetup?: boolean;
 }
 
 interface ColumnEdit {
@@ -241,8 +248,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
     [needs]
   );
   const generalItems = useMemo(
-    () =>
-      valuesInRow(card, WHOLE_EXPERIMENT).flatMap(item => ('materialField' in item ? [] : [item])),
+    () => valuesInRow(card, GENERAL).flatMap(item => ('materialField' in item ? [] : [item])),
     [card]
   );
   const usageIds = useMemo(
@@ -320,6 +326,35 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
       [generalItems, usageText, board.takenNameIds, blankNeeds]
     )
   );
+  const [setupRows, unsortedRows] = useMemo(() => {
+    const isInSetup = (row: ValueRowData) =>
+      generalEdit?.itemId === row.id && generalEdit.isInSetup !== undefined
+        ? generalEdit.isInSetup
+        : isAssaySetting(row.fullName);
+    return [generalRows.filter(isInSetup), generalRows.filter(row => !isInSetup(row))];
+  }, [generalRows, generalEdit]);
+  const moveTargetsByKey = useMemo(
+    () =>
+      new Map(
+        groups.flatMap(group =>
+          group.rows.flatMap((row): Array<[string, ValueMoveTarget & ValueRowTarget]> => {
+            if (row.isSubRow) return [];
+            const label = row.shownName || row.name;
+            if (row.material) {
+              return [
+                [row.id, { key: row.id, label, kind: 'material', materialId: row.material.id }],
+              ];
+            }
+            return row.valueRow && 'mixName' in row.valueRow
+              ? [[row.id, { key: row.id, label, kind: 'row', valueRowId: row.valueRow.id }]]
+              : [];
+          })
+        )
+      ),
+    [groups]
+  );
+  const moveTargets = useMemo(() => [...moveTargetsByKey.values()], [moveTargetsByKey]);
+  const isInSetupNow = (itemId: string) => setupRows.some(row => row.id === itemId);
 
   const edit = (mutate: (draft: Protocol) => void) => updateProtocol(mutate);
 
@@ -344,7 +379,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
   const setGeneralTitle = (title: string) =>
     edit(draft => {
       const target = draft.cards.find(candidate => candidate.id === card.id);
-      if (target?.type === 'values') target.generalTitle = title;
+      if (target?.type === 'values') target.assaySetupTitle = title;
     });
 
   const remove = (mutate: (draft: Protocol) => RemovedValues | undefined) => {
@@ -504,21 +539,39 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
   };
 
   const generalActions = useStableActions<GeneralValueActions>({
-    onEdit: (itemId, cell) => setGeneralEdit(cell ? { itemId, cell } : undefined),
+    onEdit: (itemId, cell) =>
+      setGeneralEdit(cell ? { itemId, cell, isInSetup: isInSetupNow(itemId) } : undefined),
     onMoveEdit: (itemId, cell, step) => {
-      const cells = generalItems.flatMap(item =>
-        (['name', 'value'] as const).map(next => ({ itemId: item.id, cell: next }))
+      const cells = [...setupRows, ...unsortedRows].flatMap(row =>
+        (['name', 'value'] as const).map(next => ({ itemId: row.id, cell: next }))
       );
       const at = cells.findIndex(
         candidate => candidate.itemId === itemId && candidate.cell === cell
       );
-      setGeneralEdit(cells[at + step]);
+      const next = cells[at + step];
+      setGeneralEdit(next && { ...next, isInSetup: isInSetupNow(next.itemId) });
+    },
+    onMove: (itemId, targetKey) => {
+      const target = moveTargetsByKey.get(targetKey);
+      if (!target) return;
+      setGeneralEdit(undefined);
+      edit(draft => moveValueToRow(draft, card.id, itemId, target));
     },
     onRename: (itemId, name) => edit(draft => renameValue(draft, card.id, itemId, name)),
     onValueChange: (itemId, value) => edit(draft => setValueAmount(draft, card.id, itemId, value)),
     onUnitChange: (itemId, unit) => edit(draft => setValueUnit(draft, card.id, itemId, unit)),
     onRemove: itemId => remove(draft => removeValue(draft, card.id, itemId)),
   });
+
+  const hasUnsortedGroup = groups.some(group => group.key === UNSORTED_GROUP);
+  const unsortedList = unsortedRows.length > 0 && (
+    <WorkbenchValueUnsortedList
+      rows={unsortedRows}
+      editing={generalEdit}
+      actions={generalActions}
+      moveTargets={moveTargets}
+    />
+  );
 
   return (
     <div className="px-2 pb-3 pt-1">
@@ -551,10 +604,10 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
       )}
       <WorkbenchValueSection
         title={
-          groups.length > 0 ? (
+          groups.length > 0 || unsortedRows.length > 0 ? (
             <span className="inline-edit">
               <input
-                value={card.generalTitle ?? WHOLE_EXPERIMENT_TITLE}
+                value={card.assaySetupTitle ?? ASSAY_SETUP_TITLE}
                 placeholder="Name this row"
                 aria-label="Row name"
                 spellCheck={false}
@@ -571,7 +624,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
           )
         }
       >
-        {generalRows.map(row => (
+        {setupRows.map(row => (
           <WorkbenchValueItem
             key={row.id}
             row={row}
@@ -616,8 +669,21 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
             actions={rowActions}
             columnActions={columnActions}
             renderAdder={row => renderAdder(group, row)}
+            {...(group.key === UNSORTED_GROUP && {
+              looseValues: unsortedList,
+              looseCount: unsortedRows.length,
+            })}
           />
         ))}
+        {!hasUnsortedGroup && unsortedList && (
+          <WorkbenchMaterialSection
+            title={materialGroup(UNSORTED_GROUP).label}
+            count={unsortedRows.length}
+            isAccented
+          >
+            {unsortedList}
+          </WorkbenchMaterialSection>
+        )}
       </div>
       {removed && (
         <p className="mt-3 flex items-center gap-2 px-2 text-body-sm text-muted-foreground">

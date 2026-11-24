@@ -1,3 +1,5 @@
+import { LABWARE_KIND_PLURALS, MIXED_LABWARE_WORDS } from '../plateMap/labwareCatalog';
+
 import type { UnitKind } from '@odysseus/shared-schemas';
 
 export interface Term {
@@ -410,6 +412,7 @@ export const TERMS: readonly Term[] = [
   VIABILITY,
   WELLS,
   WELLS_USED,
+  WELLS_USED,
   COCKTAIL_VOLUME_PER_WELL,
   COCKTAIL_WELLS,
   COCKTAIL_ANTIBODIES,
@@ -432,13 +435,42 @@ export const TERMS: readonly Term[] = [
 
 export const PER_WELL_TERMS: readonly Term[] = [VOLUME_PER_WELL, CELLS_PER_WELL, MASS_PER_WELL];
 
-const ENDS_IN_WELL = /well$/i;
+export const ASSAY_SETUP_TERMS: readonly Term[] = [
+  TOTAL_WELL_VOLUME,
+  EXTRA,
+  COCKTAIL_VOLUME_PER_WELL,
+];
 
-export const perLabwareKind = (term: Term, noun: string): Term =>
+const SAMPLE_PLURALS = { ...LABWARE_KIND_PLURALS, sample: MIXED_LABWARE_WORDS.plural };
+
+export type SampleNoun = keyof typeof SAMPLE_PLURALS;
+
+export const SAMPLE_NOUNS = Object.keys(SAMPLE_PLURALS) as SampleNoun[];
+
+const PER_SAMPLE_TERMS: readonly Term[] = [
+  ...PER_WELL_TERMS,
+  WELLS,
+  WELLS_USED,
+  TOTAL_WELL_VOLUME,
+  COCKTAIL_VOLUME_PER_WELL,
+];
+
+const withLeadCase = (like: string, word: string) =>
+  /^[A-Z]/.test(like) ? word[0].toUpperCase() + word.slice(1) : word;
+
+const inSampleNoun = (text: string, noun: SampleNoun) =>
+  text
+    .replace(/\bwells\b/gi, found => withLeadCase(found, SAMPLE_PLURALS[noun]))
+    .replace(/\bwell\b/gi, found => withLeadCase(found, noun));
+
+export const perLabwareKind = (term: Term, noun: SampleNoun): Term =>
   noun === 'well'
     ? term
     : {
         ...term,
-        word: term.word.replace(ENDS_IN_WELL, noun),
-        alsoAccepted: term.alsoAccepted.map(spelling => spelling.replace(ENDS_IN_WELL, noun)),
+        word: inSampleNoun(term.word, noun),
+        alsoAccepted: term.alsoAccepted.map(spelling => inSampleNoun(spelling, noun)),
       };
+
+export const formsOnEveryLabware = (term: Term): readonly Term[] =>
+  PER_SAMPLE_TERMS.includes(term) ? SAMPLE_NOUNS.map(noun => perLabwareKind(term, noun)) : [term];

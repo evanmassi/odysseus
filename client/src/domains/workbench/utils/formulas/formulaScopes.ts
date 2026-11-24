@@ -10,7 +10,7 @@ import {
   WELLS_USED,
   type Term,
 } from '../terms/termList';
-import { findTerm } from '../terms/termLookup';
+import { findTerm, findTermOn, sampleNounsOf } from '../terms/termLookup';
 import { joinValueName, upperLead } from '../values/valueNames';
 
 import { nameKey, type SolvedBoard } from './boardCalculation';
@@ -173,31 +173,52 @@ export function calculationSuggestions(
   const own = (label: string) => joinValueName(owner, label);
   const find = (term: Term, owners: readonly string[]) => findTerm(board.names, term, owners)?.name;
   const needed = find(TOTAL_NEEDED, [owner]);
-  const wells = find(WELLS, [owner]) ?? find(WELLS_USED, ['']);
   const extra = find(EXTRA, [owner, '']);
-  const overage = extra ? ` × (1 + ${extra})` : '';
-  const cells = find(CELLS_PER_WELL, [owner]);
-  const volume = find(VOLUME_PER_WELL, [owner]);
-  const amount = cells ?? find(MASS_PER_WELL, [owner]) ?? volume;
+  const nouns = sampleNounsOf(board.names, [owner]);
+  const isSplit = nouns.length > 1;
+  const placements = (isSplit ? nouns : [nouns[0]]).map(noun => {
+    const inIt = (term: Term) =>
+      (noun && isSplit
+        ? findTermOn(board.names, term, [owner], noun)
+        : findTerm(board.names, term, [owner], noun)
+      )?.name;
+    const cells = inIt(CELLS_PER_WELL);
+    const volume = inIt(VOLUME_PER_WELL);
+    return {
+      wells: inIt(WELLS) ?? (isSplit ? undefined : find(WELLS_USED, [''])),
+      cells,
+      volume,
+      amount: cells ?? inIt(MASS_PER_WELL) ?? volume,
+    };
+  });
+  const summed = (terms: string[]) => {
+    const sum = terms.join(' + ');
+    if (!extra) return sum;
+    return `${isSplit ? `(${sum})` : sum} × (1 + ${extra})`;
+  };
+  const hasCells = placements.every(placement => placement.cells);
   const liveConcentration = find(LIVE_CELL_CONCENTRATION, [owner]);
   const recipes = [
     {
       label: TOTAL_NEEDED.word,
       name: own(TOTAL_NEEDED.word),
-      isReady: !!amount && !!wells && !needed,
-      formula: `${amount} × ${wells}${overage}`,
+      isReady: placements.every(({ amount, wells }) => amount && wells) && !needed,
+      formula: summed(placements.map(({ amount, wells }) => `${amount} × ${wells}`)),
     },
     {
       label: 'To take',
       name: own('To take'),
-      isReady: !!cells && !!needed && !!liveConcentration,
+      isReady: hasCells && !!needed && !!liveConcentration,
       formula: `${needed} ÷ ${liveConcentration}`,
     },
     {
       label: TOTAL_VOLUME_NEEDED.word,
       name: own(TOTAL_VOLUME_NEEDED.word),
-      isReady: !!cells && !!volume && !!wells && !find(TOTAL_VOLUME_NEEDED, [owner]),
-      formula: `${wells} × ${volume}${overage}`,
+      isReady:
+        hasCells &&
+        placements.every(({ volume, wells }) => volume && wells) &&
+        !find(TOTAL_VOLUME_NEEDED, [owner]),
+      formula: summed(placements.map(({ volume, wells }) => `${wells} × ${volume}`)),
     },
   ];
   return recipes

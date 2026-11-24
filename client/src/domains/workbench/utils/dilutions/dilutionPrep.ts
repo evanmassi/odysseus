@@ -54,7 +54,7 @@ export interface SharedPrepField {
   key: SharedPrepKey;
   value: string;
   unit: string;
-  isWholeExperiment: boolean;
+  isAssaySetup: boolean;
   edit: SharedPrepEdit;
 }
 
@@ -122,16 +122,16 @@ function sharedPrepField(
   const { term, unit } = SHARED_PREP_VALUES[key];
   if (!found) {
     const name = key === 'totalWellVolume' ? term.word : ownPrepValueName(subject, key);
-    return { key, value: '', unit, isWholeExperiment: false, edit: { kind: 'new', name, unit } };
+    return { key, value: '', unit, isAssaySetup: false, edit: { kind: 'new', name, unit } };
   }
-  const { entry, isWholeExperiment } = found;
+  const { entry, isAssaySetup } = found;
   const source = valueSourceOf(protocol, entry.id);
   if (source && entry.kind === 'value') {
     const edit: SharedPrepEdit = { kind: 'source', source };
-    return { key, value: entry.value, unit: entry.unit, isWholeExperiment, edit };
+    return { key, value: entry.value, unit: entry.unit, isAssaySetup, edit };
   }
   const edit: SharedPrepEdit = { kind: 'readOnly', hint: READ_ONLY_HINTS[entry.kind] };
-  return { key, value: describeName(board, entry.name).text, unit: '', isWholeExperiment, edit };
+  return { key, value: describeName(board, entry.name).text, unit: '', isAssaySetup, edit };
 }
 
 function sharedMicroliters(board: SolvedBoard, subject: string, key: SharedPrepKey) {

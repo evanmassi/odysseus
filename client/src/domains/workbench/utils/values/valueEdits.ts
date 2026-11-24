@@ -275,6 +275,29 @@ export function addRoutedValue(
   );
 }
 
+export type ValueRowTarget =
+  | { kind: 'material'; materialId: string }
+  | { kind: 'row'; valueRowId: string };
+
+export function moveValueToRow(
+  draft: Protocol,
+  cardId: string,
+  itemId: string,
+  target: ValueRowTarget
+): void {
+  const card = valuesCard(draft, cardId);
+  const item = card?.items.find(candidate => candidate.id === itemId);
+  if (!card || !item || 'materialField' in item) return;
+  const valueRowId =
+    target.kind === 'material'
+      ? materialRowId(draft, cardId, target.materialId)
+      : target.valueRowId;
+  if (!valueRowId) return;
+  const moved = { ...item, row: valueRowId };
+  card.items.splice(card.items.indexOf(item), 1);
+  insertAfterPeers(card, valueRowId, [moved]);
+}
+
 export function renameValueRow(
   draft: Protocol,
   cardId: string,

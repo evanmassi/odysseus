@@ -149,6 +149,58 @@ describe('flow panel names', () => {
     });
   });
 
+  it('gives a stain in wells and tubes each container’s vol. from its own cocktail volume', () => {
+    const inBoth = (items: Array<{ id: string; name: string; value: string; unit: string }>) => {
+      const values: ProtocolCard = {
+        ...placement,
+        id: 'values',
+        type: 'values',
+        title: 'Values',
+        items,
+        rows: [],
+      };
+      const base = protocol([values]);
+      return {
+        ...base,
+        cards: base.cards.map(card =>
+          card.id === 'plate'
+            ? {
+                ...plateMap,
+                otherLabware: [{ id: 't', labware: 'facs' as const, count: 2 }],
+                stain: { 'p1:A1': 'full', 'p1:A2': 'full', 't#1:1': 'full', 't#2:1': 'full' },
+              }
+            : card
+        ),
+      } as Protocol;
+    };
+    const board = calculateBoard(
+      collectBoardNames(
+        inBoth([
+          { id: 'w', name: 'Surface cocktail vol./well', value: '50', unit: 'µL' },
+          { id: 't', name: 'Surface cocktail vol./tube', value: '100', unit: 'µL' },
+        ])
+      )
+    );
+    expect(answer(board, 'CD3 BV421 vol./well')).toBe('0.5 µL');
+    expect(answer(board, 'CD3 BV421 vol./tube')).toBe('1 µL');
+    expect(board.names.get(nameKey('Full stain Surface cocktail wells'))).toMatchObject({
+      count: 2,
+    });
+    expect(board.names.get(nameKey('Full stain Surface cocktail tubes'))).toMatchObject({
+      count: 2,
+    });
+    const missing = calculateBoard(
+      collectBoardNames(
+        inBoth([{ id: 'w', name: 'Surface cocktail vol./well', value: '50', unit: 'µL' }])
+      )
+    );
+    const entry = missing.names.get(nameKey('CD3 BV421 vol./tube'));
+    expect(entry && missing.results.get(entry.id)).toMatchObject({
+      status: 'error',
+      message: 'Needs "Surface cocktail vol./tube" or "Cocktail vol./tube" in Values',
+    });
+  });
+
   const surfaceVolume: ProtocolCard = {
     ...placement,
     id: 'values',

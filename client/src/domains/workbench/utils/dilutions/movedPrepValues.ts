@@ -76,8 +76,7 @@ export function withMovedPrepValues(
         const board = boardOf(draft);
         const found = sharedPrepSource(board.names, run.subject, key);
         const keptName =
-          found &&
-          (!found.isWholeExperiment || givesSameNumber(board, found.entry.name, value, unit))
+          found && (!found.isAssaySetup || givesSameNumber(board, found.entry.name, value, unit))
             ? found.entry.name
             : undefined;
         const sharedName = keptName ?? ownPrepValueName(run.subject, key);

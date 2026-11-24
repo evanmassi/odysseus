@@ -25,6 +25,7 @@ import {
   FINAL_CONCENTRATION,
   MASS_PER_WELL,
   perLabwareKind,
+  type SampleNoun,
   POINTS,
   TOP_AMOUNT,
   TOP_CONCENTRATION,
@@ -205,7 +206,7 @@ function countLabware(card: PlateMapCard): PlateMapCount[] {
   return [...valueCounts(card), ...used, ...plateTotals, ...setTotals];
 }
 
-function amountNoun(unit: string, labwareKind: string): string {
+function amountNoun(unit: string, labwareKind: SampleNoun): string {
   if (unit === PAIR_NOTATION) return 'ratio';
   const key = dimensionKey(unitScale(unit)?.dimension ?? {});
   if (CONCENTRATION_DIMENSIONS.has(key)) return lowerLead(FINAL_CONCENTRATION.word);
@@ -363,13 +364,14 @@ export const plateMapCounts: (card: PlateMapCard) => readonly PlateMapCount[] =
 export const plateAmounts: (card: PlateMapCard) => readonly PlateAmount[] =
   cachedPerCard(amountsOnPlate);
 
-const wellTexts = cachedPerCard((card: PlateMapCard): string[] =>
-  Object.values(card.samples).map(lines =>
-    card.lines
+const wellTexts = cachedPerCard((card: PlateMapCard) =>
+  Object.entries(card.samples).map(([key, lines]) => ({
+    noun: labwareOf(labwareTypeAt(card, key)).kind,
+    text: card.lines
       .map(line => lineValueOf(line, lines[line.id])?.text ?? '')
       .join(' | ')
-      .toLowerCase()
-  )
+      .toLowerCase(),
+  }))
 );
 
 function mentionPattern(name: string): RegExp {
@@ -384,7 +386,19 @@ export function materialWellCounts(
   cards: readonly PlateMapCard[],
   materials: readonly MaterialItem[]
 ): Map<MaterialItem, number> {
-  const counts = new Map<MaterialItem, number>();
+  return new Map(
+    [...materialSampleCounts(cards, materials)].map(([material, byNoun]) => [
+      material,
+      [...byNoun.values()].reduce((sum, count) => sum + count, 0),
+    ])
+  );
+}
+
+export function materialSampleCounts(
+  cards: readonly PlateMapCard[],
+  materials: readonly MaterialItem[]
+): Map<MaterialItem, Map<SampleNoun, number>> {
+  const counts = new Map<MaterialItem, Map<SampleNoun, number>>();
   const patterns = materials.map(material => ({
     material,
     names: [
@@ -397,11 +411,12 @@ export function materialWellCounts(
       .map(mentionPattern),
   }));
   for (const card of cards) {
-    for (const text of wellTexts(card)) {
+    for (const { noun, text } of wellTexts(card)) {
       for (const { material, names } of patterns) {
-        if (names.some(name => name.test(text))) {
-          counts.set(material, (counts.get(material) ?? 0) + 1);
-        }
+        if (!names.some(name => name.test(text))) continue;
+        const byNoun = counts.get(material) ?? new Map<SampleNoun, number>();
+        byNoun.set(noun, (byNoun.get(noun) ?? 0) + 1);
+        counts.set(material, byNoun);
       }
     }
   }

@@ -48,7 +48,7 @@ describe('valueNeeds', () => {
     });
   });
 
-  it('asks for the well volume under Whole experiment once the mix has its volume', () => {
+  it('asks for the well volume under Assay setup once the mix has its volume', () => {
     const needs = needsFor([
       { id: 'v', name: 'Stain mix volume per well', value: '50', unit: 'µL' },
     ]);

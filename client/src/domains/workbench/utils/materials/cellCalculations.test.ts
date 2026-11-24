@@ -137,6 +137,79 @@ describe('cell math for a donor on the plate', () => {
   });
 });
 
+describe('cell math for a donor in tubes', () => {
+  const inTubes = (values: Array<[string, string, string]>): Protocol => {
+    const protocol = protocolWith({ 'live-cells': '1e7' }, values);
+    const plateMap = protocol.cards.find(card => card.type === 'plateMap');
+    if (plateMap?.type !== 'plateMap') throw new Error('no plate map');
+    plateMap.plates = [];
+    plateMap.otherLabware = [{ id: 't', labware: 'facs', count: 3 }];
+    plateMap.samples = Object.fromEntries(
+      [1, 2, 3].map(n => [`t#${n}:1`, { d: { valueId: 'v1', amount: '1e5', unit: 'cells' } }])
+    );
+    return protocol;
+  };
+
+  it('reads the volume per tube and names its own lines for tubes', () => {
+    const board = calculate(inTubes([['PBMC vol./tube', '1', 'mL']]));
+    expect(answer(board, 'needed')).toBe('3.00E+5 cells');
+    expect(answer(board, 'plating')).toBe('1.00E+5 cells/mL');
+    expect(board.names.get('donor 1 tubes')).toMatchObject({ kind: 'count', count: 3 });
+    expect(board.names.has('donor 1 cells in the tubes')).toBe(true);
+    expect(board.names.has('donor 1 wells')).toBe(false);
+  });
+
+  const inWellsAndTubes = (values: Array<[string, string, string]>): Protocol => {
+    const protocol = inTubes([['PBMC volume per well', '100', 'µL'], ...values]);
+    const plateMap = protocol.cards.find(card => card.type === 'plateMap');
+    const materials = protocol.cards.find(card => card.type === 'materials');
+    if (plateMap?.type !== 'plateMap' || materials?.type !== 'materials') throw new Error('cards');
+    const cells = (amount: string) => ({ d: { valueId: 'v1', amount, unit: 'cells' } });
+    plateMap.plates = [{ id: 'p', labware: '96', name: '' }];
+    plateMap.otherLabware = [{ id: 't', labware: 'facs', count: 2 }];
+    plateMap.samples = {
+      ...Object.fromEntries(['A1', 'A2', 'A3'].map(well => [`p:${well}`, cells('1e5')])),
+      ...Object.fromEntries([1, 2].map(n => [`t#${n}:1`, cells('5e5')])),
+    };
+    const [donor] = materials.items[0].donors?.rows ?? [];
+    donor.values = { 'cells-per-vial': '5e6', 'live-cells': '1e7', 'live-cell-conc': '2e6' };
+    return protocol;
+  };
+
+  it('thaws once for wells and tubes, then takes and resuspends each container’s cells', () => {
+    const board = calculate(
+      inWellsAndTubes([
+        ['PBMC vol./tube', '1', 'mL'],
+        ['PBMC extra', '10', '%'],
+      ])
+    );
+    expect(answer(board, 'needed:well')).toBe('3.30E+5 cells');
+    expect(answer(board, 'needed:tube')).toBe('1.10E+6 cells');
+    expect(answer(board, 'needed')).toBe('1.43E+6 cells');
+    expect(answer(board, 'vials')).toBe('1');
+    expect(answer(board, 'plating:well')).toBe('1.00E+6 cells/mL');
+    expect(answer(board, 'plating:tube')).toBe('5.00E+5 cells/mL');
+    expect(answer(board, 'take:well')).toBe('165 µL');
+    expect(answer(board, 'resuspend:well')).toBe('330 µL');
+    expect(answer(board, 'take:tube')).toBe('550 µL');
+    expect(answer(board, 'resuspend:tube')).toBe('2.2 mL');
+    expect(answer(board, 'left-over')).toBe('8.57E+6 cells');
+    expect(board.names.get('donor 1 tubes')).toMatchObject({ kind: 'count', count: 2 });
+  });
+
+  it('asks for the tubes’ own volume instead of borrowing the wells’', () => {
+    expect(answer(calculate(inWellsAndTubes([])), 'plating:tube')).toMatchObject({
+      message: 'Needs "Vol./tube" in Values, the volume of cells added to each tube',
+    });
+  });
+
+  it('asks for the volume per tube in tube words', () => {
+    expect(answer(calculate(inTubes([])), 'plating')).toMatchObject({
+      message: 'Needs "Vol./tube" in Values, the volume of cells added to each tube',
+    });
+  });
+});
+
 describe('cell math for cells diluted from a stock', () => {
   const hkca = {
     id: 'hkca',

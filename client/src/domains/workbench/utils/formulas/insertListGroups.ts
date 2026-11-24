@@ -1,6 +1,7 @@
-import { materialGroupsOf } from '../materials/materialCatalog';
+import { materialGroup, materialGroupsOf } from '../materials/materialCatalog';
 import { UNSORTED_GROUP } from '../materials/materialItems';
-import { WHOLE_EXPERIMENT } from '../values/valueNames';
+import { isAssaySetting } from '../terms/termLookup';
+import { GENERAL } from '../values/valueNames';
 
 import { sectionKeyOf } from './calculationSections';
 import { nameWithinOwner } from './formulaScopes';
@@ -35,7 +36,7 @@ export function insertListGroups(
   materials: readonly MaterialItem[],
   customGroups: readonly string[],
   isForFormula: boolean,
-  generalTitle: string
+  assaySetupTitle: string
 ): InsertListGroup[] {
   const entries = [...board.names.values()];
   const materialGroups = inCardOrder(materials, customGroups).map(
@@ -69,9 +70,12 @@ export function insertListGroups(
       continue;
     }
     const key = sectionKeyOf(entry.name, entry.workedOut, materials);
-    const group =
-      key === WHOLE_EXPERIMENT
-        ? groupFor(WHOLE_EXPERIMENT, generalTitle)
+    const isUnsortedValue =
+      key === GENERAL && entry.kind === 'value' && !entry.workedOut && !isAssaySetting(entry.name);
+    const group = isUnsortedValue
+      ? groupFor(UNSORTED_GROUP, materialGroup(UNSORTED_GROUP).label)
+      : key === GENERAL
+        ? groupFor(GENERAL, assaySetupTitle)
         : groupFor(key, entry.workedOut?.subject ?? '');
     const row = { name: entry.name, label: nameWithinOwner(entry.name, group.title), value };
     if (entry.workedOut) workedOut.set(group.key, [...(workedOut.get(group.key) ?? []), row]);
@@ -79,9 +83,10 @@ export function insertListGroups(
   }
   for (const [key, rows] of workedOut) groups.get(key)?.rows.push(...rows);
 
-  const whole = groups.get(WHOLE_EXPERIMENT);
-  groups.delete(WHOLE_EXPERIMENT);
-  return [...groups.values(), ...(whole ? [whole] : [])].filter(
-    group => group.rows.length || group.headingName
-  );
+  const trailing = [GENERAL, UNSORTED_GROUP].flatMap(key => {
+    const group = groups.get(key);
+    groups.delete(key);
+    return group ? [group] : [];
+  });
+  return [...groups.values(), ...trailing].filter(group => group.rows.length || group.headingName);
 }

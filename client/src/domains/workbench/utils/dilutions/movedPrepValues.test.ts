@@ -27,7 +27,7 @@ describe('moving a series’ own numbers into Values on open', () => {
     expect(drugValues(openedWith(() => {}))).toEqual(['Vol./well 20 µL']);
   });
 
-  it('puts a number that differs from Whole experiment on the drug’s row', () => {
+  it('puts a number that differs from Assay setup on the drug’s row', () => {
     const protocol = openedWith(cardOf => {
       Object.assign(prepIn(cardOf), { wellVolume: '150', extraPercent: '25' });
     });

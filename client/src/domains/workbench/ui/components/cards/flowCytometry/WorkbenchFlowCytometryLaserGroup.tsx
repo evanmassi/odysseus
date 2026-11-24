@@ -28,12 +28,13 @@ interface WorkbenchFlowCytometryLaserGroupProps {
   detectorOptions: SelectOption[];
   candidates: readonly MarkerCandidate[];
   stainings: readonly string[];
-  amounts: ReadonlyMap<string, StainAmount>;
+  amounts: ReadonlyMap<string, readonly StainAmount[]>;
+  amountColumnCount: number;
   actions: FlowCytometryActions;
 }
 
-const COLUMNS_AFTER_FILTER = 8;
-const NO_AMOUNT: StainAmount = {};
+const COLUMNS_AFTER_FILTER_BESIDE_AMOUNTS = 7;
+const NO_AMOUNTS: readonly StainAmount[] = [];
 const WARNING_TONE = 'var(--color-warning-bg)';
 
 function groupedOptions(
@@ -64,6 +65,7 @@ export function WorkbenchFlowCytometryLaserGroup({
   candidates,
   stainings,
   amounts,
+  amountColumnCount,
   actions,
 }: WorkbenchFlowCytometryLaserGroupProps) {
   const markers = laser.slots.flatMap(slot => slot.markers);
@@ -132,7 +134,10 @@ export function WorkbenchFlowCytometryLaserGroup({
             >
               {leadOnce()}
               <WorkbenchFlowCytometryDetectorCells detector={slot.detector} />
-              <td colSpan={COLUMNS_AFTER_FILTER} className={FLOW_CYTOMETRY_CELL}>
+              <td
+                colSpan={COLUMNS_AFTER_FILTER_BESIDE_AMOUNTS + amountColumnCount}
+                className={FLOW_CYTOMETRY_CELL}
+              >
                 <span className="flex items-center gap-2">
                   <span
                     aria-hidden
@@ -182,7 +187,7 @@ export function WorkbenchFlowCytometryLaserGroup({
               />
             }
             stainings={stainings}
-            amount={amounts.get(marker.row.id) ?? NO_AMOUNT}
+            amounts={amounts.get(marker.row.id) ?? NO_AMOUNTS}
             actions={actions}
           />
         ));
@@ -191,7 +196,10 @@ export function WorkbenchFlowCytometryLaserGroup({
         <tr className="text-muted-foreground">
           {leadOnce()}
           <WorkbenchFlowCytometryDetectorCells detector={undefined} />
-          <td colSpan={COLUMNS_AFTER_FILTER} className={FLOW_CYTOMETRY_CELL}>
+          <td
+            colSpan={COLUMNS_AFTER_FILTER_BESIDE_AMOUNTS + amountColumnCount}
+            className={FLOW_CYTOMETRY_CELL}
+          >
             <span className="flex items-center">
               {addMarker(
                 `Add a marker on ${laser.name}`,

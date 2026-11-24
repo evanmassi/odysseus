@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+import {
+  ASSAY_SETUP_TITLE_FILE_VERSION,
+  assaySetupTitleFileSchema,
+} from './assaySetupTitleUpgrade';
 import { PAINTED_GROUPS_FILE_VERSION, paintedGroupsFileSchema } from './paintedGroupUpgrade';
 import { SERIES_DILUENT_FILE_VERSION, seriesDiluentFileSchema } from './seriesDiluentUpgrade';
 import { moveStainsToStainSide } from './stainSideUpgrade';
@@ -499,6 +503,7 @@ function upgradeFile(raw: unknown): unknown {
     SAVED_WORDS_FILE_VERSION,
     SERIES_PREP_FILE_VERSION,
     MARKER_DILUTION_FILE_VERSION,
+    ASSAY_SETUP_TITLE_FILE_VERSION,
   ].includes(Number(versionOf(raw)));
   let file = isKnownVersion ? raw : legacyProtocolFile.parse(raw);
   // PITFALL: painted groups ride through as unknown keys and are retired only once the file reads in today's words, so the retiring code can stay on the live helpers.
@@ -510,6 +515,9 @@ function upgradeFile(raw: unknown): unknown {
   if (versionOf(file) === SERIES_PREP_FILE_VERSION) file = seriesPrepFileSchema.parse(file);
   if (versionOf(file) === MARKER_DILUTION_FILE_VERSION) {
     file = markerDilutionFileSchema.parse(file);
+  }
+  if (versionOf(file) === ASSAY_SETUP_TITLE_FILE_VERSION) {
+    file = assaySetupTitleFileSchema.parse(file);
   }
   return paintedGroupsFileSchema.parse(file);
 }

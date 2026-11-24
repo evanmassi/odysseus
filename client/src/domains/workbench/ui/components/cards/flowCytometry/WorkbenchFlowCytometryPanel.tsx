@@ -5,7 +5,10 @@ import { HeaderStrip, PanelEmptyState, Select, Tooltip } from '@shared/ui';
 import { useFluorCatalog } from '../../../../hooks/useFluorCatalog';
 import { useCardsOf, useProtocolWith, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { BUILT_IN_CYTOMETERS } from '../../../../utils/flowCytometry/cytometerCatalog';
-import { stainAmountId } from '../../../../utils/flowCytometry/flowCytometryNames';
+import {
+  stainAmountId,
+  stainSampleNouns,
+} from '../../../../utils/flowCytometry/flowCytometryNames';
 import {
   panelLayout,
   markerCandidates,
@@ -15,8 +18,14 @@ import {
 import { markerCandidatesOn } from '../../../../utils/flowCytometry/markerPlacement';
 import { calculationAnswerText } from '../../../../utils/formulas/boardCalculation';
 import { listedMaterials } from '../../../../utils/materials/materialLookup';
-import { stainedPlaces } from '../../../../utils/plateMap/stainSide';
-import { ANTIBODY_DILUTION, VOLUME_PER_WELL } from '../../../../utils/terms/termList';
+import { stainedPlaces, stainedSampleCounts } from '../../../../utils/plateMap/stainSide';
+import {
+  ANTIBODY_DILUTION,
+  perLabwareKind,
+  VOLUME_PER_WELL,
+  WELLS,
+} from '../../../../utils/terms/termList';
+import { lowerLead } from '../../../../utils/values/valueNames';
 import { CARD_ICONS } from '../../board/cardIcons';
 
 import {
@@ -45,7 +54,7 @@ interface WorkbenchFlowCytometryPanelProps {
 }
 
 const NUMBER_HEAD_CELL = `w-24 ${FLOW_CYTOMETRY_NUMBER_HEAD_CELL}`;
-const COLUMN_COUNT = 11;
+const COLUMNS_BESIDE_AMOUNTS = 10;
 
 export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPanelProps) {
   const actions = useFlowCytometryActions(card);
@@ -54,26 +63,22 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
   const catalog = useFluorCatalog();
   const layout = useMemo(() => panelLayout(card, materials, catalog), [card, materials, catalog]);
   const stainings = useMemo(() => panelStainings(card), [card]);
-  const amountEntries = useWorkbenchData(state =>
-    card.markers.map((row): [string, StainAmount] => {
-      const result = state.board.results.get(stainAmountId(row.id));
-      if (result?.status === 'ok') return [row.id, { text: calculationAnswerText(result) }];
-      return [row.id, { problem: result?.status === 'error' ? result.message : undefined }];
-    })
-  );
-  const amounts = useMemo(() => new Map(amountEntries), [amountEntries]);
   const plateCards = useCardsOf('plateMap');
   const stainPlaces = useMemo(() => stainedPlaces(plateCards), [plateCards]);
-  const wellsPerStain = useMemo(
-    () =>
-      new Map(
-        [...stainPlaces].map(([stainId, places]) => [
-          stainId,
-          places.reduce((sum, place) => sum + place.count, 0),
-        ])
-      ),
-    [stainPlaces]
+  const samples = useMemo(() => stainedSampleCounts(plateCards), [plateCards]);
+  const amountNouns = useMemo(() => stainSampleNouns(card.stains, samples), [card, samples]);
+  const amountEntries = useWorkbenchData(state =>
+    card.markers.map((row): [string, StainAmount[]] => [
+      row.id,
+      amountNouns.map((noun): StainAmount => {
+        const result = state.board.results.get(stainAmountId(row.id, noun));
+        if (result?.status === 'ok') return { text: calculationAnswerText(result) };
+        if (result?.status === 'error') return { problem: result.message };
+        return { problem: `Not stained in ${lowerLead(perLabwareKind(WELLS, noun).word)}` };
+      }),
+    ])
   );
+  const amounts = useMemo(() => new Map(amountEntries), [amountEntries]);
   const materialNames = useMemo(
     () => new Map(materials.map(item => [item.id, item.name.trim()])),
     [materials]
@@ -172,7 +177,11 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
                     </Tooltip>
                   </th>
                   <th className={NUMBER_HEAD_CELL}>{ANTIBODY_DILUTION.word}</th>
-                  <th className={NUMBER_HEAD_CELL}>{VOLUME_PER_WELL.word}</th>
+                  {amountNouns.map(noun => (
+                    <th key={noun} className={NUMBER_HEAD_CELL}>
+                      {perLabwareKind(VOLUME_PER_WELL, noun).word}
+                    </th>
+                  ))}
                   <th className={FLOW_CYTOMETRY_HEAD_CELL} />
                 </tr>
               </thead>
@@ -185,6 +194,7 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
                   candidates={candidates}
                   stainings={stainings}
                   amounts={amounts}
+                  amountColumnCount={amountNouns.length}
                   actions={actions}
                 />
               ))}
@@ -192,7 +202,7 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
                 <tbody>
                   <tr>
                     <td
-                      colSpan={COLUMN_COUNT}
+                      colSpan={COLUMNS_BESIDE_AMOUNTS + amountNouns.length}
                       className={`${FLOW_CYTOMETRY_CELL} text-warning-text`}
                     >
                       Not on this cytometer: pick a detector for each
@@ -222,7 +232,7 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
                         />
                       }
                       stainings={stainings}
-                      amount={amounts.get(marker.row.id) ?? {}}
+                      amounts={amounts.get(marker.row.id) ?? []}
                       actions={actions}
                     />
                   ))}
@@ -242,7 +252,7 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
           <WorkbenchFlowCytometryCocktails
             card={card}
             layout={layout}
-            wellsPerStain={wellsPerStain}
+            samples={samples}
             materialNames={materialNames}
           />
         </>

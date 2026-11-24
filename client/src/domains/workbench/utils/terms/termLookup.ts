@@ -1,14 +1,19 @@
 import { UNIT_REGISTRY, type UnitKind } from '@odysseus/shared-schemas';
 
-import { nameKey, type BoardName } from '../formulas/boardCalculation';
-import { LABWARE_KIND_PLURALS } from '../plateMap/labwareCatalog';
-import { joinValueName } from '../values/valueNames';
+import { nameKey, type BoardName, type CalculationGap } from '../formulas/boardCalculation';
+import { joinValueName, lowerLead } from '../values/valueNames';
 
 import {
+  ASSAY_SETUP_TERMS,
   COCKTAIL_VOLUME_PER_WELL,
+  formsOnEveryLabware,
   PER_WELL_TERMS,
   perLabwareKind,
+  SAMPLE_NOUNS,
   TERMS,
+  TOTAL_WELL_VOLUME,
+  WELLS,
+  type SampleNoun,
   type Term,
 } from './termList';
 
@@ -37,13 +42,39 @@ export const isSpellingOf = (label: string, word: string): boolean =>
       recognizedSpellingsOf(term).some(spelling => nameKey(spelling) === nameKey(label))
   );
 
-export function findTerm(
+const spellingsOnEveryLabware = (term: Term): readonly string[] =>
+  formsOnEveryLabware(term).flatMap(recognizedSpellingsOf);
+
+export function isAssaySetting(name: string): boolean {
+  const key = nameKey(name);
+  return ASSAY_SETUP_TERMS.some(term =>
+    spellingsOnEveryLabware(term).some(spelling => {
+      const word = nameKey(spelling);
+      return key === word || key.endsWith(` ${word}`);
+    })
+  );
+}
+
+export function totalWellVolumeGap(
+  assaySetupTitle: string,
+  noun: SampleNoun = 'well'
+): CalculationGap {
+  const { word } = perLabwareKind(TOTAL_WELL_VOLUME, noun);
+  const example = noun === 'well' ? ' 80 µL' : '';
+  return {
+    problem: `Needs the ${lowerLead(word)}: add "${word}${example}" under ${assaySetupTitle}`,
+    need: word,
+  };
+}
+
+function findInForms(
   names: ReadonlyMap<string, BoardName>,
   term: Term,
-  owners: readonly string[]
+  owners: readonly string[],
+  forms: readonly Term[]
 ): BoardName | undefined {
   for (const owner of owners) {
-    for (const spelling of recognizedSpellingsOf(term)) {
+    for (const spelling of forms.flatMap(recognizedSpellingsOf)) {
       const entry = names.get(nameKey(joinValueName(owner, spelling)));
       if (entry && fitsUnit(term, entry)) return entry;
     }
@@ -51,19 +82,42 @@ export function findTerm(
   return undefined;
 }
 
-const PER_LABWARE_KIND_SPELLINGS: ReadonlyArray<[noun: string, spelling: string]> = [
+export function findTerm(
+  names: ReadonlyMap<string, BoardName>,
+  term: Term,
+  owners: readonly string[],
+  noun?: SampleNoun
+): BoardName | undefined {
+  const forms = formsOnEveryLabware(term);
+  const ordered = noun && forms.length > 1 ? [perLabwareKind(term, noun), ...forms] : forms;
+  return findInForms(names, term, owners, ordered);
+}
+
+export const sampleNounsOf = (
+  names: ReadonlyMap<string, BoardName>,
+  owners: readonly string[]
+): SampleNoun[] => SAMPLE_NOUNS.filter(noun => findTermOn(names, WELLS, owners, noun));
+
+export const findTermOn = (
+  names: ReadonlyMap<string, BoardName>,
+  term: Term,
+  owners: readonly string[],
+  noun: SampleNoun
+): BoardName | undefined => findInForms(names, term, owners, [perLabwareKind(term, noun)]);
+
+const PER_LABWARE_KIND_SPELLINGS: ReadonlyArray<[noun: SampleNoun, spelling: string]> = [
   ...PER_WELL_TERMS,
   COCKTAIL_VOLUME_PER_WELL,
 ].flatMap(term =>
-  Object.keys(LABWARE_KIND_PLURALS).flatMap(noun =>
-    recognizedSpellingsOf(perLabwareKind(term, noun)).map((spelling): [string, string] => [
+  SAMPLE_NOUNS.flatMap(noun =>
+    recognizedSpellingsOf(perLabwareKind(term, noun)).map((spelling): [SampleNoun, string] => [
       noun,
       nameKey(spelling),
     ])
   )
 );
 
-function labwareKindOf(name: string): string | undefined {
+export function perSampleNounOf(name: string): SampleNoun | undefined {
   const key = nameKey(name);
   return PER_LABWARE_KIND_SPELLINGS.find(
     ([, spelling]) => key === spelling || key.endsWith(` ${spelling}`)
@@ -71,16 +125,14 @@ function labwareKindOf(name: string): string | undefined {
 }
 
 export function withPerLabwareKind(text: string, name: string): string {
-  const noun = labwareKindOf(name);
+  const noun = perSampleNounOf(name);
   return noun && /\d/.test(text) && !text.endsWith(`/${noun}`) ? `${text}/${noun}` : text;
 }
 
-const ANY_LABWARE_KIND_TAIL = /\/(tube|flask|dish|sample)$/;
-
 const termsSpelled = (label: string) => {
-  const key = nameKey(label).replace(ANY_LABWARE_KIND_TAIL, '/well');
+  const key = nameKey(label);
   return TERMS.filter(term =>
-    recognizedSpellingsOf(term).some(spelling => nameKey(spelling) === key)
+    spellingsOnEveryLabware(term).some(spelling => nameKey(spelling) === key)
   );
 };
 

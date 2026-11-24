@@ -23,20 +23,18 @@ import {
   WORKING_CONCENTRATION,
   WORKING_DILUTION,
   WORKING_STRENGTH,
+  WELLS,
+  perLabwareKind,
+  type SampleNoun,
   type Term,
 } from '../terms/termList';
-import { findTerm } from '../terms/termLookup';
-import { generalTitleOf, joinValueName, lowerLead } from '../values/valueNames';
+import { findTerm, findTermOn, sampleNounsOf, totalWellVolumeGap } from '../terms/termLookup';
+import { assaySetupTitleOf, joinValueName, lowerLead } from '../values/valueNames';
 
 import { fieldName, materialFields } from './materialCatalog';
 import { nameWithoutNotes } from './materialLookup';
 
 import type { MaterialItem, MaterialsCard, Protocol } from '@odysseus/shared-schemas';
-
-const missingWellTotal = (generalTitle: string): CalculationGap => ({
-  problem: `Needs the ${lowerLead(TOTAL_WELL_VOLUME.word)}: add "${TOTAL_WELL_VOLUME.word} 80 µL" under ${generalTitle}`,
-  need: TOTAL_WELL_VOLUME.word,
-});
 
 export const recipeFinalId = (mixId: string, entryId: string): string =>
   `${mixId}:recipe:${entryId}:final`;
@@ -51,11 +49,42 @@ export const mixConcentrationName = (mixName: string, ingredient: string): strin
 export const finalConcentrationName = (owner: string): string =>
   joinValueName(owner, FINAL_CONCENTRATION.word);
 
-export const wellTotalName = (names: ReadonlyMap<string, BoardName>): string | undefined =>
-  findTerm(names, TOTAL_WELL_VOLUME, [''])?.name;
+const mixOwners = (mix: MaterialItem) => [mix.name.trim(), nameWithoutNotes(mix.name)];
 
 const mixValue = (mix: MaterialItem, term: Term, names: ReadonlyMap<string, BoardName>) =>
-  findTerm(names, term, [mix.name.trim(), nameWithoutNotes(mix.name)]);
+  findTerm(names, term, mixOwners(mix));
+
+export interface RecipePlacement {
+  noun: SampleNoun | undefined;
+  label: string;
+  nameEnd: string;
+  idEnd: string;
+  perWell: string | undefined;
+  wellTotal: string | undefined;
+}
+
+export function recipePlacements(
+  mix: MaterialItem,
+  names: ReadonlyMap<string, BoardName>
+): RecipePlacement[] {
+  const owners = mixOwners(mix);
+  const nouns = sampleNounsOf(names, owners);
+  const isSplit = nouns.length > 1;
+  return (isSplit ? nouns : [nouns[0]]).map(noun => {
+    const find = (term: Term, from: readonly string[]) =>
+      (noun && isSplit ? findTermOn(names, term, from, noun) : findTerm(names, term, from, noun))
+        ?.name;
+    const inThem = noun && isSplit ? ` in the ${lowerLead(perLabwareKind(WELLS, noun).word)}` : '';
+    return {
+      noun,
+      label: `${FINAL_CONCENTRATION.word}${inThem}`,
+      nameEnd: inThem,
+      idEnd: noun && isSplit ? `:${noun}` : '',
+      perWell: find(VOLUME_PER_WELL, owners),
+      wellTotal: find(TOTAL_WELL_VOLUME, ['']),
+    };
+  });
+}
 
 const isMix = (item: MaterialItem) =>
   !!item.name.trim() && !item.isSetAside && !!item.recipe.length;
@@ -70,18 +99,20 @@ function mixNames(
   materialsCardId: string,
   materials: ReadonlyMap<string, MaterialItem>,
   names: ReadonlyMap<string, BoardName>,
-  generalTitle: string
+  assaySetupTitle: string
 ): BoardName[] {
   const mixName = mix.name.trim();
-  const perWell = mixValue(mix, VOLUME_PER_WELL, names)?.name;
-  const wellTotal = wellTotalName(names);
-  const scaling = perWell && wellTotal ? ` × ${perWell} ÷ ${wellTotal}` : '';
-  const perWellName = joinValueName(mixName, VOLUME_PER_WELL.word);
-  const missing: CalculationGap | undefined = !perWell
-    ? { problem: `Needs ${perWellName}`, need: perWellName }
-    : !wellTotal
-      ? missingWellTotal(generalTitle)
-      : undefined;
+  const placements = recipePlacements(mix, names).map(placement => {
+    const { noun = 'well', perWell, wellTotal } = placement;
+    const perWellName = joinValueName(mixName, perLabwareKind(VOLUME_PER_WELL, noun).word);
+    const missing: CalculationGap | undefined = !perWell
+      ? { problem: `Needs ${perWellName}`, need: perWellName }
+      : !wellTotal
+        ? totalWellVolumeGap(assaySetupTitle, noun)
+        : undefined;
+    const scaling = perWell && wellTotal ? ` × ${perWell} ÷ ${wellTotal}` : '';
+    return { ...placement, missing, scaling };
+  });
   const group: WorkedOutGroup = {
     key: `recipe:${mix.id}`,
     subject: mixName,
@@ -90,7 +121,13 @@ function mixNames(
   };
   const inputs: BoardName[] = [];
   const finals: CalculationName[] = [];
-  const final = (id: string, name: string, expr: string, unit: string, gap = missing) =>
+  const final = (
+    id: string,
+    name: string,
+    expr: string,
+    unit: string,
+    gap: CalculationGap | undefined
+  ) =>
     finals.push({ kind: 'calculation', id, name, formula: expr, unit, workedOut: group, ...gap });
 
   const stockField = stockName(mix);
@@ -111,8 +148,15 @@ function mixNames(
     final(mixWorkingId(mix.id), workingName, `${stock} ${dilutes}`, FOLD_UNIT, undefined);
   }
   const strength = working ?? stock;
-  if (strength)
-    final(mixFinalId(mix.id), finalConcentrationName(mixName), `${strength}${scaling}`, FOLD_UNIT);
+  for (const { idEnd, nameEnd, scaling, missing } of strength ? placements : []) {
+    final(
+      `${mixFinalId(mix.id)}${idEnd}`,
+      `${finalConcentrationName(mixName)}${nameEnd}`,
+      `${strength}${scaling}`,
+      FOLD_UNIT,
+      missing
+    );
+  }
   const stockNeed = joinValueName(mixName, STOCK_CONCENTRATION.word);
   const cannotScale: CalculationGap | undefined =
     concentration && !fromStock
@@ -134,13 +178,15 @@ function mixNames(
       workedOut: group,
       originCardId: materialsCardId,
     });
-    final(
-      recipeFinalId(mix.id, entry.id),
-      finalConcentrationName(`${mixName} ${ingredient}`),
-      `${inMix}${fromStock ? ` ${fromStock}` : ''}${scaling}`,
-      entry.unit === FOLD_UNIT ? FOLD_UNIT : '',
-      cannotScale ?? missing
-    );
+    for (const { idEnd, nameEnd, scaling, missing } of placements) {
+      final(
+        `${recipeFinalId(mix.id, entry.id)}${idEnd}`,
+        `${finalConcentrationName(`${mixName} ${ingredient}`)}${nameEnd}`,
+        `${inMix}${fromStock ? ` ${fromStock}` : ''}${scaling}`,
+        entry.unit === FOLD_UNIT ? FOLD_UNIT : '',
+        cannotScale ?? missing
+      );
+    }
   }
 
   const takenName = [...inputs, ...finals]
@@ -164,9 +210,9 @@ export function recipeCalculationNames(
   const byId = new Map(
     materialCards.flatMap(card => card.items).map(item => [item.id, item] as const)
   );
-  const generalTitle = generalTitleOf(protocol.cards);
+  const assaySetupTitle = assaySetupTitleOf(protocol.cards);
   return materialCards.flatMap(card =>
-    card.items.filter(isMix).flatMap(mix => mixNames(mix, card.id, byId, names, generalTitle))
+    card.items.filter(isMix).flatMap(mix => mixNames(mix, card.id, byId, names, assaySetupTitle))
   );
 }
 

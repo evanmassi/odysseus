@@ -29,6 +29,8 @@ interface WorkbenchValueGroupTableProps {
   actions: ValueRowActions;
   columnActions: ValueColumnActions;
   renderAdder: (row: ValueTableRow) => ReactNode;
+  looseValues?: ReactNode;
+  looseCount?: number;
 }
 
 export function WorkbenchValueGroupTable({
@@ -43,6 +45,8 @@ export function WorkbenchValueGroupTable({
   actions,
   columnActions,
   renderAdder,
+  looseValues,
+  looseCount = 0,
 }: WorkbenchValueGroupTableProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const mainRowCount = group.rows.filter(row => !row.isSubRow).length;
@@ -59,7 +63,7 @@ export function WorkbenchValueGroupTable({
   );
 
   return (
-    <WorkbenchMaterialSection title={group.label} count={mainRowCount} isAccented>
+    <WorkbenchMaterialSection title={group.label} count={mainRowCount + looseCount} isAccented>
       <ScrollArea
         options={HORIZONTAL_SCROLL}
         events={{
@@ -112,6 +116,7 @@ export function WorkbenchValueGroupTable({
           </tbody>
         </table>
       </ScrollArea>
+      {looseValues}
     </WorkbenchMaterialSection>
   );
 }

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { PROTOCOL_FILE_VERSION } from './protocolFileSchemas';
+import { ASSAY_SETUP_TITLE_FILE_VERSION } from './assaySetupTitleUpgrade';
 
 export const MARKER_DILUTION_FILE_VERSION = 6;
 
@@ -31,6 +31,6 @@ export const markerDilutionFileSchema = z
   })
   .transform(file => ({
     ...file,
-    version: PROTOCOL_FILE_VERSION,
+    version: ASSAY_SETUP_TITLE_FILE_VERSION,
     movedMarkerDilutions: file.protocol.cards.flatMap(movedFromCard),
   }));

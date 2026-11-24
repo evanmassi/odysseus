@@ -219,7 +219,7 @@ describe('dilution prep', () => {
     });
   });
 
-  it("reads the drug's own total well vol. before the whole experiment's", () => {
+  it("reads the total well vol. from Assay setup only, never a drug's own", () => {
     const shared = prepFor(protocolWith(doseSeries, [drugStock]));
     const own = prepFor(
       protocolWith(
@@ -229,16 +229,16 @@ describe('dilution prep', () => {
       )
     );
     if (shared.kind !== 'ready' || own.kind !== 'ready') throw new Error('not ready');
-    expect(shared.shared.totalWellVolume).toMatchObject({ value: '80', isWholeExperiment: true });
+    expect(shared.shared.totalWellVolume).toMatchObject({ value: '80', isAssaySetup: true });
     expect(shared.shared.volumePerWell).toMatchObject({
       value: '20',
       unit: 'µL',
-      isWholeExperiment: false,
+      isAssaySetup: false,
       edit: { kind: 'source', source: { kind: 'item', cardId: 'values', itemId: 'v1' } },
     });
-    expect(own.shared.totalWellVolume).toMatchObject({ value: '160', isWholeExperiment: false });
+    expect(own.shared.totalWellVolume).toMatchObject({ value: '80', isAssaySetup: true });
     expect(shared.strength).toBe('4×');
-    expect(own.strength).toBe('8×');
+    expect(own.strength).toBe('4×');
   });
 
   it('makes exactly enough when no extra is set anywhere', () => {
@@ -420,7 +420,7 @@ describe('dilution edits', () => {
     expect(after.kind === 'ready' && after.strength).toBe('4×');
   });
 
-  it('adds the total well vol. under Whole experiment, making a Values card if there is none', () => {
+  it('adds the total well vol. under Assay setup, making a Values card if there is none', () => {
     const protocol = protocolWith(doseSeries, [drugStock], []);
     protocol.cards = protocol.cards.filter(card => card.type !== 'values');
     const { totalWellVolume } = prepFor(protocol).shared;

@@ -3,18 +3,15 @@ import { produce } from 'immer';
 import { calculateBoard, nameKey, type BoardName } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 import { applyReferenceRenames } from '../formulas/nameRenames';
-import { LABWARE_KIND_PLURALS } from '../plateMap/labwareCatalog';
 
-import { PER_WELL_TERMS, perLabwareKind, TERMS } from './termList';
+import { formsOnEveryLabware, PER_WELL_TERMS, TERMS } from './termList';
 import { settledValue } from './termLookup';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
-const OTHER_LABWARE_KINDS = Object.keys(LABWARE_KIND_PLURALS).filter(noun => noun !== 'well');
-
 const TERMS_ON_ANY_LABWARE_KIND = [
   ...TERMS,
-  ...PER_WELL_TERMS.flatMap(term => OTHER_LABWARE_KINDS.map(noun => perLabwareKind(term, noun))),
+  ...PER_WELL_TERMS.flatMap(term => formsOnEveryLabware(term).slice(1)),
 ];
 
 function fileValuesUnderWords(draft: Protocol) {

@@ -10,7 +10,6 @@ import {
 import { STOCK_FIELD } from '../dilutions/dilutionStock';
 import {
   calculationAnswerText,
-  nameKey,
   type BoardName,
   type SolvedBoard,
   type CalculationResult,
@@ -41,6 +40,7 @@ import {
   UNIT_PER_ITEM,
 } from '../materials/materialCatalog';
 import { findDonor, donorsIn } from '../materials/materialDonors';
+import { UNSORTED_GROUP } from '../materials/materialItems';
 import {
   displayNameOf,
   findMaterial,
@@ -52,16 +52,31 @@ import {
   mixConcentrationName,
   mixFinalId,
   recipeFinalId,
-  wellTotalName,
+  recipePlacements,
+  type RecipePlacement,
 } from '../materials/materialRecipeCalculations';
 import { labwareTitle } from '../plateMap/plateMapTabs';
 import { plateSwatches, type PlateSwatch } from '../plateMap/plateSwatches';
-import { FINAL_CONCENTRATION, MIX_CONCENTRATION, VOLUME_PER_WELL } from '../terms/termList';
-import { findTerm } from '../terms/termLookup';
+import {
+  MIX_CONCENTRATION,
+  TOTAL_WELL_VOLUME,
+  perLabwareKind,
+  SAMPLE_NOUNS,
+  VOLUME_PER_WELL,
+  WELLS,
+  type SampleNoun,
+} from '../terms/termList';
+import {
+  findTerm,
+  findTermOn,
+  isSpellingOf,
+  perSampleNounOf,
+  sampleNounsOf,
+} from '../terms/termLookup';
 
 import { canRemovePlateRow, plateValueRows, type PlateValueRow } from './plateValueRows';
 import { linkedValueOf, valueRowName } from './valueEdits';
-import { columnKey, joinValueName } from './valueNames';
+import { assaySetupTitleOf, columnKey, joinValueName, lowerLead } from './valueNames';
 
 import type { ValueNeed } from './valueNeeds';
 import type { RoutedValue } from './valueRouting';
@@ -142,9 +157,7 @@ interface RowDraft extends ValueTableRow {
 
 const MIX_GROUP = { key: 'mix', label: 'Mixes' };
 const PLATE_GROUP_KEY = 'supplies';
-const REMOVED_GROUP_KEY = 'unsorted';
 const ORIGIN_RANK: Record<ValueOrigin, number> = { typed: 0, plate: 1, materials: 2, worked: 3 };
-const WELLS_SUFFIX = ':wells';
 const NOT_NEEDED: readonly string[] = [];
 const COUNT_RANK = -1;
 const SHOWN_COUNTS: readonly CellCount[] = CELL_COUNTS.filter(count => count !== 'totalCells');
@@ -161,13 +174,16 @@ function missingCount(
   return undefined;
 }
 
-const WELLS_COLUMN = columnKey('Wells');
+const countLabel = (noun: SampleNoun) => perLabwareKind(WELLS, noun).word;
+const SAMPLES_COLUMN = columnKey(countLabel('sample'));
+const wellVolumeOnARow = (assaySetupTitle: string) =>
+  `Not used: the math reads ${TOTAL_WELL_VOLUME.word} from ${assaySetupTitle}, the same for every well`;
 
-const wellsCell = (entry: Extract<BoardName, { kind: 'count' }>): ValueCell => ({
+const wellsCell = (entry: Extract<BoardName, { kind: 'count' }>, noun: SampleNoun): ValueCell => ({
   id: entry.id,
   nameId: entry.id,
-  columnKey: WELLS_COLUMN,
-  label: 'Wells',
+  columnKey: columnKey(countLabel(noun)),
+  label: countLabel(noun),
   fullName: entry.name,
   value: String(entry.count),
   unit: '',
@@ -180,20 +196,31 @@ const wellsCell = (entry: Extract<BoardName, { kind: 'count' }>): ValueCell => (
   linkedTo: { kind: 'wells' },
 });
 
-function inheritedVolumeCell(subject: CountSubject, board: SolvedBoard): ValueCell[] {
+function inheritedVolumeCells(subject: CountSubject, board: SolvedBoard): ValueCell[] {
+  const nouns = sampleNounsOf(board.names, [subject.subject]);
+  return nouns.flatMap(noun => inheritedVolumeCell(subject, board, noun, nouns.length > 1));
+}
+
+function inheritedVolumeCell(
+  subject: CountSubject,
+  board: SolvedBoard,
+  noun: SampleNoun,
+  isSplit: boolean
+): ValueCell[] {
   const { material } = subject;
-  const volume = findTerm(board.names, VOLUME_PER_WELL, [
-    material.name.trim(),
-    nameWithoutNotes(material.name),
-  ]);
+  const owners = [material.name.trim(), nameWithoutNotes(material.name)];
+  const volume = isSplit
+    ? findTermOn(board.names, VOLUME_PER_WELL, owners, noun)
+    : findTerm(board.names, VOLUME_PER_WELL, owners, noun);
   if (!subject.isPlated || volume?.kind !== 'value' || !volume.value.trim()) return [];
-  const id = `${cellPartId(subject.subject, 'inherited')}:${VOLUME_PER_WELL.word}`;
+  const label = perLabwareKind(VOLUME_PER_WELL, noun).word;
+  const id = `${cellPartId(subject.subject, 'inherited')}:${label}`;
   return [
     {
       id,
       nameId: volume.id,
-      columnKey: columnKey(VOLUME_PER_WELL.word),
-      label: VOLUME_PER_WELL.word,
+      columnKey: columnKey(label),
+      label,
       fullName: volume.name,
       value: '',
       workedValue: volume.value,
@@ -310,15 +337,15 @@ function workedCell(
   id: string,
   fullName: string,
   result: CalculationResult | undefined,
-  wellTotal: string | undefined
+  { label, wellTotal }: RecipePlacement
 ): ValueCell {
   const isReady = result?.status === 'ok';
   const working = isReady ? workingText(result.working) : '';
   return {
     id,
     nameId: id,
-    columnKey: columnKey(FINAL_CONCENTRATION.word),
-    label: FINAL_CONCENTRATION.word,
+    columnKey: columnKey(label),
+    label,
     fullName,
     value: isReady ? calculationAnswerText(result) : '',
     unit: '',
@@ -359,10 +386,43 @@ function orderColumns(rows: readonly ValueTableRow[]): ValueTableColumn[] {
       return { key, label, origin, rank, at };
     })
     .sort((a, b) => a.rank - b.rank || a.at - b.at)
-    .map(({ key, label, origin }) => ({ key, label, origin }));
+    .map(({ key, label, origin }) => ({ key, label, origin }))
+    .reduce<ValueTableColumn[]>(withContainerTogether, []);
+}
+
+function containerOf(
+  key: string,
+  label: string
+): { noun: SampleNoun; isCount: boolean } | undefined {
+  const counted = SAMPLE_NOUNS.find(noun => columnKey(countLabel(noun)) === key);
+  if (counted) return { noun: counted, isCount: true };
+  const noun = perSampleNounOf(label);
+  return noun && { noun, isCount: false };
+}
+
+function withContainerTogether(
+  placed: ValueTableColumn[],
+  column: ValueTableColumn,
+  _at: number,
+  all: readonly ValueTableColumn[]
+): ValueTableColumn[] {
+  if (placed.includes(column)) return placed;
+  const container = containerOf(column.key, column.label);
+  if (!container) return [...placed, column];
+  const members = all.filter(
+    candidate => containerOf(candidate.key, candidate.label)?.noun === container.noun
+  );
+  const isCount = (candidate: ValueTableColumn) =>
+    !!containerOf(candidate.key, candidate.label)?.isCount;
+  return [
+    ...placed,
+    ...members.filter(isCount),
+    ...members.filter(candidate => !isCount(candidate)),
+  ];
 }
 
 function groupOrder(key: string): number {
+  if (key === UNSORTED_GROUP) return MATERIAL_GROUPS.length + 2;
   if (key === MIX_GROUP.key) return MATERIAL_GROUPS.length + 1;
   const known = MATERIAL_GROUPS.findIndex(group => group.key === key);
   return known === -1 ? MATERIAL_GROUPS.length : known;
@@ -431,7 +491,7 @@ export function buildValueTable(
         : material.isSetAside
           ? 'setAside'
           : 'current';
-    const groupKey = 'mixName' in valueRow ? MIX_GROUP.key : (material?.group ?? REMOVED_GROUP_KEY);
+    const groupKey = 'mixName' in valueRow ? MIX_GROUP.key : (material?.group ?? UNSORTED_GROUP);
     const row = draftRow(valueRow.id, valueRowName(valueRow, materials), groupKey, {
       valueRow,
       material,
@@ -495,7 +555,9 @@ export function buildValueTable(
       units: undefined,
       isEditable: true,
       canRemove: true,
-      note: '',
+      note: isSpellingOf(item.name, TOTAL_WELL_VOLUME.word)
+        ? wellVolumeOnARow(assaySetupTitleOf(protocol.cards))
+        : '',
       neededFor: NOT_NEEDED,
       origin: 'typed',
       linkedTo: { kind: 'item', itemId: item.id },
@@ -539,7 +601,7 @@ export function buildValueTable(
     const taken = new Set(row.cells.map(cell => cell.columnKey));
     const cells = [
       ...countCells(subject, board),
-      ...(subject.donor ? inheritedVolumeCell(subject, board) : []),
+      ...(subject.donor ? inheritedVolumeCells(subject, board) : []),
     ];
     row.cells.push(...cells.filter(cell => !taken.has(cell.columnKey)));
   }
@@ -593,36 +655,50 @@ export function buildValueTable(
   }
 
   for (const entry of board.names.values()) {
-    if (entry.kind !== 'count' || !entry.id.endsWith(WELLS_SUFFIX)) continue;
-    const material = materials.get(entry.id.slice(0, -WELLS_SUFFIX.length));
-    const row = material && rowForMaterial(material);
-    row?.cells.push(wellsCell(entry));
+    if (entry.kind !== 'count') continue;
+    for (const noun of SAMPLE_NOUNS) {
+      const suffix = `:${lowerLead(countLabel(noun))}`;
+      const material = entry.id.endsWith(suffix)
+        ? materials.get(entry.id.slice(0, -suffix.length))
+        : undefined;
+      const row = material && rowForMaterial(material);
+      row?.cells.push(wellsCell(entry, noun));
+    }
   }
 
   for (const subject of subjects) {
     const owner = subject.donor && rowForMaterial(subject.material);
-    const wells = board.names.get(nameKey(`${subject.subject} wells`));
-    if (!owner || !subject.donor || wells?.kind !== 'count') continue;
-    if (wells.id !== cellPartId(subject.subject, 'wells')) continue;
-    const row = subRowOf(owner, subject.donor.name.trim());
-    if (!row.cells.some(cell => cell.columnKey === WELLS_COLUMN)) row.cells.push(wellsCell(wells));
+    if (!owner || !subject.donor) continue;
+    const donorName = subject.donor.name.trim();
+    for (const noun of sampleNounsOf(board.names, [subject.subject])) {
+      const wells = findTermOn(board.names, WELLS, [subject.subject], noun);
+      if (wells?.kind !== 'count' || !wells.id.startsWith(cellPartId(subject.subject, 'wells'))) {
+        continue;
+      }
+      const row = subRowOf(owner, donorName);
+      const column = columnKey(countLabel(noun));
+      if (!row.cells.some(cell => cell.columnKey === column))
+        row.cells.push(wellsCell(wells, noun));
+    }
   }
 
   for (const material of listedMaterials) {
     if (material.recipe.length) rowForMaterial(material);
   }
-  const wellTotal = wellTotalName(board.names);
   for (const row of [...rows]) {
     const { material } = row;
     if (!material?.recipe.length) continue;
+    const placements = recipePlacements(material, board.names);
     const stockAmount = material.values[STOCK_FIELD] ?? '';
     if (material.units[STOCK_FIELD] === FOLD_UNIT && stockAmount.trim()) {
       row.cells.push(
-        workedCell(
-          `${row.id}:final`,
-          finalConcentrationName(row.name),
-          board.results.get(mixFinalId(material.id)),
-          wellTotal
+        ...placements.map(placement =>
+          workedCell(
+            `${row.id}:final${placement.idEnd}`,
+            `${finalConcentrationName(row.name)}${placement.nameEnd}`,
+            board.results.get(`${mixFinalId(material.id)}${placement.idEnd}`),
+            placement
+          )
         )
       );
     }
@@ -647,11 +723,13 @@ export function buildValueTable(
           origin: 'materials',
           linkedTo: { kind: 'recipe', materialId: material.id, entryId: entry.id },
         },
-        workedCell(
-          `${row.id}:recipe:${entry.id}:final`,
-          finalConcentrationName(`${row.name} ${ingredientName}`),
-          board.results.get(recipeFinalId(material.id, entry.id)),
-          wellTotal
+        ...placements.map(placement =>
+          workedCell(
+            `${row.id}:recipe:${entry.id}:final${placement.idEnd}`,
+            `${finalConcentrationName(`${row.name} ${ingredientName}`)}${placement.nameEnd}`,
+            board.results.get(`${recipeFinalId(material.id, entry.id)}${placement.idEnd}`),
+            placement
+          )
         )
       );
     }
@@ -703,6 +781,14 @@ export function buildValueTable(
   ])) {
     const neededFor = blankNeeds.get(cell.nameId);
     if (neededFor && cell.isEditable && !cell.value.trim()) cell.neededFor = neededFor;
+  }
+  for (const row of rows.flatMap(row => [row, ...row.subRows.values()])) {
+    const isCountedPerContainer = row.cells.some(
+      cell => containerOf(cell.columnKey, cell.label)?.isCount && cell.columnKey !== SAMPLES_COLUMN
+    );
+    if (isCountedPerContainer) {
+      row.cells = row.cells.filter(cell => cell.columnKey !== SAMPLES_COLUMN);
+    }
   }
 
   const groupKeys = [...new Set(rows.map(row => row.groupKey))].sort(

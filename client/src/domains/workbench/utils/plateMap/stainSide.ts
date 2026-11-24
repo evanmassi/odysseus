@@ -1,6 +1,8 @@
+import { labwareOf, labwareTypeAt } from './labwareCatalog';
 import { plateNameOf, otherLabwareTabNameOf } from './plateMapTabs';
 
 import type { WellColor } from './wellContents';
+import type { SampleNoun } from '../terms/termList';
 import type { FlowCytometryPanelCard, PlateMapCard } from '@odysseus/shared-schemas';
 
 export interface PlateStain {
@@ -44,10 +46,25 @@ export function plateStains(panels: readonly FlowCytometryPanelCard[]): PlateSta
 }
 
 export function stainedWellCounts(plates: readonly PlateMapCard[]): Map<string, number> {
-  const counts = new Map<string, number>();
+  return new Map(
+    [...stainedSampleCounts(plates)].map(([stainId, byNoun]) => [
+      stainId,
+      [...byNoun.values()].reduce((sum, count) => sum + count, 0),
+    ])
+  );
+}
+
+export function stainedSampleCounts(
+  plates: readonly PlateMapCard[]
+): Map<string, Map<SampleNoun, number>> {
+  const counts = new Map<string, Map<SampleNoun, number>>();
   for (const plateMap of plates) {
-    for (const stainId of Object.values(plateMap.stain))
-      counts.set(stainId, (counts.get(stainId) ?? 0) + 1);
+    for (const [key, stainId] of Object.entries(plateMap.stain)) {
+      const noun = labwareOf(labwareTypeAt(plateMap, key)).kind;
+      const byNoun = counts.get(stainId) ?? new Map<SampleNoun, number>();
+      byNoun.set(noun, (byNoun.get(noun) ?? 0) + 1);
+      counts.set(stainId, byNoun);
+    }
   }
   return counts;
 }

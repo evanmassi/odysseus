@@ -1,10 +1,24 @@
-import { stainedPlaces, stainedWellCounts, plateStains, stainWells } from './stainSide';
+import {
+  stainedPlaces,
+  stainedSampleCounts,
+  stainedWellCounts,
+  plateStains,
+  stainWells,
+} from './stainSide';
 
 import type { FlowCytometryPanelCard, PlateMapCard } from '@odysseus/shared-schemas';
 
 const panel = (stains: FlowCytometryPanelCard['stains']) =>
   ({ stains: stains }) as FlowCytometryPanelCard;
-const plate = (stain: Record<string, string>) => ({ stain }) as PlateMapCard;
+const plate = (stain: Record<string, string>) =>
+  ({
+    plates: [
+      { id: 'p', labware: '96', name: '' },
+      { id: 'q', labware: '96', name: '' },
+    ],
+    otherLabware: [{ id: 't', labware: 'facs', count: 2 }],
+    stain,
+  }) as unknown as PlateMapCard;
 
 describe('plate stains', () => {
   it('colors stains with markers in turn and a stain with none grey, across panels', () => {
@@ -70,5 +84,20 @@ describe('stained wells', () => {
     expect(card.stain).toEqual({ 'p:A1': 'full', 'p:A2': 'full' });
     stainWells(card, ['p:A1'], undefined);
     expect(card.stain).toEqual({ 'p:A2': 'full' });
+  });
+});
+
+describe('stained samples per container', () => {
+  it('counts each stain separately in wells and in tubes', () => {
+    const counts = stainedSampleCounts([
+      plate({ 'p:A1': 'full', 't#1:1': 'full', 't#2:1': 'fmo' }),
+    ]);
+    expect(counts.get('full')).toEqual(
+      new Map([
+        ['well', 1],
+        ['tube', 1],
+      ])
+    );
+    expect(counts.get('fmo')).toEqual(new Map([['tube', 1]]));
   });
 });

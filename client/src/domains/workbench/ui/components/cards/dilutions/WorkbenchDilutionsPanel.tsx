@@ -25,7 +25,7 @@ import {
   shortNameOf,
 } from '../../../../utils/materials/materialLookup';
 import { materialKnowledge } from '../../../../utils/materials/materialMemory';
-import { generalTitleOf } from '../../../../utils/values/valueNames';
+import { assaySetupTitleOf } from '../../../../utils/values/valueNames';
 import { CARD_ICONS } from '../../board/cardIcons';
 import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
 import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
@@ -147,7 +147,7 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
             color={run.color}
             swatch={indicatorOf(run)}
             prep={prep}
-            generalTitle={generalTitleOf(protocol.cards)}
+            assaySetupTitle={assaySetupTitleOf(protocol.cards)}
             diluent={ownDiluent(run)}
             diluentPlaceholder={protocol.diluent.trim() || DILUENT_HINT}
             diluentChoices={diluentChoices}

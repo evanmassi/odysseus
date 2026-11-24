@@ -31,7 +31,7 @@ interface WorkbenchFlowCytometryMarkerRowProps {
   detectorCell: ReactNode;
   conflictWording: string;
   stainings: readonly string[];
-  amount: StainAmount;
+  amounts: readonly StainAmount[];
   actions: FlowCytometryActions;
 }
 
@@ -48,7 +48,7 @@ export function WorkbenchFlowCytometryMarkerRow({
   detectorCell,
   conflictWording,
   stainings,
-  amount,
+  amounts,
   actions,
 }: WorkbenchFlowCytometryMarkerRowProps) {
   const { row, material } = marker;
@@ -185,13 +185,15 @@ export function WorkbenchFlowCytometryMarkerRow({
           <span className="text-muted-foreground">—</span>
         )}
       </td>
-      <td className={`${FLOW_CYTOMETRY_CELL} text-right`}>
-        {amount.text ?? (
-          <Tooltip content={amount.problem ?? 'Set a dil.'}>
-            <span className="text-muted-foreground">—</span>
-          </Tooltip>
-        )}
-      </td>
+      {amounts.map((amount, at) => (
+        <td key={at} className={`${FLOW_CYTOMETRY_CELL} text-right`}>
+          {amount.text ?? (
+            <Tooltip content={amount.problem ?? 'Set a dil.'}>
+              <span className="text-muted-foreground">—</span>
+            </Tooltip>
+          )}
+        </td>
+      ))}
       <td className={`${FLOW_CYTOMETRY_CELL} w-px px-2`}>
         <Tooltip content="Remove from the panel">
           <button

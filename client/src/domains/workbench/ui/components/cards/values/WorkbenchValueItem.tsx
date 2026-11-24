@@ -1,8 +1,8 @@
-import { memo } from 'react';
+import { memo, useRef, useState, type CSSProperties } from 'react';
 
 import { withGreekLetters } from '@odysseus/shared-schemas';
 
-import { Button, Tooltip } from '@shared/ui';
+import { Button, DropdownMenu, MenuItem, Tooltip } from '@shared/ui';
 import { ROW_HOVER_GLOW } from '@shared/ui/primitives/table/rowGlow';
 
 import { useFocusLeave } from '../../../../hooks/useFocusLeave';
@@ -35,12 +35,19 @@ export interface GeneralValueActions {
   onValueChange: (itemId: string, value: string) => void;
   onUnitChange: (itemId: string, unit: string) => void;
   onRemove: (itemId: string) => void;
+  onMove: (itemId: string, targetKey: string) => void;
+}
+
+export interface ValueMoveTarget {
+  key: string;
+  label: string;
 }
 
 interface WorkbenchValueItemProps {
   row: ValueRowData;
   editingCell: ValueItemField | undefined;
   actions: GeneralValueActions;
+  moveTargets?: readonly ValueMoveTarget[];
 }
 
 const CELL = 'px-2 py-1.5 align-middle';
@@ -49,7 +56,10 @@ export const WorkbenchValueItem = memo(function WorkbenchValueItem({
   row,
   editingCell,
   actions,
+  moveTargets = [],
 }: WorkbenchValueItemProps) {
+  const moveRef = useRef<HTMLSpanElement>(null);
+  const [moveMenuAt, setMoveMenuAt] = useState<CSSProperties>();
   const isInvalid = isUnreadableAmount(row.value, row.unit);
   const usage = usageTitle(row.usage);
   const title = row.neededNote ? wellTooltipContent([usage, row.neededNote]) : usage;
@@ -141,7 +151,48 @@ export const WorkbenchValueItem = memo(function WorkbenchValueItem({
             </button>
           )}
         </td>
-        <td className="w-px px-1 text-right">
+        <td className="w-px whitespace-nowrap px-1 text-right">
+          {moveTargets.length > 0 && (
+            <span ref={moveRef} className="inline-flex">
+              <Button
+                variant="ghost"
+                size="xs"
+                className={moveMenuAt ? '' : 'opacity-0 group-hover:opacity-100'}
+                aria-haspopup="menu"
+                aria-expanded={!!moveMenuAt}
+                onClick={() => {
+                  const trigger = moveRef.current?.getBoundingClientRect();
+                  const isOpening = !moveMenuAt && trigger;
+                  setMoveMenuAt(
+                    isOpening ? { left: trigger.left, top: trigger.bottom + 4 } : undefined
+                  );
+                }}
+              >
+                Move to…
+              </Button>
+              <DropdownMenu
+                isOpen={!!moveMenuAt}
+                onClose={() => setMoveMenuAt(undefined)}
+                triggerRef={moveRef}
+                portal
+                align="start"
+                aria-label="Move to"
+                className="min-w-48 py-1"
+                style={moveMenuAt}
+              >
+                {moveTargets.map(target => (
+                  <MenuItem
+                    key={target.key}
+                    label={target.label}
+                    onClick={() => {
+                      setMoveMenuAt(undefined);
+                      actions.onMove(row.id, target.key);
+                    }}
+                  />
+                ))}
+              </DropdownMenu>
+            </span>
+          )}
           <Button
             variant="ghost-danger"
             size="xs"

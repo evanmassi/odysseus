@@ -4,8 +4,14 @@ import { SubsectionHeader } from '@shared/ui';
 
 import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { panelCocktails } from '../../../../utils/flowCytometry/flowCytometryCocktails';
-import { cocktailAntibodiesId } from '../../../../utils/flowCytometry/flowCytometryNames';
+import {
+  cocktailAntibodiesId,
+  cocktailAntibodiesName,
+  stainSampleNouns,
+} from '../../../../utils/flowCytometry/flowCytometryNames';
 import { calculationAnswerText, nameKey } from '../../../../utils/formulas/boardCalculation';
+import { perLabwareKind, WELLS, type SampleNoun } from '../../../../utils/terms/termList';
+import { lowerLead } from '../../../../utils/values/valueNames';
 import { SECTION_RULE } from '../../board/sectionRuleClass';
 
 import { FLUOR_SQUARE } from './flowCytometryTableStyles';
@@ -16,32 +22,65 @@ import type { FlowCytometryPanelCard } from '@odysseus/shared-schemas';
 interface WorkbenchFlowCytometryCocktailsProps {
   card: FlowCytometryPanelCard;
   layout: PanelLayout;
-  wellsPerStain: ReadonlyMap<string, number>;
+  samples: ReadonlyMap<string, ReadonlyMap<SampleNoun, number>>;
   materialNames: ReadonlyMap<string, string>;
 }
 
 interface CocktailShare {
+  noun: SampleNoun;
   share: string | undefined;
   isNameTaken: boolean;
+}
+
+const pluralOf = (noun: SampleNoun) => lowerLead(perLabwareKind(WELLS, noun).word);
+
+function shareText(shares: readonly CocktailShare[]): string | undefined {
+  if (!shares.every(({ share }) => share)) return undefined;
+  const isOneShare = new Set(shares.map(({ share }) => share)).size === 1;
+  if (isOneShare) return `Antibodies take ${shares[0].share} of the volume`;
+  const [first, ...rest] = shares;
+  return [
+    `Antibodies take ${first.share} of the volume in the ${pluralOf(first.noun)}`,
+    ...rest.map(({ share, noun }) => `${share} in the ${pluralOf(noun)}`),
+  ].join(', ');
 }
 
 export function WorkbenchFlowCytometryCocktails({
   card,
   layout,
-  wellsPerStain,
+  samples,
   materialNames,
 }: WorkbenchFlowCytometryCocktailsProps) {
   const { stainings, rowsWithoutStaining } = useMemo(() => panelCocktails(card), [card]);
   const cocktails = useMemo(() => stainings.flatMap(staining => staining.cocktails), [stainings]);
+  const nounsByCocktail = useMemo(
+    () =>
+      new Map(
+        stainings.flatMap(({ cocktails: stainingCocktails }) => {
+          const nouns = stainSampleNouns(
+            stainingCocktails.flatMap(cocktail => cocktail.stains),
+            samples
+          );
+          return stainingCocktails.map(cocktail => [cocktail.key, nouns] as const);
+        })
+      ),
+    [stainings, samples]
+  );
   const shares = useWorkbenchData(state =>
-    cocktails.map((cocktail): CocktailShare => {
-      const id = cocktailAntibodiesId(card.id, cocktail.key);
-      const result = state.board.results.get(id);
-      const owner = state.board.names.get(nameKey(`${cocktail.name} antibodies`));
-      return {
-        share: result?.status === 'ok' ? calculationAnswerText(result) : undefined,
-        isNameTaken: !!cocktail.rows.length && !!owner && owner.id !== id,
-      };
+    cocktails.map(cocktail => {
+      const nouns = nounsByCocktail.get(cocktail.key) ?? ['well'];
+      return nouns.map((noun): CocktailShare => {
+        const id = cocktailAntibodiesId(card.id, cocktail.key, noun);
+        const result = state.board.results.get(id);
+        const owner = state.board.names.get(
+          nameKey(cocktailAntibodiesName(cocktail.name, noun, nouns.length > 1))
+        );
+        return {
+          noun,
+          share: result?.status === 'ok' ? calculationAnswerText(result) : undefined,
+          isNameTaken: !!cocktail.rows.length && !!owner && owner.id !== id,
+        };
+      });
     })
   );
   const markers = useMemo(
@@ -90,11 +129,20 @@ export function WorkbenchFlowCytometryCocktails({
                 ` · none for ${stainsWithout.map(stain => stain.name).join(', ')}`}
             </span>
             {stainingCocktails.map(cocktail => {
-              const wells = cocktail.stains.reduce(
-                (sum, stain) => sum + (wellsPerStain.get(stain.id) ?? 0),
-                0
-              );
-              const { share, isNameTaken } = shareOf(cocktail.key) ?? {};
+              const cocktailShares = shareOf(cocktail.key) ?? [];
+              const counted = cocktailShares.map(({ noun }) => ({
+                noun,
+                count: cocktail.stains.reduce(
+                  (sum, stain) => sum + (samples.get(stain.id)?.get(noun) ?? 0),
+                  0
+                ),
+              }));
+              const stainedIn = counted.filter(({ count }) => count > 0);
+              const counts = (stainedIn.length ? stainedIn : counted.slice(0, 1))
+                .map(({ noun, count }) => `${count} ${count === 1 ? noun : pluralOf(noun)}`)
+                .join(' · ');
+              const share = shareText(cocktailShares);
+              const isNameTaken = cocktailShares.some(candidate => candidate.isNameTaken);
               return (
                 <div
                   key={cocktail.key}
@@ -105,9 +153,7 @@ export function WorkbenchFlowCytometryCocktails({
                     <span className="flex-1 text-label-xs text-muted-foreground">
                       for {cocktail.stains.map(stain => stain.name).join(', ')}
                     </span>
-                    <span className="text-body-sm tabular-nums">
-                      {wells} {wells === 1 ? 'well' : 'wells'}
-                    </span>
+                    <span className="text-body-sm tabular-nums">{counts}</span>
                   </span>
                   <span className="flex flex-wrap gap-x-3 gap-y-0.5 text-body-sm">
                     {cocktail.rows.map(row => {
@@ -132,11 +178,7 @@ export function WorkbenchFlowCytometryCocktails({
                       </span>
                     ))}
                   </span>
-                  {share && (
-                    <span className="text-label-xs text-muted-foreground">
-                      Antibodies take {share} of the volume
-                    </span>
-                  )}
+                  {share && <span className="text-label-xs text-muted-foreground">{share}</span>}
                   {isNameTaken && (
                     <span className="text-label-xs text-warning-text">
                       {`"${cocktail.name} antibodies" is already one of your names; rename yours to get this one in Calculations.`}

@@ -179,10 +179,10 @@ describe('the values table', () => {
     });
   });
 
-  it('orders columns typed, then plate, then Materials', () => {
+  it('orders columns typed, then plate, then Materials, with Wells leading its per-well numbers', () => {
     expect(groupNamed(groups, 'Chemicals & proteins').columns.map(column => column.label)).toEqual([
-      'Volume per well',
       'Wells',
+      'Volume per well',
       'Top conc.',
       'Dil. factor',
       'Points',
@@ -198,9 +198,9 @@ describe('the values table', () => {
       'live cell conc.',
       'vol.',
       'live cells',
+      'wells',
       'per well',
       'volume per well',
-      'wells',
     ]);
   });
 
@@ -628,6 +628,43 @@ describe('cells on the values table', () => {
       note: 'Set on the T cells row',
     });
     expect(cellOf(bio, 'D3', 'Vol./well')).toBeUndefined();
+  });
+
+  it('gives a donor in wells and tubes a count per container, each beside its own numbers', () => {
+    const mixed = plateMap('map', 'Plates & tubes', {
+      otherLabware: [{ id: 't', labware: 'facs', count: 1 }],
+      lines: [line('cells', ['D1'])],
+      samples: {
+        'p:A1': { cells: { valueId: 'D1', amount: '1e5', unit: 'cells' } },
+        'p:A2': { cells: { valueId: 'D1', amount: '1e5', unit: 'cells' } },
+        't#1:1': { cells: { valueId: 'D1', amount: '5e5', unit: 'cells' } },
+      },
+    });
+    const withTubes = produce(plating, draft => {
+      draft.items.push({
+        id: 't-tube',
+        row: 'sec-tcells',
+        name: 'Vol./tube',
+        value: '1',
+        unit: 'mL',
+      });
+    });
+    const protocol = {
+      cards: [{ id: 'materials', type: 'materials', items: [donors] }, mixed, withTubes],
+    } as unknown as Protocol;
+    const bio = groupNamed(tableOf(protocol, withTubes), 'Biological material');
+    expect(bio.columns.slice(5).map(column => column.label)).toEqual([
+      'Wells',
+      'Vol./well',
+      'Cells/well',
+      'Tubes',
+      'Vol./tube',
+      'Cells/tube',
+    ]);
+    expect(cellOf(bio, 'D1', 'Wells')?.value).toBe('2');
+    expect(cellOf(bio, 'D1', 'Tubes')?.value).toBe('1');
+    expect(cellOf(bio, 'D1', 'Vol./tube')).toMatchObject({ workedValue: '1', unit: 'mL' });
+    expect(cellOf(bio, 'D1', 'Samples')).toBeUndefined();
   });
 
   it('counts the wells of donors on a striped line, which the plate does not count', () => {

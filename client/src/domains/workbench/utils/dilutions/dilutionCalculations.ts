@@ -30,8 +30,8 @@ import {
   VOLUME_PER_WELL,
   WORKING_STRENGTH,
 } from '../terms/termList';
-import { findTerm } from '../terms/termLookup';
-import { joinValueName, lowerLead, WHOLE_EXPERIMENT } from '../values/valueNames';
+import { findTerm, totalWellVolumeGap } from '../terms/termLookup';
+import { assaySetupTitleOf, GENERAL, joinValueName, lowerLead } from '../values/valueNames';
 
 import { diluentNeedId, runDiluents } from './dilutionDiluents';
 import { dilutionRuns, runTags, type DilutionRun } from './dilutionRuns';
@@ -51,9 +51,9 @@ export const prepSettingsOf = (run: DilutionRun): PrepSettings => ({
 const ROUND_TO_LABEL = lowerLead(ROUND_TO.word);
 
 export const SHARED_PREP_VALUES = {
-  totalWellVolume: { term: TOTAL_WELL_VOLUME, unit: 'µL', isWholeExperimentToo: true },
-  volumePerWell: { term: VOLUME_PER_WELL, unit: 'µL', isWholeExperimentToo: false },
-  extra: { term: EXTRA, unit: '%', isWholeExperimentToo: true },
+  totalWellVolume: { term: TOTAL_WELL_VOLUME, unit: 'µL', readsFrom: 'assaySetup' },
+  volumePerWell: { term: VOLUME_PER_WELL, unit: 'µL', readsFrom: 'own' },
+  extra: { term: EXTRA, unit: '%', readsFrom: 'ownThenAssaySetup' },
 } as const;
 
 export type SharedPrepKey = keyof typeof SHARED_PREP_VALUES;
@@ -62,7 +62,7 @@ export const SHARED_PREP_KEYS = Object.keys(SHARED_PREP_VALUES) as SharedPrepKey
 
 export interface SharedPrepSource {
   entry: BoardName;
-  isWholeExperiment: boolean;
+  isAssaySetup: boolean;
 }
 
 export function sharedPrepSource(
@@ -70,11 +70,11 @@ export function sharedPrepSource(
   subject: string,
   key: SharedPrepKey
 ): SharedPrepSource | undefined {
-  const { term, isWholeExperimentToo } = SHARED_PREP_VALUES[key];
-  const own = findTerm(names, term, [subject]);
-  if (own) return { entry: own, isWholeExperiment: false };
-  const general = isWholeExperimentToo ? findTerm(names, term, [WHOLE_EXPERIMENT]) : undefined;
-  return general && { entry: general, isWholeExperiment: true };
+  const { term, readsFrom } = SHARED_PREP_VALUES[key];
+  const own = readsFrom === 'assaySetup' ? undefined : findTerm(names, term, [subject]);
+  if (own) return { entry: own, isAssaySetup: false };
+  const general = readsFrom === 'own' ? undefined : findTerm(names, term, [GENERAL]);
+  return general && { entry: general, isAssaySetup: true };
 }
 
 export const ownPrepValueName = (subject: string, key: SharedPrepKey): string =>
@@ -169,15 +169,14 @@ function stockSource(
 function missingSharedValue(
   subject: string,
   volume: string | undefined,
-  wellVolume: string | undefined
+  wellVolume: string | undefined,
+  assaySetupTitle: string
 ): CalculationGap | undefined {
   if (!volume) {
     const need = ownPrepValueName(subject, 'volumePerWell');
     return { problem: `Needs "${need}" in Values, the volume added to each well`, need };
   }
-  if (wellVolume) return undefined;
-  const need = TOTAL_WELL_VOLUME.word;
-  return { problem: `Needs "${need}" in Values, the volume in each well`, need };
+  return wellVolume ? undefined : totalWellVolumeGap(assaySetupTitle);
 }
 
 function runNames(
@@ -252,7 +251,7 @@ function runNames(
   ].find(name => names.has(nameKey(name)));
   const gap: CalculationGap | undefined = takenName
     ? { problem: `Rename "${takenName}": the ${subject} dilution prep needs that name.` }
-    : missingSharedValue(subject, volume, wellVolume);
+    : missingSharedValue(subject, volume, wellVolume, assaySetupTitleOf(protocol.cards));
   const lines = (Object.keys(formulas) as PrepLine[])
     .filter(key => !names.has(nameKey(line(key))))
     .map(
