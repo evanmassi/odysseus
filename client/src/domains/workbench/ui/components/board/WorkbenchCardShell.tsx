@@ -7,6 +7,7 @@ import { ConsolePanel, Tooltip, WELL_BASE } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useFitCardHeight } from '../../../hooks/useFitCardHeight';
+import { CARD_SURFACE_ATTRIBUTE } from '../../../hooks/useShowCard';
 import { useUpdateCard } from '../../../hooks/useUpdateCard';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { removalMessage } from '../../../utils/cards/cardRemoval';
@@ -99,7 +100,11 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
 
   return (
     <div ref={shellRef} className="h-full">
-      <ConsolePanel intensity="soft" className="flex h-full min-h-0 flex-col overflow-hidden">
+      <ConsolePanel
+        {...{ [CARD_SURFACE_ATTRIBUTE]: '' }}
+        intensity="soft"
+        className="flex h-full min-h-0 flex-col overflow-hidden"
+      >
         <div
           className={`${CARD_DRAG_HANDLE} flex flex-none cursor-grab items-center gap-2 px-2 py-2`}
         >

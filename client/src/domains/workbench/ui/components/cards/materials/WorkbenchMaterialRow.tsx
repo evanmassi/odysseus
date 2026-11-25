@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { Button, Select, Tooltip, type SelectOption } from '@shared/ui';
 
 import { useFocusLeave } from '../../../../hooks/useFocusLeave';
+import { flashFresh } from '../../../../utils/dom/freshFlash';
 import { usageSummary, type NameUsage } from '../../../../utils/formulas/nameUsage';
 import { displayValue } from '../../../../utils/formulas/quantities';
 import { workedCountsByKey } from '../../../../utils/materials/cellCounts';
@@ -112,11 +113,6 @@ const isSameRow = (a: WorkbenchMaterialRowProps, b: WorkbenchMaterialRowProps) =
   );
 
 const FOCUSABLE = 'input, [tabindex="0"]';
-const FRESH_FLASH_MS = 1800;
-const FRESH_FLASH: Keyframe[] = [
-  { backgroundColor: 'hsl(var(--primary) / 0.3)' },
-  { backgroundColor: 'transparent' },
-];
 
 const localToday = (): string => new Date().toLocaleDateString('en-CA');
 const isPastDate = (value: string) => !!value.trim() && value < localToday();
@@ -224,8 +220,7 @@ export const WorkbenchMaterialRow = memo(function WorkbenchMaterialRow({
   };
 
   useEffect(() => {
-    if (freshStamp)
-      rowRef.current?.animate(FRESH_FLASH, { duration: FRESH_FLASH_MS, easing: 'ease-out' });
+    if (freshStamp) flashFresh(rowRef.current);
   }, [freshStamp]);
 
   return (

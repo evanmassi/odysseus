@@ -2,8 +2,9 @@ import { Fragment, useRef, useState } from 'react';
 
 import { Plus } from 'lucide-react';
 
-import { DropdownMenu, MenuItem, useMenuItemHover } from '@shared/ui';
+import { DropdownMenu } from '@shared/ui';
 
+import { useShowCard } from '../../../hooks/useShowCard';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { CARD_TYPES } from '../../../utils/cards/cardTypes';
 import { cardsShowing, createCard, showPlateMap } from '../../../utils/cards/createCard';
@@ -17,6 +18,7 @@ import {
 
 import { CARD_ICONS } from './cardIcons';
 import { CARD_PANELS } from './cardPanels';
+import { WorkbenchCardRailItem } from './WorkbenchCardRailItem';
 
 import type { PlateMap, Protocol, ProtocolCardType } from '@odysseus/shared-schemas';
 
@@ -29,8 +31,8 @@ const RAIL_GROUPS: ReadonlyArray<[string, ProtocolCardType[]]> = [
 
 const MENU_GAP = 8;
 const NOT_SHOWN = 'Not shown';
-const MENU_HEADING =
-  'relative z-10 block px-3 pb-1 pt-2 type-label text-label-2xs text-muted-foreground first:pt-1';
+const RAIL_HEADING = 'px-2 pb-1 type-label text-label-xs text-muted-foreground';
+const MENU_HEADING = `${RAIL_HEADING} block pt-3`;
 
 const tabNames = (plateMap: PlateMap) =>
   plateMapTabs(plateMap)
@@ -48,6 +50,7 @@ export function WorkbenchCardRail() {
   const pages = useWorkbenchStore(state => state.protocol.pages);
   const cards = useWorkbenchStore(state => state.protocol.cards);
   const plateMaps = useWorkbenchStore(state => state.protocol.plateMaps);
+  const showCard = useShowCard();
   const plateMapsOn = (pageId: string) =>
     plateMaps.filter(plateMap =>
       cardsShowing(cards, plateMap.id).some(card => card.page === pageId)
@@ -55,72 +58,82 @@ export function WorkbenchCardRail() {
   const notShown = plateMaps.filter(plateMap => !cardsShowing(cards, plateMap.id).length);
   const hasProcedure = cards.some(card => card.page === activePageId && card.type === 'procedure');
   const startFromRef = useRef<HTMLDivElement>(null);
+  const plateItemRef = useRef<HTMLButtonElement>();
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
   const [startMenuAt, setStartMenuAt] = useState<{ top: number; left: number }>();
   const closeStartMenu = () => setIsStartMenuOpen(false);
+
+  const added = (cardId: string, railItem: HTMLButtonElement | undefined) =>
+    showCard(cardId, { isNew: true, addedFrom: railItem });
 
   const placePlateCard = (draft: Protocol, plateMapId: string, side: 'assay' | 'stain') => {
     const [w, h] = CARD_TYPES.plateMap.size;
     const page = activePageId;
     const shownWidth = cardsShowing(draft.cards, plateMapId)[0]?.w;
-    showPlateMap(
+    return showPlateMap(
       draft,
       plateMapId,
       { page, x: 0, y: bottomOf(draft, page), w: shownWidth ?? w, h },
       side
-    );
+    ).id;
   };
 
-  const showExisting = (plateMap: PlateMap) =>
-    updateProtocol(draft =>
-      placePlateCard(
-        draft,
-        plateMap.id,
-        draft.cards.some(card => card.type === 'flowCytometryPanel' && card.stains.length)
-          ? 'stain'
-          : 'assay'
-      )
-    );
+  const showExisting = (plateMap: PlateMap) => {
+    let cardId = '';
+    updateProtocol(draft => {
+      const hasStains = draft.cards.some(
+        card => card.type === 'flowCytometryPanel' && card.stains.length
+      );
+      cardId = placePlateCard(draft, plateMap.id, hasStains ? 'stain' : 'assay');
+    });
+    added(cardId, plateItemRef.current);
+  };
 
-  const addCard = (type: ProtocolCardType) => {
-    if (type === 'plateMap') {
-      updateProtocol(draft => {
+  const addCard = (type: ProtocolCardType, railItem: HTMLButtonElement | undefined) => {
+    let cardId = '';
+    updateProtocol(draft => {
+      if (type === 'plateMap') {
         const plateMap = newPlateMap();
         draft.plateMaps.push(plateMap);
-        placePlateCard(draft, plateMap.id, 'assay');
-      });
-      return;
-    }
-    updateProtocol(draft => {
+        cardId = placePlateCard(draft, plateMap.id, 'assay');
+        return;
+      }
       const [w, h] = CARD_TYPES[type].size;
-      draft.cards.push(
-        createCard(type, { page: activePageId, x: 0, y: bottomOf(draft, activePageId), w, h })
-      );
+      const card = createCard(type, {
+        page: activePageId,
+        x: 0,
+        y: bottomOf(draft, activePageId),
+        w,
+        h,
+      });
+      draft.cards.push(card);
+      cardId = card.id;
     });
+    added(cardId, railItem);
   };
 
-  const pick = (type: ProtocolCardType) => {
-    if (type !== 'plateMap' || !plateMaps.length) return addCard(type);
+  const pick = (type: ProtocolCardType, railItem: HTMLButtonElement) => {
+    if (type !== 'plateMap' || !plateMaps.length) return addCard(type, railItem);
     if (isStartMenuOpen) return closeStartMenu();
+    plateItemRef.current = railItem;
     const item = startFromRef.current?.getBoundingClientRect();
     if (item) setStartMenuAt({ top: item.top, left: item.right + MENU_GAP });
     setIsStartMenuOpen(true);
   };
 
   const plateMapItem = (plateMap: PlateMap) => (
-    <MenuItem
+    <WorkbenchCardRailItem
       key={plateMap.id}
       icon={CARD_ICONS.plateMap}
       label={labwareTitle(plateMap)}
-      description={tabNames(plateMap)}
-      onClick={() => {
+      hint={tabNames(plateMap)}
+      isMenuItem
+      onPick={() => {
         closeStartMenu();
         showExisting(plateMap);
       }}
     />
   );
-
-  const menuHover = useMenuItemHover();
 
   const groups = RAIL_GROUPS.map(
     ([label, types]) => [label, types.filter(type => CARD_PANELS[type])] as const
@@ -130,32 +143,24 @@ export function WorkbenchCardRail() {
     <nav aria-label="Add a card" className="flex flex-col gap-4">
       {groups.map(([label, types]) => (
         <section key={label}>
-          <h4 className="px-2 pb-1 type-label text-label-xs text-muted-foreground">{label}</h4>
+          <h4 className={RAIL_HEADING}>{label}</h4>
           {types.map(type => {
-            const Icon = CARD_ICONS[type];
             const isOnPage = type === 'procedure' && hasProcedure;
             const hasStartChoice = type === 'plateMap' && plateMaps.length > 0;
             return (
               <div key={type} ref={hasStartChoice ? startFromRef : undefined} className="relative">
-                <button
-                  type="button"
-                  disabled={isOnPage}
-                  aria-expanded={hasStartChoice ? isStartMenuOpen : undefined}
-                  onClick={() => pick(type)}
-                  className={`flex w-full items-start gap-2.5 px-2 py-1.5 text-left transition-colors disabled:cursor-default disabled:opacity-50 ${isOnPage ? '' : menuHover}`}
-                >
-                  <Icon aria-hidden className="mt-0.5 h-4 w-4 flex-none text-primary" />
-                  <span className="min-w-0">
-                    <span className="block text-body-sm text-foreground">
-                      {CARD_TYPES[type].label}
-                    </span>
-                    <span className="block text-label-xs text-muted-foreground">
-                      {isOnPage
-                        ? 'This page has its Procedure. Add a page for another.'
-                        : CARD_TYPES[type].hint}
-                    </span>
-                  </span>
-                </button>
+                <WorkbenchCardRailItem
+                  icon={CARD_ICONS[type]}
+                  label={CARD_TYPES[type].label}
+                  hint={
+                    isOnPage
+                      ? 'This page has its Procedure. Add a page for another.'
+                      : CARD_TYPES[type].hint
+                  }
+                  isDisabled={isOnPage}
+                  isExpanded={hasStartChoice ? isStartMenuOpen : undefined}
+                  onPick={railItem => pick(type, railItem)}
+                />
                 {hasStartChoice && (
                   <DropdownMenu
                     isOpen={isStartMenuOpen}
@@ -163,17 +168,18 @@ export function WorkbenchCardRail() {
                     triggerRef={startFromRef}
                     portal
                     motion="slide-right"
-                    aria-label="Start the Plate map from"
-                    className="min-w-[160px] max-w-sm"
+                    aria-label="Show a plate map"
+                    className="min-w-[200px] max-w-sm py-1"
                     style={startMenuAt}
                   >
-                    <span className={MENU_HEADING}>Start from</span>
-                    <MenuItem
+                    <WorkbenchCardRailItem
                       icon={Plus}
                       label="Empty plate map"
-                      onClick={() => {
+                      hint="Start a new set of plates"
+                      isMenuItem
+                      onPick={() => {
                         closeStartMenu();
-                        addCard('plateMap');
+                        addCard('plateMap', plateItemRef.current);
                       }}
                     />
                     {pages.map(page => {

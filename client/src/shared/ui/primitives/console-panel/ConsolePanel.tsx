@@ -1,8 +1,8 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 
 type ConsolePanelIntensity = 'soft' | 'medium' | 'lit';
 
-interface ConsolePanelProps {
+interface ConsolePanelProps extends Omit<HTMLAttributes<HTMLDivElement>, 'style'> {
   statusColor?: string;
   identityColor?: string;
   intensity?: ConsolePanelIntensity;
@@ -45,6 +45,7 @@ export function ConsolePanel({
   intensity = 'soft',
   className = '',
   children,
+  ...rest
 }: ConsolePanelProps) {
   const isNeutral = !statusColor && !identityColor;
 
@@ -72,7 +73,7 @@ export function ConsolePanel({
   };
 
   return (
-    <div className={`border border-line-soft ${className}`} style={style}>
+    <div {...rest} className={`border border-line-soft ${className}`} style={style}>
       {children}
     </div>
   );

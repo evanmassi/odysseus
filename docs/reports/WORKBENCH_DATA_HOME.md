@@ -274,6 +274,15 @@ The protocol gains one home per kind of data; a card keeps only its window setti
   "Materials" settings button on worked-out groups was missing; a linked copy's "duplicate as
   tab" moved the original card's tab, not its own.
 - Converted by `%TEMP%/data-home/convert-v10.mjs` (v9 copies in `Old versions/Version 9`).
+- **Rail polish after 2b (Evan 2026-11-24, from an interactive mock):** the Plate map menu drops
+  "Start from" ("Empty plate map" is clear on its own) and is drawn like the rail (one
+  `WorkbenchCardRailItem` for both; section names in the rail's heading style, no dividers),
+  replacing the shared `MenuItem`'s monospace look that made it blend. Adding a card from the
+  rail jumps to it: `useShowCard` waits for the grid to draw and settle the new card (it lags a
+  frame or more behind the change, found from Evan's console output), scrolls to it, then
+  flashes the card and the rail item together. One "just added" flash, `utils/dom/freshFlash.ts`
+  at 1.5 s (Evan's pick), shared with new Materials rows (were 1.8 s). `ConsolePanel` passes
+  through HTML attributes so the card's surface can be marked (`CARD_SURFACE_ATTRIBUTE`).
 - Checked: the two protocols' 122 answers identical; the every-card sample holds every fact.
 
 ### Step 3: closing is closing, deleting is deleting (no file change)
