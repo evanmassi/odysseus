@@ -1,4 +1,5 @@
 import { describeName } from '../formulas/nameDisplay';
+import { readReference } from '../formulas/nameReferences';
 import {
   displayValue,
   formatRatio,
@@ -30,9 +31,10 @@ export function dilutionFactorOf(text: string): number {
 }
 
 function readPart(board: SolvedBoard, text: string) {
-  const shown = describeName(board, text.trim());
+  const reference = readReference(text);
+  const shown = describeName(board, reference);
   const isName = shown.kind === 'value' || shown.kind === 'calculation';
-  return { text: isName ? shown.text : text.trim(), isName };
+  return { text: isName ? shown.text : reference.name, isName };
 }
 
 export const readsSeriesAlike = (

@@ -155,7 +155,10 @@ function savedFacts(protocol: Protocol) {
     customField: material('Drug X').values['batch-note'],
     valueRows: values.rows.map(row => ('mixName' in row ? row.mixName : nameOf(row.materialId))),
     assaySetupTitle: values.assaySetupTitle,
-    calculations: protocol.calculations.items.map(item => `${item.name} = ${item.formula}`),
+    calculations: protocol.calculations.items.map(
+      item =>
+        `${item.materialId ? `${nameOf(item.materialId)} · ` : ''}${item.name} = ${item.formula}`
+    ),
     otherLabware: plateMap.otherLabware.map(labware => `${labware.labware} × ${labware.count}`),
     otherLabwareTabName: plateMap.otherLabwareTabName,
     samples: {
@@ -258,7 +261,7 @@ const EVERY_CARD_FACTS = {
   customField: 'Batch 2',
   valueRows: ['Cell line A', 'Medium A + Supplement Y', 'Drug X'],
   assaySetupTitle: 'Plate setup',
-  calculations: ['Cell line A vol. needed = Cell line A vol./well × 2'],
+  calculations: ['Cell line A · Vol. needed = Cell line A vol./well × 2'],
   otherLabware: ['T75 × 2', 'facs × 3'],
   otherLabwareTabName: 'Culture flasks',
   samples: {

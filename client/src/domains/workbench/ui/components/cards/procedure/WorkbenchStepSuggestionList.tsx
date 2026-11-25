@@ -50,7 +50,7 @@ export function WorkbenchStepSuggestionList({
       onMouseDown={event => event.preventDefault()}
     >
       {options.map((option, index) => {
-        const shown = option.name ? describeName(board, option.name).text : option.text;
+        const shown = option.name ? describeName(board, { name: option.name }).text : option.text;
         const isActive = index === activeIndex;
         return (
           <div

@@ -1,4 +1,5 @@
 import { describeName } from '../../../../utils/formulas/nameDisplay';
+import { referenceBody, type NameReference } from '../../../../utils/formulas/nameReferences';
 import { parseStepTemplate } from '../../../../utils/steps/stepTemplate';
 
 import { referenceToneClass } from './stepReferenceTone';
@@ -14,13 +15,13 @@ const TYPED_REFERENCE = /\{([^{}]*)$/;
 const CHIP = 'cursor-default select-all border-b border-dotted border-primary/70';
 const BLANK_SLOT = 'border-b border-dashed border-warning-text/75 bg-warning-text/[0.12] px-0.5';
 
-function chipNode(name: string, board: SolvedBoard): HTMLSpanElement {
-  const display = describeName(board, name);
+function chipNode(reference: NameReference, board: SolvedBoard): HTMLSpanElement {
+  const display = describeName(board, reference);
   const chip = document.createElement('span');
   chip.className = `${CHIP} ${referenceToneClass(display)}`;
   chip.contentEditable = 'false';
-  chip.setAttribute(REFERENCE_ATTRIBUTE, name);
-  chip.title = name;
+  chip.setAttribute(REFERENCE_ATTRIBUTE, referenceBody(reference));
+  chip.title = reference.name;
   chip.textContent = display.text;
   return chip;
 }
@@ -35,7 +36,7 @@ function slotNode(label: string): HTMLSpanElement {
 
 const templateNodes = (text: string, board: SolvedBoard): Node[] =>
   parseStepTemplate(text).map(part => {
-    if (part.kind === 'reference') return chipNode(part.name, board);
+    if (part.kind === 'reference') return chipNode(part, board);
     if (part.kind === 'blank') return slotNode(part.label);
     return document.createTextNode(part.text);
   });
@@ -113,7 +114,7 @@ export function insertReference(editor: HTMLElement, name: string, board: Solved
       : '';
   const spaceAfter = document.createTextNode(' ');
   range.insertNode(spaceAfter);
-  range.insertNode(chipNode(name, board));
+  range.insertNode(chipNode({ name }, board));
   if (charBefore && /\S/.test(charBefore)) range.insertNode(document.createTextNode(' '));
   range.setStartAfter(spaceAfter);
   range.collapse(true);
@@ -151,7 +152,9 @@ export function blankAtCaret(editor: HTMLElement): HTMLElement | undefined {
 }
 
 export function fillBlank(blank: HTMLElement, option: BlankOption, board: SolvedBoard) {
-  const filled = option.name ? chipNode(option.name, board) : document.createTextNode(option.text);
+  const filled = option.name
+    ? chipNode({ name: option.name }, board)
+    : document.createTextNode(option.text);
   blank.replaceWith(filled);
   const caret = document.createRange();
   caret.setStartAfter(filled);

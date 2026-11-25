@@ -19,6 +19,7 @@ import { valueRowName } from '../values/valueEdits';
 import { joinValueName, lowerLead } from '../values/valueNames';
 
 import { nameKey, type BoardName } from './boardCalculation';
+import { calculationFullName } from './calculationEdits';
 
 import type { CardTarget } from '../cards/createCard';
 import type {
@@ -108,11 +109,14 @@ function plateMapNames(plateMap: PlateMap): BoardName[] {
   return [...counts, ...amounts];
 }
 
-const calculationNames = (calculations: ProtocolCalculations): BoardName[] =>
+const calculationNames = (
+  calculations: ProtocolCalculations,
+  materialsById: ReadonlyMap<string, MaterialItem>
+): BoardName[] =>
   calculations.items.map(item => ({
     kind: 'calculation',
     id: item.id,
-    name: item.name,
+    name: calculationFullName(item, materialsById),
     formula: item.formula,
     unit: item.unit,
   }));
@@ -145,7 +149,7 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
   const cardNames = [
     ...setIn(materialNames(materials, cellMaterialIds), { type: 'materials' }),
     ...setIn(valueNames(protocol.values, materialsById), { type: 'values' }),
-    ...setIn(calculationNames(protocol.calculations), { type: 'calculations' }),
+    ...setIn(calculationNames(protocol.calculations, materialsById), { type: 'calculations' }),
     ...protocol.plateMaps.flatMap(plateMap =>
       setIn(plateMapNames(plateMap), { type: 'plateMap', shows: plateMap.id })
     ),

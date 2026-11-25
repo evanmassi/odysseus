@@ -2,6 +2,7 @@ import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { findDonor, donorsIn } from './materialDonors';
 import { findMaterial, findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
+import { plateFollowsListRename } from './renameFollowing';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -70,4 +71,5 @@ export function linkPlateName(draft: Protocol, name: string, materialId: string)
   const notes = notesAt < 0 ? '' : oldName.slice(notesAt + 1, oldName.lastIndexOf(')')).trim();
   const kept = [nameWithoutNotes(oldName), notes].filter(Boolean).join(', ');
   material.name = `${name.trim()} (${kept})`;
+  plateFollowsListRename(draft, oldName, material.name);
 }

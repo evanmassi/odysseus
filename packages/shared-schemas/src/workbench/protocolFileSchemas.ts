@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 11;
+export const PROTOCOL_FILE_VERSION = 12;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -108,7 +108,16 @@ const protocolValuesSchema = z.object({
 });
 
 const protocolCalculationsSchema = z.object({
-  items: z.array(z.object({ id, name: z.string(), formula: z.string(), unit: z.string() })),
+  items: z.array(
+    z.object({
+      id,
+      name: z.string(),
+      materialId: z.string().optional(),
+      materialName: z.string().optional(),
+      formula: z.string(),
+      unit: z.string(),
+    })
+  ),
   materialSections: z.array(z.string()),
 });
 

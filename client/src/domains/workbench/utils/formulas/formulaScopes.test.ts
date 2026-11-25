@@ -63,10 +63,21 @@ describe('formula scopes', () => {
     expect(nameWithin('Raji mRNA yield', raji)).toBe('mRNA yield');
   });
 
-  it('round-trips an expression between short and full names', () => {
+  it('round-trips an expression between short names and saved references', () => {
     const short = namesWithin('Raji per well × Wells used', board, raji);
     expect(short).toBe('Per well × Wells used');
-    expect(namesInFull(short, board, raji)).toBe('Raji per well × Wells used');
+    const saved = namesInFull(short, board, raji);
+    expect(saved).toBe('{Raji per well|Raji per well} × {Wells used|Wells used}');
+    expect(namesWithin(saved, board, raji)).toBe(short);
+  });
+
+  it('keeps the number a name pointed at when the formula is edited, even a removed one', () => {
+    const saved = '{Raji per well|Raji per well} × {Old count|gone}';
+    const edited = `${namesWithin(saved, board, raji)} + 1`;
+    expect(edited).toBe('Per well × Old count + 1');
+    expect(namesInFull(edited, board, raji, saved)).toBe(
+      '{Raji per well|Raji per well} × {Old count|gone} + 1'
+    );
   });
 
   it('suggests the usual cell calculations once their inputs exist', () => {

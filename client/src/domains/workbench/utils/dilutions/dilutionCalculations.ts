@@ -1,9 +1,4 @@
-import {
-  unitScale,
-  type MaterialItem,
-  type Protocol,
-  normalizeMaterialKey,
-} from '@odysseus/shared-schemas';
+import { unitScale, type MaterialItem, type Protocol } from '@odysseus/shared-schemas';
 
 import {
   nameKey,
@@ -33,7 +28,7 @@ import {
 import { findTerm, totalWellVolumeGap } from '../terms/termLookup';
 import { assaySetupTitleOf, GENERAL, joinValueName, lowerLead } from '../values/valueNames';
 
-import { diluentNeedId, runDiluents } from './dilutionDiluents';
+import { diluentChoice, diluentNeedId, runDiluents, type DiluentChoice } from './dilutionDiluents';
 import { dilutionRuns, runTags, type DilutionRun } from './dilutionRuns';
 import { STOCK_FIELD, stockFor, WEIGHT_FIELD } from './dilutionStock';
 
@@ -268,26 +263,25 @@ function runNames(
 }
 
 interface DiluentUse {
-  name: string;
+  choice: DiluentChoice;
   totals: string[];
 }
 
 function diluentNeedNames(
-  protocol: Protocol,
   uses: ReadonlyMap<string, DiluentUse>,
   names: ReadonlyMap<string, BoardName>
 ): BoardName[] {
-  return [...uses.values()].map(({ name, totals }) => {
-    const shownName = materialNamed(protocol, name)?.name.trim() ?? name;
+  return [...uses.values()].map(({ choice, totals }) => {
+    const shownName = choice.material?.name.trim() ?? choice.name;
     const needName = `Total ${lowerLead(shownName)} needed`;
     return {
       kind: 'calculation',
-      id: diluentNeedId(name),
+      id: diluentNeedId(choice),
       name: needName,
       formula: totals.join(' + '),
       unit: '',
       workedOut: {
-        key: diluentNeedId(name),
+        key: diluentNeedId(choice),
         subject: shownName,
         title: `${shownName} for dilutions`,
         settings: { type: 'dilutions' },
@@ -313,11 +307,12 @@ export function dilutionCalculationNames(
     if (tag === undefined) return [];
     const diluent = diluents.get(run.key);
     if (diluent) {
-      const use = uses.get(normalizeMaterialKey(diluent)) ?? { name: diluent, totals: [] };
+      const choice = diluentChoice(protocol, diluent);
+      const use = uses.get(choice.key) ?? { choice, totals: [] };
       use.totals.push(`${run.subject} ${PREP_LINES.diluentTotal}${tag}`);
-      uses.set(normalizeMaterialKey(diluent), use);
+      uses.set(choice.key, use);
     }
     return runNames(protocol, run, tag, names);
   });
-  return [...runEntries, ...diluentNeedNames(protocol, uses, names)];
+  return [...runEntries, ...diluentNeedNames(uses, names)];
 }

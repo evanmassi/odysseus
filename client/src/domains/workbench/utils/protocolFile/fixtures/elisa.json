@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 11,
+  "version": 12,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "IL-6 sandwich ELISA",
@@ -424,13 +424,17 @@
         },
         {
           "id": "e8pm2mt",
-          "name": "Capture Ab volume",
+          "name": "Volume",
+          "materialId": "kavz434",
+          "materialName": "Capture Ab",
           "formula": "Coating mix × Capture Ab dil.",
           "unit": "µL"
         },
         {
           "id": "d5d3ncl",
-          "name": "Coating buffer volume",
+          "name": "Volume",
+          "materialId": "web1ydc",
+          "materialName": "Coating buffer",
           "formula": "Coating mix − Capture Ab volume",
           "unit": "mL"
         },

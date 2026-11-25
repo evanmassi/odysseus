@@ -1,10 +1,12 @@
 import {
   calculationAnswerText,
-  nameKey,
+  findReferenced,
   type BoardName,
   type SolvedBoard,
 } from './boardCalculation';
 import { displayValue } from './quantities';
+
+import type { NameReference } from './nameReferences';
 
 export interface NameDisplay {
   text: string;
@@ -13,9 +15,13 @@ export interface NameDisplay {
   isSetAside: boolean;
 }
 
-export function describeName(board: SolvedBoard, name: string): NameDisplay {
-  const entry = board.names.get(nameKey(name));
-  if (!entry) return { text: name, label: 'not on this board', kind: 'missing', isSetAside: false };
+export function describeName(board: SolvedBoard, reference: NameReference): NameDisplay {
+  const entry = findReferenced(board, reference);
+  if (!entry) {
+    const { name, id } = reference;
+    const label = id === undefined ? 'not on this board' : 'was removed';
+    return { text: name, label, kind: 'missing', isSetAside: false };
+  }
   switch (entry.kind) {
     case 'item': {
       const isDropped = !!entry.isSetAside;
@@ -58,8 +64,11 @@ const isSameDisplay = (a: NameDisplay, b: NameDisplay) =>
   a.text === b.text && a.label === b.label && a.kind === b.kind && a.isSetAside === b.isSetAside;
 
 export const readsNamesAlike = (
-  names: readonly string[],
+  references: readonly NameReference[],
   a: SolvedBoard,
   b: SolvedBoard
 ): boolean =>
-  a === b || names.every(name => isSameDisplay(describeName(a, name), describeName(b, name)));
+  a === b ||
+  references.every(reference =>
+    isSameDisplay(describeName(a, reference), describeName(b, reference))
+  );

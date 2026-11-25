@@ -1,4 +1,8 @@
+import { produce } from 'immer';
+
 import { showPlateMap } from '../utils/cards/createCard';
+import { referenceParts } from '../utils/formulas/nameReferences';
+import { linkReferences } from '../utils/formulas/referenceLinks';
 import { startDonors } from '../utils/materials/materialDonors';
 import { plateFollowsListRename } from '../utils/materials/renameFollowing';
 import { newPlateMap } from '../utils/plateMap/plateMapEdits';
@@ -56,8 +60,10 @@ describe('workbenchStore', () => {
     getState().updateProtocol(draft => {
       draft.values.items[0] = { ...draft.values.items[0], name: 'Volume per well' };
     });
-    expect(calculationItems()[0].formula).toBe('Volume per well * 96');
-    expect(getState().protocol.pages[0].steps[0].text).toBe('Add {Volume per well} to each well');
+    expect(calculationItems()[0].formula).toBe('{Volume per well|v1} * 96');
+    expect(getState().protocol.pages[0].steps[0].text).toBe(
+      'Add {Volume per well|v1} to each well'
+    );
     expect(getState().board.results.get('f1')).toMatchObject({ status: 'ok' });
     expect(selectIsDirty(getState())).toBe(true);
   });
@@ -67,8 +73,8 @@ describe('workbenchStore', () => {
       moveValueToRow(draft, 'v1', { kind: 'material', materialId: 'm1' })
     );
     expect(getState().protocol.values.items).toMatchObject([{ id: 'v1', name: 'Per well' }]);
-    expect(calculationItems()[0].formula).toBe('Drug per well * 96');
-    expect(getState().protocol.pages[0].steps[0].text).toBe('Add {Drug per well} to each well');
+    expect(calculationItems()[0].formula).toBe('{Drug per well|v1} * 96');
+    expect(getState().protocol.pages[0].steps[0].text).toBe('Add {Drug per well|v1} to each well');
     expect(getState().board.results.get('f1')).toMatchObject({ status: 'ok' });
   });
 
@@ -76,17 +82,20 @@ describe('workbenchStore', () => {
     getState().updateProtocol(draft => {
       draft.calculations.items.push({
         id: 'f2',
-        name: 'Drug top',
-        formula: 'Drug stock concentration / 1000',
+        name: 'Top',
+        materialId: 'm1',
+        formula: 'Drug stock conc. / 1000',
         unit: 'auto',
       });
     });
     getState().updateProtocol(draft => {
       draft.materials.items[0].name = 'Compound';
     });
+    expect(getState().board.ids.get('f2')?.name).toBe('Compound top');
     expect(calculationItems()[1]).toMatchObject({
-      name: 'Compound top',
-      formula: 'Compound stock concentration / 1000',
+      name: 'Top',
+      materialName: 'Compound',
+      formula: '{Compound stock conc.|m1:stock-concentration} / 1000',
     });
   });
 
@@ -199,8 +208,10 @@ describe('workbenchStore', () => {
         });
       });
       expect(getState().board.results.get('f2')).toMatchObject({ status: 'ok' });
+      const [before] = referenceParts(calculationItems()[1].formula);
       renameDonor('D1');
-      expect(calculationItems()[1].formula).toBe('D1 total needed * 2');
+      const [after] = referenceParts(calculationItems()[1].formula);
+      expect(after).toEqual({ ...before, name: 'D1 total needed' });
       expect(getState().board.results.get('f2')).toMatchObject({ status: 'ok' });
     });
 
@@ -217,6 +228,106 @@ describe('workbenchStore', () => {
       renameDonor('D1');
       expect(names()).toContain('Seeding');
     });
+  });
+});
+
+describe('formulas and steps point at the number', () => {
+  const formulaOf = (id: string) => calculationItems().find(item => item.id === id)?.formula;
+  const stepText = () => getState().protocol.pages[0].steps[0].text;
+  const resultOf = (id: string) => getState().board.results.get(id);
+  const addValue = (id: string, name: string, value = '50') =>
+    getState().updateProtocol(draft => {
+      draft.values.items.push({ id, name, value, unit: 'µL' });
+    });
+  const removeValue = (id: string) =>
+    getState().updateProtocol(draft => {
+      draft.values.items = draft.values.items.filter(item => item.id !== id);
+    });
+
+  it('links a name typed before its number exists once the number appears', () => {
+    getState().updateProtocol(draft => {
+      draft.calculations.items.push({
+        id: 'f3',
+        name: 'Twice',
+        formula: 'Spare * 2',
+        unit: 'auto',
+      });
+    });
+    expect(resultOf('f3')).toMatchObject({ status: 'error', missingName: 'Spare' });
+    addValue('v2', 'Spare', '5');
+    expect(formulaOf('f3')).toBe('{Spare|v2} * 2');
+    expect(resultOf('f3')).toMatchObject({ status: 'ok' });
+  });
+
+  it('says a removed number was removed, and undo brings it back', () => {
+    removeValue('v1');
+    expect(formulaOf('f1')).toBe('{Per well|v1} * 96');
+    expect(resultOf('f1')).toMatchObject({
+      status: 'error',
+      message: 'Per well was removed',
+      missingName: 'Per well',
+    });
+    getState().undo();
+    expect(resultOf('f1')).toMatchObject({ status: 'ok', output: { text: '9.6 mL' } });
+  });
+
+  it('links again to a new number given exactly the removed name', () => {
+    removeValue('v1');
+    addValue('v9', 'Per well');
+    expect(formulaOf('f1')).toBe('{Per well|v9} * 96');
+    expect(stepText()).toBe('Add {Per well|v9} to each well');
+    expect(resultOf('f1')).toMatchObject({ status: 'ok', output: { text: '4.8 mL' } });
+  });
+
+  it('never moves a reference onto another number that takes its old name', () => {
+    getState().updateProtocol(draft => {
+      draft.values.items[0] = { ...draft.values.items[0], name: 'Volume' };
+    });
+    addValue('v2', 'Per well');
+    expect(formulaOf('f1')).toBe('{Volume|v1} * 96');
+    expect(stepText()).toBe('Add {Volume|v1} to each well');
+  });
+
+  it('keeps the diluent on its material through a rename', () => {
+    getState().updateProtocol(draft => {
+      draft.diluent = 'Drug';
+    });
+    expect(getState().protocol.diluent).toBe('{Drug|m1}');
+    getState().updateProtocol(draft => {
+      draft.materials.items[0].name = 'Compound';
+    });
+    expect(getState().protocol.diluent).toBe('{Compound|m1}');
+  });
+
+  it('keeps the full name of a calculation whose material was removed', () => {
+    getState().updateProtocol(draft => {
+      draft.calculations.items.push({
+        id: 'f2',
+        name: 'Top',
+        materialId: 'm1',
+        formula: '1 mM',
+        unit: 'auto',
+      });
+    });
+    getState().updateProtocol(draft => {
+      draft.materials.items = [];
+    });
+    expect(getState().board.ids.get('f2')?.name).toBe('Drug top');
+  });
+
+  it('settles after a change, so linking again changes nothing', () => {
+    getState().updateProtocol(draft => {
+      draft.calculations.items.push({
+        id: 'f2',
+        name: 'Top',
+        materialId: 'gone',
+        formula: '1',
+        unit: 'auto',
+      });
+      draft.values.rows.push({ id: 'r1', materialId: 'gone' });
+    });
+    const { protocol, board } = getState();
+    expect(produce(protocol, draft => linkReferences(draft, board))).toBe(protocol);
   });
 });
 

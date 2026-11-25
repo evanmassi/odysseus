@@ -40,7 +40,7 @@ interface WorkbenchCalculationEditorProps {
   material: MaterialItem | undefined;
   board: SolvedBoard;
   anchorOf: () => DOMRect | undefined;
-  onChange: (change: Partial<Omit<CalculationItem, 'id'>>) => void;
+  onChange: (change: Partial<Omit<CalculationItem, 'id' | 'materialId' | 'materialName'>>) => void;
   onAddMissing: (name: string) => void;
   onRemove: () => void;
   onClose: () => void;
@@ -62,7 +62,8 @@ export function WorkbenchCalculationEditor({
 }: WorkbenchCalculationEditorProps) {
   const expressionRef = useRef<HTMLTextAreaElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
-  const [name, setName] = useState(() => nameWithin(calculation.name, material));
+  const fullName = board.ids.get(calculation.id)?.name ?? calculation.name;
+  const [name, setName] = useState(() => nameWithin(fullName, material));
   const [expression, setExpression] = useState(() =>
     namesWithin(calculation.formula, board, material)
   );
@@ -94,15 +95,13 @@ export function WorkbenchCalculationEditor({
   }, [onClose]);
 
   const refreshCompletions = (text: string, caret: number) => {
-    setCompletions(
-      formulaCompletions(board, material, formulaWordAt(text, caret).text, calculation.name)
-    );
+    setCompletions(formulaCompletions(board, material, formulaWordAt(text, caret).text, fullName));
     setHighlighted(0);
   };
 
   const changeExpression = (text: string, caret: number) => {
     setExpression(text);
-    onChange({ formula: namesInFull(text, board, material) });
+    onChange({ formula: namesInFull(text, board, material, calculation.formula) });
     refreshCompletions(text, caret);
   };
 
@@ -261,7 +260,7 @@ export function WorkbenchCalculationEditor({
         />
       </div>
       <WorkbenchCalculationWorking
-        name={calculation.name}
+        name={fullName}
         result={result}
         isCompact={false}
         shortName={full => nameWithin(full, material)}

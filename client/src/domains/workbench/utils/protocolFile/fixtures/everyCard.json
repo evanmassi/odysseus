@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 11,
+  "version": 12,
   "savedAt": "2026-11-22T12:00:00.000Z",
   "protocol": {
     "title": "Safety net protocol",
@@ -330,7 +330,9 @@
       "items": [
         {
           "id": "calculation-1",
-          "name": "Cell line A vol. needed",
+          "name": "Vol. needed",
+          "materialId": "mat-cells",
+          "materialName": "Cell line A",
           "formula": "Cell line A vol./well × 2",
           "unit": "µL"
         }

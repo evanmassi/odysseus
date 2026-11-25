@@ -32,7 +32,7 @@ describe('a typed calculation', () => {
     expect(draft('Raji cells needed = per well × Wells used')).toMatchObject({
       name: 'Raji cells needed',
       savedName: 'Raji cells needed',
-      formula: 'Raji per well × Wells used',
+      formula: '{Raji per well|Raji per well} × {Wells used|Wells used}',
       material: raji,
     });
     expect(draft('Plate count')?.material).toBeUndefined();

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { withGreekLetters, normalizeMaterialKey } from '@odysseus/shared-schemas';
 import { Plus } from 'lucide-react';
@@ -18,6 +18,7 @@ import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import { materialFromGuess, UNSORTED_GROUP } from '../../../../utils/materials/materialItems';
 import { materialKnowledge } from '../../../../utils/materials/materialMemory';
 import { plateNameOffers } from '../../../../utils/materials/plateNameOffers';
+import { plateFollowsListRename } from '../../../../utils/materials/renameFollowing';
 import { labwareTitleOf } from '../../../../utils/plateMap/plateMapTabs';
 import { acceptStepReadings, readStepReadings } from '../../../../utils/steps/stepReadings';
 import { TOTAL_WELL_VOLUME, VOLUME_PER_WELL } from '../../../../utils/terms/termList';
@@ -349,6 +350,8 @@ export function WorkbenchValuesPanel() {
 
   const edit = (mutate: (draft: Protocol) => void) => updateProtocol(mutate);
 
+  const nameAtStart = useRef<{ materialId: string; name: string }>();
+
   const groupOfRow = (rowId: string) =>
     groups.find(candidate => candidate.rows.some(({ id }) => id === rowId));
 
@@ -422,7 +425,20 @@ export function WorkbenchValuesPanel() {
       setFillOfferCellId(cellId === undefined ? editingCellId : undefined);
       setEditingCellId(cellId);
     },
-    onEditName: setEditingNameRowId,
+    onEditName: rowId => {
+      const started = nameAtStart.current;
+      if (started) {
+        edit(draft => {
+          const material = draft.materials.items.find(item => item.id === started.materialId);
+          if (material) plateFollowsListRename(draft, started.name, material.name);
+        });
+      }
+      const material = rowId
+        ? groupOfRow(rowId)?.rows.find(row => row.id === rowId)?.material
+        : undefined;
+      nameAtStart.current = material && { materialId: material.id, name: material.name };
+      setEditingNameRowId(rowId);
+    },
     onRename: (row, name) => {
       const { valueRow } = row;
       if (valueRow) edit(draft => renameValueRow(draft, valueRow.id, name));

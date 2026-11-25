@@ -1,7 +1,8 @@
 # Workbench: Where the Data Lives
 
 Design for moving the workbench's saved data out of cards and into the protocol, so a card only
-shows and edits it. Started 2026-11-24 with Evan. Built: steps 0 to 3; next 4.
+shows and edits it. Started 2026-11-24 with Evan. Built: steps 0 to 4; next 5. Step 7 (painted
+wells point at their material) added 2026-11-25.
 
 ## Why
 
@@ -28,8 +29,9 @@ point at the number itself, the name being only its label. One shared address bo
 considered and rejected: it fixes editing from any card, but data would still go with its card.
 
 **Not changing:** the app's own math (cells, dilutions, recipes, flow) finds numbers by their words
-(`findTerm`), and a painted well name finds its material by matching text
-(`materialSampleCounts`). Both are the vocabulary feature, on purpose.
+(`findTerm`); that is the vocabulary feature, on purpose. A painted well name finding its material
+by matching text (`materialSampleCounts`) was listed here too, until Evan's rename in step 4
+showed its cost; it is now step 7.
 
 ## What a protocol saves today (v8)
 
@@ -131,7 +133,7 @@ type without one, so nothing can make one and neither protocol has one. Removed 
 
 ## Build plan (drafted 2026-11-24, reviewed against AGENTS.md and the audit standards)
 
-Seven steps (0 to 6), each built, checked and committed on its own, each leaving the app fully
+Eight steps (0 to 7; 7 added 2026-11-25), each built, checked and committed on its own, each leaving the app fully
 working.
 
 **Every step's check:**
@@ -351,7 +353,10 @@ The protocol gains one home per kind of data; a card keeps only its window setti
 - Checked: typecheck and lint clean; 848 client tests (new: `createCard.test.ts`, removing a plate
   map, removing a Flow panel); the two protocols' 122 answers identical.
 
-### Step 4: formulas and steps point at the number (file change)
+### Step 4: formulas and steps point at the number (built 2026-11-25, file version 12)
+
+Reviewed against the code 2026-11-25 with Evan; the points below the first list were added then,
+and "Built" at the end records what changed while building.
 
 - The chosen diluent (a series' `prep.diluent` and the protocol's `diluent`) points at its
   material instead of its name, so the diluent total keeps one id through a rename (found in
@@ -362,12 +367,90 @@ The protocol gains one home per kind of data; a card keeps only its window setti
   one says "… was removed".
 - A calculation keeps its material as a reference, joined to its name when read, the way Values
   rows already do (`joinValueName`), instead of a "PBMC …" prefix inside its saved name.
-- The code lives in `utils/formulas/nameReferences.ts` ("reference" is the word steps already use:
-  `STEP_REFERENCE`, `applyReferenceRenames`). `nameRenames.ts` keeps only what stays: a painted
-  well name following its material's rename. Its formula, step and series rewriting is deleted.
 - Worked-out wording can change in later work without converting any file, since nothing saved
   holds a generated name any more.
-- Tests: rename, remove, re-add by name, a name that doesn't exist yet, a step reference.
+
+**What a saved reference looks like.** One form everywhere a name can point at a number
+(formulas, steps, a series' top dose and fold, the diluent): `{name|id}`, the name as last seen and
+the number's id. Plain text that names nothing is a name still waiting (decision 4), so a file can
+hold both.
+
+- After every change (where `applyRenames` runs today), one pass links any waiting name that now
+  exists, keeps each reference's name current with its number's, and re-links a reference whose
+  number was removed when a number with exactly that name appears. A removed number's reference is
+  otherwise left alone, so undo brings it straight back, and "PBMC vol./well was removed" shows
+  the last name seen.
+- The editors show names and save references; a name left as it was keeps its id.
+
+**Converting Evan's files stays a plain script.** It leaves formula and step names as text, so
+they wait by name and the app links them when the file opens; only the calculations' materials and
+the diluent are matched by name in the script. Linking on open must not count as an unsaved change
+or an undo step.
+
+**Dilution numbers: not a gap after all (corrected while building).** A run's key, and so every
+prep number's id, is its first series' plate id and series id (`dilutionRuns.ts`);
+`sameSourceKey` only decides which series pool into one run. Only the pooling of a fold that names
+a number changed: it keys on the reference's id, since reading digits out of the saved text would
+pick them out of the id.
+
+**A calculation's material copies Values rows:** the material's id with its name as the fallback
+(`valueRowName`), so a removed material's calculations fall to General under their full old name,
+as today.
+
+**Every reader of `{…}` moves to the one reader:** `stepTemplate.ts`, `stepEditorContent.ts`,
+`stepReadings.ts`, `flowDiagramModel.ts` and `nameUsage.ts`. Lab memory saves no formulas, so it is
+untouched.
+
+**No `nameRenames.ts`.** The new code lives in `utils/formulas/nameReferences.ts` ("reference" is
+the word steps already use). Painted well names already follow a material's rename through
+`utils/materials/renameFollowing.ts` (which also keeps notes in parentheses), so the plate part of
+`applyRenames` is a second copy, and the whole file is deleted. Checked while building: a plate
+line's own name and a rename made somewhere other than the Materials card; anything only
+`applyRenames` covers moves into `renameFollowing.ts`.
+
+- Tests: rename, remove, undo of a remove, re-add by name, a name that doesn't exist yet, a step
+  reference.
+
+**Built:**
+
+- **Shape:** `PROTOCOL_FILE_VERSION` 12; a calculation saves `name` without its material, plus
+  `materialId` and `materialName`. Formulas, steps, a series' top dose and fold, and both diluents
+  stay strings holding `{name|id}`. An id is escaped (`%`, `|`, `{`, `}`), and the last `|` splits
+  name from id.
+- **Files:** `nameReferences.ts` holds only the saved form (read, write, split text, show by name),
+  so the formula parser can read it without an import cycle. Finding a number by reference is
+  `findReferenced` beside `nameKey` (the board gains `ids`). The pass is `linkReferences` in
+  `referenceLinks.ts`. `linkNames` and `linkedReference` in `formulaScopes.ts` link names in
+  formula text; the editor's `namesInFull` uses them too, and names kept from the saved formula win
+  the match (a removed "Old count" was half-taken by a section's short "Count").
+- **Store:** `reconcile` runs the pass until nothing changes (at most 3), on every change and on
+  opening a file. Opening already counts as saved, so linking on open adds no unsaved change and
+  no undo step. `knownNames` stays: spotting newly named plate amounts still reads it.
+- **Calculations:** `insertCalculation` and `updateCalculation` take a full name and split it
+  (`savedName`, the same longest-material-prefix rule as before); the board joins it back
+  (`calculationFullName`), and the panel and editor read the full name from `board.ids`. Sections
+  file saved calculations by `materialId`.
+- **Diluent:** `diluentChoice` resolves the saved diluent to its material by id, then by name; the
+  diluent total's id is the material's id (`diluentNeedId`).
+- **Display:** `describeName` takes a reference; a removed one reads "was removed", and a formula
+  using it says "PBMC vol./well was removed" with "Add as a value" still offered.
+- **The two checks:** a plate line named for a material (cytotox's "Compound X" line) was renamed
+  only by `applyRenames`, and the Values card renames a material on every keystroke with nothing
+  but `applyRenames` making the plate follow. Both moved: `renameFollowing.ts` renames lines too,
+  and the Values card follows on finish with the name it had at the start, as the Materials card
+  does. Linking a plate name to a material (`linkPlateName`) follows too.
+- **Found by Evan in the app:** renaming "Risankizumab (anti-IL-23p19)" to "Risankizumab" left
+  the wells on the old name, since `renameFollowing.ts` treated a change in the notes only as "the
+  description changed", and the dilution prep then missed "Risankizumab (anti-IL-23p19)
+  vol./well". `applyRenames` had covered it by matching the whole old name. Now a well or line
+  holding the material's whole old name takes the whole new name; one holding the bare name with
+  its own notes keeps them, as before.
+- **Converted:** the four samples, and Evan's two protocols after copying them to
+  `Old versions/Version 11`; 1 + 14 + 2 calculations in the samples and 3 in the recall assay
+  split into material and name; nothing else in the files changed.
+- **Checked:** typecheck and lint clean; 861 client tests (new: `nameReferences.test.ts`, seven
+  store tests, a plate line following, whole-name wells following); the 122 answers identical, both read straight from the
+  files and opened through the store with every name linked.
 
 ### Step 5: one address book (no file change)
 
@@ -422,9 +505,36 @@ Raised while weighing what of the workbench another lab could reuse. **Decided 2
     the cell count); tags replace reading names in the math, not recognizing what is typed.
 - Then W114 step 5 resumes.
 
+### Step 7: painted wells point at their material (file change)
+
+Added 2026-11-25 after Evan renamed "Risankizumab (anti-IL-23p19)" to "Risankizumab" in step 4's
+check (see step 4, "Found by Evan in the app"). Not yet designed in detail; built before or with
+step 6.
+
+- **The gap.** Step 4 made formulas and steps point at a number by id; a painted well still finds
+  its material by matching its text (`findMaterial`, `materialSampleCounts`). Every well holds its
+  own copy of the name, so a rename has to be copied onto the plate by text rules
+  (`renameFollowing.ts`), and any case the rules miss leaves the plate on the old name. The patch
+  in step 4 covers the case Evan hit, not the class.
+- **It reaches the math.** The dilution prep takes the painted text as its subject
+  (`run.subject`) and looks up `<subject> vol./well` by it, so the lookups depend on the well
+  text matching the material's name exactly; cell math and well counts read painted names the
+  same way.
+- **Proposal.** A painted value keeps its material by id, the way Values rows do; its text is only
+  what is shown and typed, notes included. Typing a name that matches a material links it, as
+  recognizing works today; text that names no material ("Medium only", "Targets only") stays
+  text. A rename then needs no copying, and the math finds the material through the link: this is
+  the plate's half of step 6's "owner by id".
+- **What it replaces.** The plate-following rules in `renameFollowing.ts` (material to plate, and
+  plate to material) become reading through the link; what is left of that file is decided when
+  the step is built.
+- **Open, asked when this step comes:** how a well's own notes sit beside a linked name, and what
+  a well shows when its material is removed (decision 4 suggests: its last name, waiting by name).
+
 **Order:** 0 clears the old-version code so every later step changes one file shape. 1 is small
 and independent. 2 is the foundation, 3 makes it visible, 4 and 5 build on it, and 6 builds on
-1, 4 and 5.
+1, 4 and 5. 7 builds on 4 and comes before or with 6, since 6's lookups by owner need the plate's
+subject to be a material, not a text.
 
 ## Code standards for this work
 

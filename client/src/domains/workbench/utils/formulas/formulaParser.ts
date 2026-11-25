@@ -1,3 +1,4 @@
+import { readReferenceBody, type NameReference } from './nameReferences';
 import { FORMULA_LITERAL_UNITS } from './quantities';
 
 export const FORMULA_FUNCTIONS = ['round up', 'round down', 'round', 'at least'] as const;
@@ -8,7 +9,7 @@ export type Operator = '+' | '-' | '*' | '/';
 
 export type FormulaNode =
   | { kind: 'number'; value: number; unit: string }
-  | { kind: 'ref'; name: string }
+  | ({ kind: 'ref' } & NameReference)
   | { kind: 'group'; inner: FormulaNode }
   | { kind: 'negate'; operand: FormulaNode }
   | { kind: 'call'; name: FormulaFunction; args: FormulaNode[] }
@@ -18,7 +19,7 @@ type Token =
   | { kind: 'op'; text: string }
   | { kind: 'number'; value: number; unit: string }
   | { kind: 'function'; name: FormulaFunction }
-  | { kind: 'name'; name: string }
+  | ({ kind: 'name' } & NameReference)
   | { kind: 'unknown'; text: string };
 
 export class FormulaError extends Error {
@@ -43,6 +44,7 @@ const FUNCTION_PATTERN = new RegExp(
 );
 const NUMBER_PATTERN = /^(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?/;
 const OPERATOR_CHARACTERS = '+-*/(),';
+const REFERENCE_AT_START = /^\{([^{}]+)\}/;
 
 const isWordCharacter = (character: string | undefined) => /[A-Za-z0-9_µ°]/.test(character ?? '');
 
@@ -70,6 +72,12 @@ function tokenize(source: string, names: readonly string[]): Token[] {
       continue;
     }
     const rest = text.slice(index);
+    const reference = REFERENCE_AT_START.exec(rest);
+    if (reference) {
+      tokens.push({ kind: 'name', ...readReferenceBody(reference[1]) });
+      index += reference[0].length;
+      continue;
+    }
     const number = NUMBER_PATTERN.exec(rest);
     if (number) {
       index += number[0].length;
@@ -102,7 +110,7 @@ function tokenize(source: string, names: readonly string[]): Token[] {
       index += name.length;
       continue;
     }
-    const unknown = /^[^+\-*/(),]+/.exec(rest)?.[0] ?? character;
+    const unknown = /^[^+\-*/(),{]+/.exec(rest)?.[0] ?? character;
     tokens.push({ kind: 'unknown', text: unknown.trim() });
     index += unknown.length;
   }
@@ -154,7 +162,7 @@ function parseTokens(tokens: Token[]): FormulaNode {
     const token = tokens[index++];
     if (!token) throw new FormulaError('The formula stops too early');
     if (token.kind === 'number') return { kind: 'number', value: token.value, unit: token.unit };
-    if (token.kind === 'name') return { kind: 'ref', name: token.name };
+    if (token.kind === 'name') return { kind: 'ref', name: token.name, id: token.id };
     if (token.kind === 'unknown') {
       throw new FormulaError(`'${token.text}' isn't a value or calculation on this board`, {
         missingName: token.text,
@@ -195,5 +203,7 @@ function parseTokens(tokens: Token[]): FormulaNode {
 export const parseFormula = (source: string, names: readonly string[]): FormulaNode =>
   parseTokens(tokenize(source, names));
 
-export const formulaNameReferences = (source: string, names: readonly string[]): string[] =>
-  tokenize(source, names).flatMap(token => (token.kind === 'name' ? [token.name] : []));
+export const formulaNameReferences = (source: string, names: readonly string[]): NameReference[] =>
+  tokenize(source, names).flatMap(token =>
+    token.kind === 'name' ? [{ name: token.name, id: token.id }] : []
+  );

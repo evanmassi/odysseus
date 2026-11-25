@@ -52,7 +52,7 @@ export function WorkbenchFormulaCompletionList({
           <span className="truncate font-mono text-data-sm text-muted-foreground">
             {option.isFunction
               ? FORMULA_FUNCTION_HINTS[option.name as FormulaFunction]
-              : describeName(board, option.name).text}
+              : describeName(board, { name: option.name }).text}
           </span>
         </li>
       ))}

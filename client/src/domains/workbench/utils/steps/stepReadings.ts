@@ -2,6 +2,7 @@ import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { firstCardOrNew } from '../cards/createCard';
 import { nameKey, type SolvedBoard } from '../formulas/boardCalculation';
+import { readReferenceBody } from '../formulas/nameReferences';
 import { createId } from '../ids/createId';
 import { ensureMaterial, shortNameOf } from '../materials/materialLookup';
 import {
@@ -58,6 +59,7 @@ interface Phrase {
   end: number;
   name: string;
   isReference: boolean;
+  id?: string;
 }
 
 interface ValueDraft extends ValueReading {
@@ -133,7 +135,8 @@ function phraseAt(text: string, start: number): Phrase | undefined {
   if (text[start] === '{') {
     const close = text.indexOf('}', start);
     if (close < 0) return undefined;
-    return { start, end: close + 1, name: text.slice(start + 1, close), isReference: true };
+    const reference = readReferenceBody(text.slice(start + 1, close));
+    return { start, end: close + 1, ...reference, isReference: true };
   }
   const word = /[A-Za-z0-9µ][\w+\-/µ]*/y;
   let end = start;
@@ -236,7 +239,8 @@ export function readStepReadings(protocol: Protocol, board: SolvedBoard): StepRe
           if (!lead || !phrase || isNotMaterial(phrase)) continue;
           if (!lead[1] && !phrase.isReference && !STARTS_UPPERCASE.test(phrase.name)) continue;
           const referenced = phrase.isReference
-            ? onBoard.get(normalizeMaterialKey(phrase.name))
+            ? (listed.find(item => item.id === phrase.id) ??
+              onBoard.get(normalizeMaterialKey(phrase.name)))
             : undefined;
           if (phrase.isReference && !referenced) continue;
           const materialUse = phrase.isReference

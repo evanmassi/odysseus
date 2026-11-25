@@ -42,18 +42,36 @@ export function materialFollowsPlateRename(draft: Protocol, from: string, to: st
   if (match) match.donor.name = withLeadingName(match.donor.name, toName);
 }
 
-export function plateFollowsListRename(draft: Protocol, from: string, to: string): void {
-  if (!isNameListed(draft, from)) renamePlateValues(draft, from, to);
-}
+const isWholeNameListed = (protocol: Pick<Protocol, 'materials'>, name: string): boolean => {
+  const key = normalizeMaterialKey(name);
+  return (
+    listedMaterials(protocol).some(item => normalizeMaterialKey(item.name) === key) ||
+    donorsIn(protocol).some(({ donor }) => normalizeMaterialKey(donor.name) === key)
+  );
+};
 
-function renamePlateValues(draft: Protocol, from: string, to: string): void {
-  const toName = nameWithoutNotes(to);
-  if (!bareKey(to) || isSameBareName(from, to)) return;
+export function plateFollowsListRename(draft: Protocol, from: string, to: string): void {
+  if (!bareKey(to) || normalizeMaterialKey(from) === normalizeMaterialKey(to)) return;
+  const followsWhole = !isWholeNameListed(draft, from);
+  const followsBare = !isSameBareName(from, to) && !isNameListed(draft, from);
+  const followed = (text: string) => {
+    if (followsWhole && normalizeMaterialKey(text) === normalizeMaterialKey(from)) return to.trim();
+    if (followsBare && isSameBareName(text, from))
+      return withLeadingName(text, nameWithoutNotes(to));
+    return undefined;
+  };
   for (const plateMap of draft.plateMaps) {
-    const values = plateMap.lines.flatMap(line => line.values);
-    const renamed = values.filter(value => isSameBareName(value.text, from));
-    for (const value of renamed) value.text = withLeadingName(value.text, toName);
-    if (renamed.length) normalizePlateMap(plateMap);
+    let isRenamed = false;
+    for (const line of plateMap.lines) {
+      line.name = followed(line.name) ?? line.name;
+      for (const value of line.values) {
+        const text = followed(value.text);
+        if (text === undefined) continue;
+        value.text = text;
+        isRenamed = true;
+      }
+    }
+    if (isRenamed) normalizePlateMap(plateMap);
   }
 }
 

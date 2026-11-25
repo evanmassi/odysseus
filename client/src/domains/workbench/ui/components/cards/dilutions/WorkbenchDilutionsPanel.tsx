@@ -16,6 +16,7 @@ import {
 import { dilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
 import { dilutionRuns, type DilutionRun } from '../../../../utils/dilutions/dilutionRuns';
 import { STOCK_FIELD, WEIGHT_FIELD } from '../../../../utils/dilutions/dilutionStock';
+import { readReference } from '../../../../utils/formulas/nameReferences';
 import { materialGroup } from '../../../../utils/materials/materialCatalog';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
 import { materialFromGuess } from '../../../../utils/materials/materialItems';
@@ -72,10 +73,11 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
   const shown = runs.find(run => run.key === shownKey);
   const isShowingAll = !shown;
 
-  const listDiluent = (name: string) => {
-    if (!name.trim()) return;
+  const listDiluent = (saved: string) => {
+    const { name } = readReference(saved);
+    if (!name) return;
     updateProtocol(draft => {
-      ensureMaterial(draft, name.trim(), createMaterial);
+      ensureMaterial(draft, name, createMaterial);
     });
   };
 
@@ -99,7 +101,7 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
   const hasTabs = runs.length > 1;
   const protocolDiluent = (
     <WorkbenchDilutionDiluentField
-      value={protocol.diluent}
+      value={readReference(protocol.diluent).name}
       placeholder={DILUENT_HINT}
       choices={diluentChoices}
       isInline={hasTabs}
@@ -148,8 +150,8 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
             swatch={indicatorOf(run)}
             prep={prep}
             assaySetupTitle={assaySetupTitleOf(protocol)}
-            diluent={ownDiluent(run)}
-            diluentPlaceholder={protocol.diluent.trim() || DILUENT_HINT}
+            diluent={readReference(ownDiluent(run)).name}
+            diluentPlaceholder={readReference(protocol.diluent).name || DILUENT_HINT}
             diluentChoices={diluentChoices}
             onSharedChange={(field, value) =>
               updateProtocol(draft =>

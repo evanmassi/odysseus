@@ -118,6 +118,24 @@ describe('plateFollowsListRename', () => {
     expect(plateTexts(renamed)).toEqual(['STX']);
   });
 
+  it('gives wells holding the whole old name the whole new name, even when only notes changed', () => {
+    const renamed = produce(twoPlateProtocol(), draft => {
+      mapOf(draft).lines[0].values[0].text = STIM_NAME;
+      renameStim(draft, 'STX');
+      plateFollowsListRename(draft, STIM_NAME, 'STX');
+    });
+    expect(plateTexts(renamed)).toEqual(['STX']);
+  });
+
+  it('renames a plate line named for the material', () => {
+    const renamed = produce(twoPlateProtocol('STX'), draft => {
+      mapOf(draft).lines[0].name = 'STX';
+      renameStim(draft, 'SXT');
+      plateFollowsListRename(draft, 'STX', 'SXT');
+    });
+    expect(mapOf(renamed).lines[0].name).toBe('SXT');
+  });
+
   it('waits while another material still has the old name', () => {
     const renamed = produce(twoPlateProtocol(), draft =>
       plateFollowsListRename(draft, 'STX (another vial)', 'SXT')

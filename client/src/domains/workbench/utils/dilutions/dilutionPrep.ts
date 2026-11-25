@@ -2,8 +2,9 @@ import { unitScale, type Protocol } from '@odysseus/shared-schemas';
 
 import { quantityOfName, type BoardName, type SolvedBoard } from '../formulas/boardCalculation';
 import { describeName } from '../formulas/nameDisplay';
+import { readReference } from '../formulas/nameReferences';
 import { RATIO_NOTATION, readableAmount } from '../formulas/quantities';
-import { displayNameOf, materialNamed } from '../materials/materialLookup';
+import { displayNameOf } from '../materials/materialLookup';
 import { seriesDilutionFactor, seriesTop } from '../plateMap/plateSeries';
 import {
   DILUTION_FACTOR,
@@ -26,6 +27,7 @@ import {
   type PrepSettings,
   type SharedPrepKey,
 } from './dilutionCalculations';
+import { diluentChoice } from './dilutionDiluents';
 import { stockFor, type StockReading } from './dilutionStock';
 import { dialNumber, pipetteFor, shortNumber, type PipetteUse } from './pipettes';
 
@@ -131,7 +133,7 @@ function sharedPrepField(
     return { key, value: entry.value, unit: entry.unit, isAssaySetup, edit };
   }
   const edit: SharedPrepEdit = { kind: 'readOnly', hint: READ_ONLY_HINTS[entry.kind] };
-  return { key, value: describeName(board, entry.name).text, unit: '', isAssaySetup, edit };
+  return { key, value: describeName(board, entry).text, unit: '', isAssaySetup, edit };
 }
 
 function sharedMicroliters(board: SolvedBoard, subject: string, key: SharedPrepKey) {
@@ -155,7 +157,7 @@ export function dilutionPrep(
   const show = (value: number) =>
     isRatio ? `1:${shortNumber(value)}` : readableAmount(String(value), unit);
   const summary = [
-    top ? show(top.value) : run.series.top || '?',
+    top ? show(top.value) : readReference(run.series.top).name || '?',
     `1:${shortNumber(dilutionFactor || 0)}`,
     `${pointCount} ${pointCount === 1 ? 'point' : 'points'}`,
   ].join(' · ');
@@ -231,8 +233,8 @@ export function dilutionPrep(
   }));
   const topDiluent = inMicroliters(lineAnswer(board, run, 'topDiluent'));
   const diluentTotal = inMicroliters(lineAnswer(board, run, 'diluentTotal'));
-  const diluentMaterial = materialNamed(protocol, chosenDiluent);
-  const diluentLabel = diluentMaterial ? displayNameOf(diluentMaterial) : chosenDiluent.trim();
+  const { material: diluentMaterial, name: typedDiluent } = diluentChoice(protocol, chosenDiluent);
+  const diluentLabel = diluentMaterial ? displayNameOf(diluentMaterial) : typedDiluent;
   const diluentName = diluentLabel || 'diluent';
   const restWells = pointCount > 2 ? `Then 2–${pointCount}` : 'Then 2';
   const totalLabel = `${diluentLabel || 'Diluent'} total`;

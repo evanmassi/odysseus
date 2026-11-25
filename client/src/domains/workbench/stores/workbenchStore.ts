@@ -3,13 +3,13 @@ import { create } from 'zustand';
 
 import { calculateBoard, type SolvedBoard } from '../utils/formulas/boardCalculation';
 import { collectBoardNames } from '../utils/formulas/boardNames';
-import { applyRenames, findRenames } from '../utils/formulas/nameRenames';
+import { linkReferences } from '../utils/formulas/referenceLinks';
 import { removeValuesTwinnedByPlate } from '../utils/plateMap/plateEditEffects';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
-const RENAME_PASSES = 3;
+const LINK_PASSES = 3;
 const MOST_UNDO_STEPS = 100;
 const SAME_STEP_WITHIN_MS = 1000;
 
@@ -62,28 +62,20 @@ const namesById = (board: SolvedBoard, known: ReadonlyMap<string, string> = new 
 
 function reconcile(protocol: Protocol, previousNames: ReadonlyMap<string, string>) {
   let next = protocol;
-  let known = previousNames;
   let board = calculate(next);
-  for (let pass = 0; pass < RENAME_PASSES; pass++) {
-    const renames = findRenames(known, board);
-    if (!renames) break;
-    const namesBeforePass = known;
-    next = produce(next, draft => applyRenames(draft, namesBeforePass, renames));
-    known = namesById(board, known);
+  for (let pass = 0; pass < LINK_PASSES; pass++) {
+    const linked = produce(next, draft => linkReferences(draft, board));
+    if (linked === next) break;
+    next = linked;
     board = calculate(next);
   }
-  return { protocol: next, board, knownNames: namesById(board, known) };
+  return { protocol: next, board, knownNames: namesById(board, previousNames) };
 }
 
-function freshDocument(protocol: Protocol) {
-  const board = calculate(protocol);
-  return {
-    protocol,
-    board,
-    knownNames: namesById(board),
-    activePageId: protocol.pages[0].id,
-  };
-}
+const freshDocument = (protocol: Protocol) => ({
+  ...reconcile(protocol, new Map()),
+  activePageId: protocol.pages[0].id,
+});
 
 const snapshotOf = (state: WorkbenchState): Snapshot => ({
   protocol: state.protocol,

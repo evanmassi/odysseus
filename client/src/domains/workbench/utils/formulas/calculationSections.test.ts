@@ -55,10 +55,10 @@ const names: BoardName[] = [
   { kind: 'calculation', id: 'own', name: 'Drug X (Sigma) needed', formula: '2 µL', unit: '' },
 ];
 
-const calculations = {
-  items: [{ id: 'own', name: 'Drug X (Sigma) needed', expr: '2 µL', unit: '' }],
+const calculations: ProtocolCalculations = {
+  items: [{ id: 'own', name: 'Needed', materialId: 'm-drug', formula: '2 µL', unit: '' }],
   materialSections: [],
-} as unknown as ProtocolCalculations;
+};
 
 describe('calculation sections', () => {
   const board = calculateBoard(names);

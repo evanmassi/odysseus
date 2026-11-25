@@ -36,7 +36,6 @@ import {
 } from '../../../../utils/formulas/calculationSections';
 import {
   calculationSuggestions,
-  calculationMaterial,
   namesInFull,
   namesWithin,
   uniqueName,
@@ -65,7 +64,14 @@ import {
 
 import type { CalculationTableRowView } from './WorkbenchCalculationTable';
 import type { CardTarget } from '../../../../utils/cards/createCard';
-import type { MaterialItem, Protocol, ProtocolCard } from '@odysseus/shared-schemas';
+import type {
+  MaterialItem,
+  Protocol,
+  ProtocolCalculations,
+  ProtocolCard,
+} from '@odysseus/shared-schemas';
+
+type CalculationItem = ProtocolCalculations['items'][number];
 
 interface GroupView {
   settings: WorkedOutSettings | undefined;
@@ -219,7 +225,8 @@ export function WorkbenchCalculationsPanel() {
     }, [layout, board, warnings])
   );
 
-  const sectionOf = (name: string) => calculationMaterial(name, materials)?.id ?? GENERAL;
+  const sectionOf = ({ materialId }: CalculationItem) =>
+    materials.some(material => material.id === materialId) ? materialId : GENERAL;
   const edit = (mutate: (draft: Protocol) => void) => updateProtocol(mutate);
 
   const addCalculation = (material: MaterialItem | undefined, text: string) => {
@@ -231,12 +238,7 @@ export function WorkbenchCalculationsPanel() {
     const expr = namesInFull(withGreekLetters(rest.join('=').trim()), board, material);
     let added: string | undefined;
     edit(draft => {
-      added = insertCalculation(
-        draft,
-        { name, formula: expr },
-        item => sectionOf(item.name),
-        material?.id ?? GENERAL
-      );
+      added = insertCalculation(draft, { name, formula: expr }, sectionOf, material?.id ?? GENERAL);
     });
     setOpenId(added);
   };
@@ -264,7 +266,7 @@ export function WorkbenchCalculationsPanel() {
       added = insertCalculation(
         draft,
         { name: savedName, formula: expr },
-        item => sectionOf(item.name),
+        sectionOf,
         material?.id ?? GENERAL
       );
     });
@@ -277,7 +279,7 @@ export function WorkbenchCalculationsPanel() {
       insertCalculation(
         draft,
         { name: suggestion.name, formula: suggestion.formula },
-        item => sectionOf(item.name),
+        sectionOf,
         material?.id ?? GENERAL
       );
     });
@@ -287,7 +289,7 @@ export function WorkbenchCalculationsPanel() {
       <WorkbenchCalculationRow
         key={calculation.id}
         calculationId={calculation.id}
-        name={calculation.name}
+        name={board.ids.get(calculation.id)?.name ?? calculation.name}
         result={results[calculation.id]}
         material={section.material}
         isOpen={calculation.id === openId}

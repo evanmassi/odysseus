@@ -9,10 +9,14 @@ const board = (topDose: string, other: string) =>
 
 describe('names read alike', () => {
   it('ignores board changes to names that were not asked about', () => {
-    expect(readsNamesAlike(['Top dose'], board('10', '50'), board('10', '80'))).toBe(true);
+    expect(readsNamesAlike([{ name: 'Top dose' }], board('10', '50'), board('10', '80'))).toBe(
+      true
+    );
   });
 
   it('notices when a name asked about shows differently', () => {
-    expect(readsNamesAlike(['Top dose'], board('10', '50'), board('20', '50'))).toBe(false);
+    expect(readsNamesAlike([{ name: 'Top dose' }], board('10', '50'), board('20', '50'))).toBe(
+      false
+    );
   });
 });

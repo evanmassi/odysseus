@@ -58,7 +58,7 @@ export function insertListGroups(
 
   for (const entry of entries) {
     if ('isSetAside' in entry && entry.isSetAside) continue;
-    const shown = describeName(board, entry.name).text;
+    const shown = describeName(board, entry).text;
     const value = shown === entry.name ? undefined : shown;
     if (entry.kind === 'item') {
       if (isForFormula || groups.has(entry.id)) continue;

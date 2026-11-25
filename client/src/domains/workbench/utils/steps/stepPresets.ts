@@ -51,7 +51,7 @@ export function blankOptions(board: SolvedBoard, label: string, typed: string): 
     .filter(entry =>
       choices
         ? entry.kind !== 'item' &&
-          units.some(unit => describeName(board, entry.name).text.endsWith(` ${unit}`))
+          units.some(unit => describeName(board, entry).text.endsWith(` ${unit}`))
         : entry.kind === 'item'
     )
     .filter(entry => entry.name.toLowerCase().includes(query))

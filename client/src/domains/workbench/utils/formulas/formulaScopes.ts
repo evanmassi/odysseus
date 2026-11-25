@@ -13,9 +13,15 @@ import {
 import { findTerm, findTermOn, sampleNounsOf } from '../terms/termLookup';
 import { joinValueName, upperLead } from '../values/valueNames';
 
-import { nameKey, type SolvedBoard } from './boardCalculation';
+import { findReferenced, nameKey, type SolvedBoard } from './boardCalculation';
 import { FORMULA_FUNCTIONS, type FormulaFunction } from './formulaParser';
 import { matchesWordStarts } from './nameMatching';
+import {
+  referenceParts,
+  referenceText,
+  shownReferences,
+  type NameReference,
+} from './nameReferences';
 
 import type { MaterialItem } from '@odysseus/shared-schemas';
 
@@ -116,6 +122,32 @@ function splitNames(text: string, names: readonly string[]): FormulaTextPart[] {
   return parts;
 }
 
+export function linkedReference(board: SolvedBoard, reference: NameReference): NameReference {
+  const entry = findReferenced(board, reference);
+  return entry ? { name: entry.name, id: entry.id } : reference;
+}
+
+export function linkNames(
+  text: string,
+  board: SolvedBoard,
+  kept: readonly NameReference[] = []
+): string {
+  const keptByKey = new Map(kept.map(reference => [nameKey(reference.name), reference]));
+  const names = [...board.names.keys(), ...keptByKey.keys()];
+  return referenceParts(text)
+    .map(part => {
+      if (part.kind === 'reference') return referenceText(linkedReference(board, part));
+      return splitNames(part.text, names)
+        .map(piece => {
+          if (!piece.isName) return piece.text;
+          const key = nameKey(piece.text);
+          return referenceText(keptByKey.get(key) ?? linkedReference(board, { name: key }));
+        })
+        .join('');
+    })
+    .join('');
+}
+
 const swapNames = (text: string, replacements: ReadonlyMap<string, string>): string =>
   splitNames(text, [...replacements.keys()])
     .map(part => (part.isName ? replacements.get(part.text.toLowerCase()) : part.text))
@@ -139,22 +171,29 @@ export function namesWithin(
   material: MaterialItem | undefined
 ): string {
   const { full, short } = scopedNames(board, material);
-  return swapNames(expr, new Map(full.map(name => [name.toLowerCase(), short.get(name) ?? name])));
+  return swapNames(
+    shownReferences(expr),
+    new Map(full.map(name => [name.toLowerCase(), short.get(name) ?? name]))
+  );
 }
 
 export function namesInFull(
   text: string,
   board: SolvedBoard,
-  material: MaterialItem | undefined
+  material: MaterialItem | undefined,
+  saved = ''
 ): string {
   const { full, short } = scopedNames(board, material);
-  return swapNames(
+  const kept = referenceParts(saved).flatMap(part => (part.kind === 'reference' ? [part] : []));
+  const fullText = swapNames(
     text,
     new Map([
       ...full.map((name): [string, string] => [name.toLowerCase(), name]),
       ...[...short].map(([name, within]): [string, string] => [within.toLowerCase(), name]),
+      ...kept.map(({ name }): [string, string] => [name.toLowerCase(), name]),
     ])
   );
+  return linkNames(fullText, board, kept);
 }
 
 export function uniqueName(board: SolvedBoard, base: string): string {

@@ -66,7 +66,7 @@ export function calculationSections(
     ]),
   ]);
   for (const item of calculations.items) {
-    sections.get(sectionKeyOf(item.name, undefined, materials))?.items.push(item);
+    (sections.get(item.materialId ?? GENERAL) ?? sections.get(GENERAL))?.items.push(item);
   }
   const worked = [...board.names.values()].filter(
     (entry): entry is CalculationName & { workedOut: WorkedOutGroup } =>

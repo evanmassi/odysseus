@@ -22,7 +22,7 @@ export function WorkbenchStepPreview({ text }: WorkbenchStepPreviewProps) {
   const isAlikeForStep = useCallback(
     (a: SolvedBoard, b: SolvedBoard) =>
       readsNamesAlike(
-        parts.flatMap(part => (part.kind === 'reference' ? [part.name] : [])),
+        parts.flatMap(part => (part.kind === 'reference' ? [part] : [])),
         a,
         b
       ),
@@ -33,7 +33,7 @@ export function WorkbenchStepPreview({ text }: WorkbenchStepPreviewProps) {
     <>
       {parts.map((part, partIndex) => {
         if (part.kind === 'reference') {
-          const display = describeName(board, part.name);
+          const display = describeName(board, part);
           return (
             <Tooltip content={display.label} key={partIndex}>
               <span className={`cursor-help ${referenceToneClass(display)}`}>{display.text}</span>

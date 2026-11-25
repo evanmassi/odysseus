@@ -6,6 +6,7 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { cachedPerCard } from '../cards/cachedPerCard';
+import { readReference } from '../formulas/nameReferences';
 import { plateNameOf, labwareTitle } from '../plateMap/plateMapTabs';
 import { dilutionFactorOf, type StepSeries } from '../plateMap/plateSeries';
 
@@ -80,7 +81,7 @@ const sameSourceKey = ({ subject, series }: PlacedRun) =>
     normalizeMaterialKey(subject),
     series.top.trim(),
     series.unit,
-    dilutionFactorOf(series.dilutionFactor),
+    readReference(series.dilutionFactor).id ?? dilutionFactorOf(series.dilutionFactor),
   ].join('|');
 
 export function dilutionRuns(protocol: Pick<Protocol, 'plateMaps'>): DilutionRun[] {

@@ -43,11 +43,11 @@ function nameSuggestions(board: SolvedBoard, typed: string) {
         nameKey(entry.name).includes(key)
     )
     .slice(0, SUGGESTION_LIMIT)
-    .map(entry => ({ name: entry.name, shown: describeName(board, entry.name).text }));
+    .map(entry => ({ name: entry.name, shown: describeName(board, entry).text }));
 }
 
 function linkedText(board: SolvedBoard, text: string) {
-  const shown = describeName(board, text);
+  const shown = describeName(board, { name: text });
   return shown.kind === 'value' || shown.kind === 'calculation' ? shown.text : undefined;
 }
 

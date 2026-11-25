@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 11,
+  "version": 12,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "T cell killing assay",
@@ -430,85 +430,113 @@
         },
         {
           "id": "hjulnjx",
-          "name": "Raji-Luc needed",
+          "name": "Needed",
+          "materialId": "mqtbxit",
+          "materialName": "Raji-Luc",
           "formula": "Raji-Luc cells/well × Raji-Luc wells × (1 + Extra (dead vol.))",
           "unit": "auto"
         },
         {
           "id": "w109bw4",
-          "name": "Raji-Luc to take",
+          "name": "To take",
+          "materialId": "mqtbxit",
+          "materialName": "Raji-Luc",
           "formula": "Raji-Luc needed ÷ (Raji-Luc total cell conc. × Raji-Luc viability)",
           "unit": "µL"
         },
         {
           "id": "ta0nb4a",
-          "name": "Raji-Luc mix",
+          "name": "Mix",
+          "materialId": "mqtbxit",
+          "materialName": "Raji-Luc",
           "formula": "Raji-Luc wells × Raji-Luc vol./well × (1 + Extra (dead vol.))",
           "unit": "mL"
         },
         {
           "id": "oszkn2x",
-          "name": "T cells per well",
+          "name": "Per well",
+          "materialId": "vugju7i",
+          "materialName": "T cells",
           "formula": "Raji-Luc cells/well × T cells E:T",
           "unit": "auto"
         },
         {
           "id": "0y7whbx",
-          "name": "T cells needed",
+          "name": "Needed",
+          "materialId": "vugju7i",
+          "materialName": "T cells",
           "formula": "T cells per well × T cells wells × (1 + Extra (dead vol.))",
           "unit": "auto"
         },
         {
           "id": "mxe6s45",
-          "name": "T cells to take",
+          "name": "To take",
+          "materialId": "vugju7i",
+          "materialName": "T cells",
           "formula": "T cells needed ÷ (T cells total cell conc. × T cells viability)",
           "unit": "mL"
         },
         {
           "id": "2nkriy2",
-          "name": "T cells mix",
+          "name": "Mix",
+          "materialId": "vugju7i",
+          "materialName": "T cells",
           "formula": "T cells wells × T cells vol./well × (1 + Extra (dead vol.))",
           "unit": "mL"
         },
         {
           "id": "1s14its",
-          "name": "Compound X added at",
+          "name": "Added at",
+          "materialId": "1bfkegd",
+          "materialName": "Compound X",
           "formula": "Well volume ÷ Compound X vol./well",
           "unit": "X"
         },
         {
           "id": "2klkvux",
-          "name": "Compound X top working",
+          "name": "Top working",
+          "materialId": "1bfkegd",
+          "materialName": "Compound X",
           "formula": "Compound X top conc. × Compound X added at",
           "unit": "µM"
         },
         {
           "id": "eld0zec",
-          "name": "Compound X per point",
+          "name": "Per point",
+          "materialId": "1bfkegd",
+          "materialName": "Compound X",
           "formula": "Replicates × Compound X vol./well × (1 + Extra (dead vol.))",
           "unit": "µL"
         },
         {
           "id": "mfnprm5",
-          "name": "Compound X transfer",
+          "name": "Transfer",
+          "materialId": "1bfkegd",
+          "materialName": "Compound X",
           "formula": "Compound X per point ÷ (Compound X dil. factor − 1)",
           "unit": "µL"
         },
         {
           "id": "heykmeh",
-          "name": "Compound X top tube",
+          "name": "Top tube",
+          "materialId": "1bfkegd",
+          "materialName": "Compound X",
           "formula": "Compound X per point + Compound X transfer",
           "unit": "µL"
         },
         {
           "id": "y4fkg98",
-          "name": "Compound X stock to add",
+          "name": "Stock to add",
+          "materialId": "1bfkegd",
+          "materialName": "Compound X",
           "formula": "Compound X top tube × Compound X top working ÷ Compound X stock conc.",
           "unit": "µL"
         },
         {
           "id": "kd7mp4v",
-          "name": "Bright-Glo needed",
+          "name": "Needed",
+          "materialId": "pw4coxa",
+          "materialName": "Bright-Glo",
           "formula": "Bright-Glo vol./well × Wells used × (1 + Extra (dead vol.))",
           "unit": "mL"
         }

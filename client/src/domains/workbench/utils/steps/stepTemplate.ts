@@ -1,4 +1,5 @@
 import { describeName } from '../formulas/nameDisplay';
+import { readReferenceBody, type NameReference } from '../formulas/nameReferences';
 import { findAmounts } from '../units/textAmounts';
 
 import { stepVerbBase } from './stepVerbs';
@@ -8,7 +9,7 @@ import type { UnitKind } from '@odysseus/shared-schemas';
 
 type TemplatePart =
   | { kind: 'text'; text: string }
-  | { kind: 'reference'; name: string }
+  | ({ kind: 'reference' } & NameReference)
   | { kind: 'blank'; label: string };
 
 export type ProsePiece =
@@ -25,7 +26,7 @@ export function parseStepTemplate(text: string): TemplatePart[] {
   return text.split(TEMPLATE_TOKEN).flatMap((part): TemplatePart[] => {
     if (!part) return [];
     const reference = REFERENCE_TOKEN.exec(part);
-    if (reference) return [{ kind: 'reference', name: reference[1] }];
+    if (reference) return [{ kind: 'reference', ...readReferenceBody(reference[1]) }];
     const blank = BLANK_TOKEN.exec(part);
     if (blank) return [{ kind: 'blank', label: blank[1] }];
     return [{ kind: 'text', text: part }];
@@ -66,7 +67,7 @@ export function splitProse(text: string, isStepStart: boolean): ProsePiece[] {
 export function templateText(text: string, board: SolvedBoard): string {
   return parseStepTemplate(text)
     .map(part => {
-      if (part.kind === 'reference') return describeName(board, part.name).text;
+      if (part.kind === 'reference') return describeName(board, part).text;
       if (part.kind === 'blank') return `[${part.label}]`;
       return part.text;
     })

@@ -22,6 +22,7 @@ import {
 } from './quantities';
 import { type WorkingNode } from './workingTree';
 
+import type { NameReference } from './nameReferences';
 import type { CardTarget } from '../cards/createCard';
 
 export interface WorkedOutGroup {
@@ -88,6 +89,7 @@ export type CalculationResult =
 
 export interface SolvedBoard {
   names: ReadonlyMap<string, BoardName>;
+  ids: ReadonlyMap<string, BoardName>;
   takenNameIds: ReadonlySet<string>;
   results: ReadonlyMap<string, CalculationResult>;
 }
@@ -110,6 +112,13 @@ const ROUNDABLE_WITHOUT_STEP = new Set(['', 'count:1']);
 
 export const nameKey = (name: string): string => name.trim().toLowerCase();
 
+export const findReferenced = (
+  board: Pick<SolvedBoard, 'names' | 'ids'>,
+  reference: NameReference
+): BoardName | undefined =>
+  (reference.id === undefined ? undefined : board.ids.get(reference.id)) ??
+  board.names.get(nameKey(reference.name));
+
 export const calculationAnswerText = (
   result: Extract<CalculationResult, { status: 'ok' }>
 ): string => ('text' in result.output ? result.output.text : autoFormat(result.quantity));
@@ -124,6 +133,7 @@ export function quantityOfName(board: SolvedBoard, entry: BoardName): Quantity |
 export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
   const names = new Map<string, BoardName>();
   const takenNameIds = new Set<string>();
+  const ids = new Map(entries.map(entry => [entry.id, entry]));
   for (const entry of entries) {
     const key = nameKey(entry.name);
     if (!key) continue;
@@ -137,12 +147,16 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
   const results = new Map<string, CalculationResult>();
   const inProgress: string[] = [];
 
-  const resolve = (name: string): Evaluated => {
-    const entry = names.get(nameKey(name));
+  const resolve = (reference: NameReference): Evaluated => {
+    const entry = findReferenced({ names, ids }, reference);
+    const { name } = reference;
     if (!entry)
-      throw new FormulaError(`'${name}' isn't a value or calculation on this board`, {
-        missingName: name,
-      });
+      throw new FormulaError(
+        reference.id === undefined
+          ? `'${name}' isn't a value or calculation on this board`
+          : `${name} was removed`,
+        { missingName: name }
+      );
     if (entry.kind === 'value') {
       const quantity = quantityOf(entry.value, entry.unit);
       if (!quantity) {
@@ -207,7 +221,7 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
         };
       }
       case 'ref':
-        return resolve(node.name);
+        return resolve(node);
       case 'group': {
         const inner = run(node.inner);
         return { quantity: inner.quantity, working: { kind: 'group', inner: inner.working } };
@@ -346,5 +360,5 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
   };
 
   calculations.forEach(evaluate);
-  return { names, takenNameIds, results };
+  return { names, ids, takenNameIds, results };
 }

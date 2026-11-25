@@ -1,3 +1,4 @@
+import { readReference } from '../formulas/nameReferences';
 import { displayValue } from '../formulas/quantities';
 import { createId } from '../ids/createId';
 import { DILUTION_FACTOR, TOP_AMOUNT } from '../terms/termList';
@@ -56,7 +57,14 @@ export function seriesFormFor(
     };
   }
   const { top, unit, dilutionFactor, direction } = series;
-  return { ...blank, isList: false, top, unit, dilutionFactor, direction };
+  return {
+    ...blank,
+    isList: false,
+    top: readReference(top).name,
+    unit,
+    dilutionFactor: readReference(dilutionFactor).name,
+    direction,
+  };
 }
 
 export function lineUnitOf(card: PlateMap, lineId: string): string {
