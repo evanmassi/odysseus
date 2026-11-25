@@ -19,7 +19,7 @@ interface WorkbenchFlowDiagramStepBoxProps {
   isPlace: boolean;
   isDone: boolean;
   onSelect: (stepId: string) => void;
-  onOpen: ((stepId: string) => void) | undefined;
+  onOpen: (stepId: string) => void;
 }
 
 const BLANK = /(\[[^\]]+\])/;
@@ -110,7 +110,7 @@ export function WorkbenchFlowDiagramStepBox({
       data-flow-diagram-step={step.id}
       aria-current={isPlace ? 'step' : undefined}
       onClick={() => onSelect(step.id)}
-      onDoubleClick={() => onOpen?.(step.id)}
+      onDoubleClick={() => onOpen(step.id)}
       className={`absolute flex flex-col border border-l-[3px] ${
         step.kind === 'wait' ? 'border-warning-text/30' : 'border-primary/30'
       } bg-card py-1.5 pl-[30px] pr-2 text-left transition-[border-color,opacity] hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${

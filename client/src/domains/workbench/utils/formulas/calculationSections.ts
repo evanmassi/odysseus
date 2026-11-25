@@ -6,6 +6,7 @@ import { GENERAL } from '../values/valueNames';
 import { type CalculationName, type SolvedBoard, type WorkedOutGroup } from './boardCalculation';
 import { calculationMaterial, nameWithinOwner } from './formulaScopes';
 
+import type { CardTarget } from '../cards/createCard';
 import type { MaterialItem, ProtocolCalculations } from '@odysseus/shared-schemas';
 
 export interface WorkedOutView {
@@ -110,7 +111,7 @@ export interface CalculationTableRow {
 export interface CalculationTable {
   key: string;
   title: string;
-  settingsCardId: string | undefined;
+  settings: CardTarget;
   columns: string[];
   rows: CalculationTableRow[];
 }
@@ -173,7 +174,7 @@ export function calculationLayout(
         table = {
           key: `table:${view.group.key}`,
           title: view.group.title,
-          settingsCardId: view.group.settingsCardId,
+          settings: view.group.settings,
           columns: shownLines(view).map(line => nameWithinOwner(line.name, view.group.subject)),
           rows: [],
         };

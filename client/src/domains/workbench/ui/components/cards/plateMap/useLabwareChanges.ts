@@ -3,22 +3,24 @@ import { normalizePlateMap, type PlateMapCard } from '@odysseus/shared-schemas';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { BOARD_COLUMNS } from '../../../../utils/cards/boardGeometry';
 import { showPlateMap } from '../../../../utils/cards/createCard';
+import { removalMessage, removalTitle } from '../../../../utils/cards/permanentRemoval';
 import { wordsForTypes } from '../../../../utils/plateMap/labwareCatalog';
 import {
   applyLabware,
   duplicatePlateAsTab,
   duplicateOfTab,
   hasAnyLabware,
+  removePlateMap,
   wellsLostTo,
   withoutPlate,
   withLabwareCount,
   type Labware,
 } from '../../../../utils/plateMap/plateMapEdits';
+import { labwareTitle, type PlateMapTab } from '../../../../utils/plateMap/plateMapTabs';
 
 import type { Confirmation } from './useConfirmation';
 import type { DuplicateAs } from './WorkbenchPlateMapControls';
 import type { LabwareType } from '../../../../utils/plateMap/labwareCatalog';
-import type { PlateMapTab } from '../../../../utils/plateMap/plateMapTabs';
 import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
 
 export function useLabwareChanges(
@@ -28,15 +30,15 @@ export function useLabwareChanges(
   ask: (request: Confirmation) => void
 ) {
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
+  const words = wordsForTypes([
+    ...plateMap.plates.map(plate => plate.labware),
+    ...plateMap.otherLabware.map(set => set.labware),
+  ]);
 
   const changeLabware = (next: Labware) => {
     if (!hasAnyLabware(next)) return;
     const apply = () => updateProtocol(draft => applyLabware(draft, plateMap.id, next));
     const lost = wellsLostTo(plateMap, next);
-    const words = wordsForTypes([
-      ...plateMap.plates.map(plate => plate.labware),
-      ...plateMap.otherLabware.map(set => set.labware),
-    ]);
     if (!lost) return apply();
     ask({
       title: 'Remove labware',
@@ -82,6 +84,13 @@ export function useLabwareChanges(
     setCount: (type: LabwareType, count: number) =>
       changeLabware(withLabwareCount(plateMap, type, count)),
     removePlate: (plateId: string) => changeLabware(withoutPlate(plateMap, plateId)),
+    removePlateMap: () =>
+      ask({
+        title: removalTitle('plateMap'),
+        confirmText: 'Remove',
+        message: removalMessage('plateMap', labwareTitle(plateMap)),
+        onConfirm: () => updateProtocol(draft => removePlateMap(draft, plateMap.id)),
+      }),
     duplicateTab: (place: DuplicateAs) => {
       if (place === 'tab' && tab.kind === 'plate') duplicateAsTab(tab.plate.id);
       else duplicateAsCard();

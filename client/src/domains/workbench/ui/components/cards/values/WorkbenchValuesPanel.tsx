@@ -8,7 +8,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useStableActions } from '../../../../hooks/useStableActions';
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
-import { useProtocolWith, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
+import { useProtocolData, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { nameUsage, usageSummary, usageTitle } from '../../../../utils/formulas/nameUsage';
@@ -188,7 +188,7 @@ const columnSuggestion = (group: ValueTableGroup, column: ValueTableColumn): Val
 });
 
 export function WorkbenchValuesPanel() {
-  const protocol = useProtocolWith();
+  const protocol = useProtocolData();
   const board = useWorkbenchStore(state => state.board);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);

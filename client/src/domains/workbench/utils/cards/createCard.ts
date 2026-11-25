@@ -3,6 +3,7 @@ import { createId } from '../ids/createId';
 import { CARD_TYPES, defaultCardTitle } from './cardTypes';
 
 import type {
+  FlowCytometryPanelCard,
   PlateMapCard,
   Protocol,
   ProtocolCard,
@@ -17,7 +18,11 @@ interface Placement {
   h: number;
 }
 
-type TitledCardType = Exclude<ProtocolCardType, 'plateMap'>;
+export type ShowingCard = PlateMapCard | FlowCytometryPanelCard;
+
+type TitledCardType = Exclude<ProtocolCardType, ShowingCard['type']>;
+
+export type CardTarget = { type: TitledCardType } | { type: ShowingCard['type']; shows: string };
 
 export function createCard<Type extends TitledCardType>(
   type: Type,
@@ -36,20 +41,29 @@ export function createCard<Type extends TitledCardType>(
 
 const NEW_CARD_WIDTH = 12;
 
-export const firstCardIdOf = (
-  protocol: Pick<Protocol, 'cards'>,
-  type: ProtocolCardType
-): string | undefined => protocol.cards.find(card => card.type === type)?.id;
+export const pageBottom = (draft: Pick<Protocol, 'cards'>, pageId: string): number =>
+  Math.max(0, ...draft.cards.filter(card => card.page === pageId).map(card => card.y + card.h));
 
-export const cardsShowing = (cards: readonly ProtocolCard[], plateMapId: string): PlateMapCard[] =>
-  cards.filter(
-    (card): card is PlateMapCard => card.type === 'plateMap' && card.shows === plateMapId
-  );
+export const cardsShowing = (cards: readonly ProtocolCard[], shownId: string): ShowingCard[] =>
+  cards.filter((card): card is ShowingCard => 'shows' in card && card.shows === shownId);
 
-export const cardIdShowing = (
+export function closeCardsShowing(draft: Pick<Protocol, 'cards'>, shownId: string): void {
+  draft.cards = draft.cards.filter(card => !('shows' in card) || card.shows !== shownId);
+}
+
+const showsTarget = (card: ProtocolCard, target: CardTarget, pageId: string) =>
+  card.type === target.type &&
+  (!('shows' in target) || ('shows' in card && card.shows === target.shows)) &&
+  (card.type !== 'procedure' || card.page === pageId);
+
+export function cardShowing(
   protocol: Pick<Protocol, 'cards'>,
-  plateMapId: string
-): string | undefined => cardsShowing(protocol.cards, plateMapId)[0]?.id;
+  target: CardTarget,
+  pageId: string
+): ProtocolCard | undefined {
+  const showing = protocol.cards.filter(card => showsTarget(card, target, pageId));
+  return showing.find(card => card.page === pageId) ?? showing[0];
+}
 
 export function showPlateMap(
   draft: Pick<Protocol, 'cards'>,
@@ -70,6 +84,41 @@ export function showPlateMap(
   return card;
 }
 
+function showFlowCytometryPanel(
+  draft: Pick<Protocol, 'cards'>,
+  panelId: string,
+  placement: Placement
+): FlowCytometryPanelCard {
+  const card: FlowCytometryPanelCard = {
+    id: createId(),
+    type: 'flowCytometryPanel',
+    isCollapsed: false,
+    ...placement,
+    shows: panelId,
+  };
+  draft.cards.push(card);
+  return card;
+}
+
+export function openCard(
+  draft: Pick<Protocol, 'cards'>,
+  target: CardTarget,
+  pageId: string
+): ProtocolCard {
+  const [w, h] = CARD_TYPES[target.type].size;
+  const placement = { page: pageId, x: 0, y: pageBottom(draft, pageId), w, h };
+  if (!('shows' in target)) {
+    const card = createCard(target.type, placement);
+    draft.cards.push(card);
+    return card;
+  }
+  const shownWidth = cardsShowing(draft.cards, target.shows)[0]?.w ?? w;
+  const shownPlacement = { ...placement, w: shownWidth };
+  return target.type === 'plateMap'
+    ? showPlateMap(draft, target.shows, shownPlacement, 'assay')
+    : showFlowCytometryPanel(draft, target.shows, shownPlacement);
+}
+
 export function firstCardOrNew<Type extends TitledCardType>(
   draft: Protocol,
   type: Type
@@ -79,14 +128,10 @@ export function firstCardOrNew<Type extends TitledCardType>(
   const existing = draft.cards.find(isWanted);
   if (existing) return existing;
   const page = draft.pages[0].id;
-  const bottom = Math.max(
-    0,
-    ...draft.cards.filter(card => card.page === page).map(card => card.y + card.h)
-  );
   const created = createCard(type, {
     page,
     x: 0,
-    y: bottom,
+    y: pageBottom(draft, page),
     w: NEW_CARD_WIDTH,
     h: CARD_TYPES[type].size[1],
   });

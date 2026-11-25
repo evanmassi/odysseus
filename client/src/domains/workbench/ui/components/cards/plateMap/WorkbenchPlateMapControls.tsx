@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-import { Combine, Copy, Pencil, Plus, X } from 'lucide-react';
+import { Combine, Copy, Eraser, Pencil, Plus, X } from 'lucide-react';
 
 import { Button, DropdownMenu, HeaderStrip, MenuItem, Tab, Tooltip } from '@shared/ui';
 
@@ -27,6 +27,9 @@ interface WorkbenchPlateMapControlsProps {
   onShowTab: (id: string) => void;
   onRenameTab: (id: string, name: string) => void;
   onRemovePlate: (id: string) => void;
+  onRemovePlateMap: () => void;
+  canClearTab: boolean;
+  onClearTab: () => void;
   onToggleReplicatesAsOne: () => void;
   onSetCount: (type: LabwareType, count: number) => void;
   onDuplicate: (place: DuplicateAs) => void;
@@ -43,6 +46,9 @@ export function WorkbenchPlateMapControls({
   onShowTab,
   onRenameTab,
   onRemovePlate,
+  onRemovePlateMap,
+  canClearTab,
+  onClearTab,
   onToggleReplicatesAsOne,
   onSetCount,
   onDuplicate,
@@ -55,7 +61,9 @@ export function WorkbenchPlateMapControls({
   const [isDuplicateMenuOpen, setIsDuplicateMenuOpen] = useState(false);
   const [renamingId, setRenamingId] = useState<string>();
   const active = tabs.find(tab => tab.id === activeId);
-  const canRemovePlates = tabs.length > 1;
+  const isLastTab = tabs.length === 1;
+  const removeTab = (tab: PlateMapTabLabel) =>
+    isLastTab ? onRemovePlateMap() : onRemovePlate(tab.id);
 
   const finishRename = (id: string, name: string) => {
     setRenamingId(undefined);
@@ -97,18 +105,18 @@ export function WorkbenchPlateMapControls({
                     {tab.name}
                     <span className="ml-1.5 text-label-2xs opacity-65">{tab.kind}</span>
                   </span>
-                  {tab.isPlate && canRemovePlates && tab.id === activeId && (
+                  {(tab.isPlate || isLastTab) && tab.id === activeId && (
                     <span
                       role="button"
                       tabIndex={0}
-                      aria-label={`Remove ${tab.name}`}
+                      aria-label={isLastTab ? 'Remove this plate map' : `Remove ${tab.name}`}
                       className="inline-flex text-muted-foreground hover:text-danger-text"
                       onClick={event => {
                         event.stopPropagation();
-                        onRemovePlate(tab.id);
+                        removeTab(tab);
                       }}
                       onKeyDown={event => {
-                        if (event.key === 'Enter') onRemovePlate(tab.id);
+                        if (event.key === 'Enter') removeTab(tab);
                       }}
                     >
                       <X className="h-3.5 w-3.5" />
@@ -154,6 +162,18 @@ export function WorkbenchPlateMapControls({
             </Button>
           </Tooltip>
         )}
+        <Tooltip content={active?.isPlate ? 'Clear this plate' : 'Clear these'}>
+          <Button
+            variant="ghost"
+            size="sm"
+            iconOnly
+            aria-label="Clear"
+            disabled={!canClearTab}
+            onClick={onClearTab}
+          >
+            <Eraser className="h-4 w-4" />
+          </Button>
+        </Tooltip>
         <Tooltip content="Add or remove labware">
           <span ref={pickerAnchorRef} className="inline-flex">
             <Button

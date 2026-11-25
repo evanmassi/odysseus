@@ -123,6 +123,7 @@ const protocolOf = (
   materials: MaterialItem[] = MATERIALS
 ): Protocol =>
   ({
+    flowCytometryPanels: [],
     cards: [],
     plateMaps,
     materials: { items: materials, customGroups: [] },

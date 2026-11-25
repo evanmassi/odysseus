@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 10;
+export const PROTOCOL_FILE_VERSION = 11;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -210,9 +210,9 @@ const cytometerSchema = z.object({
     .min(1),
 });
 
-const flowCytometryPanelCardSchema = z.object({
-  ...cardBase,
-  type: z.literal('flowCytometryPanel'),
+const flowCytometryPanelSchema = z.object({
+  id,
+  title: z.string(),
   cytometer: cytometerSchema.optional(),
   markers: z.array(
     z.object({
@@ -231,6 +231,12 @@ const flowCytometryPanelCardSchema = z.object({
       plus: z.array(z.object({ id, materialId: z.string(), staining: z.string() })),
     })
   ),
+});
+
+const flowCytometryPanelCardSchema = z.object({
+  ...cardFrame,
+  type: z.literal('flowCytometryPanel'),
+  shows: id,
 });
 
 const protocolFluorSchema = z.object({
@@ -261,6 +267,7 @@ const protocolSchema = z.object({
   values: protocolValuesSchema,
   calculations: protocolCalculationsSchema,
   plateMaps: z.array(plateMapSchema),
+  flowCytometryPanels: z.array(flowCytometryPanelSchema),
   cards: z.array(protocolCardSchema),
   lotMemory: z.record(z.string(), z.record(z.string(), textMap)),
   keptBoth: z.array(z.string()),
@@ -292,8 +299,9 @@ export type ValueRow = ProtocolValues['rows'][number];
 export type ProtocolCalculations = z.infer<typeof protocolCalculationsSchema>;
 export type PlateMap = z.infer<typeof plateMapSchema>;
 export type PlateMapCard = z.infer<typeof plateMapCardSchema>;
+export type FlowCytometryPanel = z.infer<typeof flowCytometryPanelSchema>;
 export type FlowCytometryPanelCard = z.infer<typeof flowCytometryPanelCardSchema>;
-export type Stain = FlowCytometryPanelCard['stains'][number];
+export type Stain = FlowCytometryPanel['stains'][number];
 export type Cytometer = z.infer<typeof cytometerSchema>;
 export type ProtocolFluor = z.infer<typeof protocolFluorSchema>;
 export type PlateLine = z.infer<typeof plateLineSchema>;

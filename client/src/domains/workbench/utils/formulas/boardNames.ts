@@ -1,4 +1,3 @@
-import { cardIdShowing, firstCardIdOf } from '../cards/createCard';
 import { dilutionCalculationNames } from '../dilutions/dilutionCalculations';
 import { flowCytometryCalculationNames } from '../flowCytometry/flowCytometryNames';
 import { cellCalculationNames } from '../materials/cellCalculations';
@@ -21,6 +20,7 @@ import { joinValueName, lowerLead } from '../values/valueNames';
 
 import { nameKey, type BoardName } from './boardCalculation';
 
+import type { CardTarget } from '../cards/createCard';
 import type {
   MaterialItem,
   PlateMap,
@@ -134,27 +134,26 @@ function wellCountNames(
   );
 }
 
-const fromCard = (entries: readonly BoardName[], originCardId: string | undefined) =>
-  entries.map(entry => ({ ...entry, originCardId }));
+const setIn = (entries: readonly BoardName[], origin: CardTarget) =>
+  entries.map(entry => ({ ...entry, origin }));
 
 export function collectBoardNames(protocol: Protocol): BoardName[] {
   const materials = protocol.materials.items.filter(item => item.name.trim());
   const materialsById = new Map(materials.map(item => [item.id, item]));
   const subjects = countSubjects(protocol);
   const cellMaterialIds = new Set(subjects.map(subject => subject.material.id));
-  const materialsCardId = firstCardIdOf(protocol, 'materials');
   const cardNames = [
-    ...fromCard(materialNames(materials, cellMaterialIds), materialsCardId),
-    ...fromCard(valueNames(protocol.values, materialsById), firstCardIdOf(protocol, 'values')),
-    ...fromCard(calculationNames(protocol.calculations), firstCardIdOf(protocol, 'calculations')),
+    ...setIn(materialNames(materials, cellMaterialIds), { type: 'materials' }),
+    ...setIn(valueNames(protocol.values, materialsById), { type: 'values' }),
+    ...setIn(calculationNames(protocol.calculations), { type: 'calculations' }),
     ...protocol.plateMaps.flatMap(plateMap =>
-      fromCard(plateMapNames(plateMap), cardIdShowing(protocol, plateMap.id))
+      setIn(plateMapNames(plateMap), { type: 'plateMap', shows: plateMap.id })
     ),
   ];
   const ownNames = [
     ...cardNames,
     ...wellCountNames(protocol, cardNames, materials),
-    ...cellCountNames(subjects, cardNames, materialsCardId),
+    ...cellCountNames(subjects, cardNames),
   ];
   const generated = [
     ...ownNames,

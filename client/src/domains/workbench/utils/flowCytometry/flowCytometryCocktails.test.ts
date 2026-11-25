@@ -1,6 +1,6 @@
 import { panelCocktails } from './flowCytometryCocktails';
 
-import type { FlowCytometryPanelCard, Stain } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanel, Stain } from '@odysseus/shared-schemas';
 
 const row = (id: string, stain: string) => ({
   id,
@@ -17,22 +17,15 @@ const stain = (name: string, rowIds: string[], plus: Stain['plus'] = []): Stain 
   plus,
 });
 
-const panel = (stains: Stain[]): FlowCytometryPanelCard => ({
+const panel = (stains: Stain[]): FlowCytometryPanel => ({
   id: 'panel',
-  type: 'flowCytometryPanel',
   title: 'Flow panel',
-  page: 'page',
-  x: 0,
-  y: 0,
-  w: 12,
-  h: 10,
-  isCollapsed: false,
   markers: [row('cd3', 'Surface'), row('cd4', 'surface'), row('foxp3', 'ICS'), row('cd69', '')],
   stains: stains,
 });
 
-const summary = (card: FlowCytometryPanelCard) =>
-  panelCocktails(card).stainings.map(({ staining, cocktails, stainsWithout }) => ({
+const summary = (flowPanel: FlowCytometryPanel) =>
+  panelCocktails(flowPanel).stainings.map(({ staining, cocktails, stainsWithout }) => ({
     staining,
     cocktails: cocktails.map(cocktail => [cocktail.name, cocktail.stains.map(entry => entry.name)]),
     without: stainsWithout.map(entry => entry.name),
@@ -40,13 +33,13 @@ const summary = (card: FlowCytometryPanelCard) =>
 
 describe('panelCocktails', () => {
   it('pools stains whose markers in a staining are the same, per staining', () => {
-    const card = panel([
+    const flowPanel = panel([
       stain('Full stain', ['cd3', 'cd4', 'foxp3']),
       stain('FMO Foxp3', ['cd4', 'cd3']),
       stain('FMO CD4', ['cd3', 'foxp3']),
       stain('Unstained', []),
     ]);
-    expect(summary(card)).toEqual([
+    expect(summary(flowPanel)).toEqual([
       {
         staining: 'Surface',
         cocktails: [
@@ -64,11 +57,11 @@ describe('panelCocktails', () => {
   });
 
   it('keeps a stain with an extra material apart, and lists markers with no staining', () => {
-    const card = panel([
+    const flowPanel = panel([
       stain('Full stain', ['foxp3']),
       stain('Isotype', [], [{ id: 'p', materialId: 'isotype', staining: 'ICS' }]),
     ]);
-    const { stainings, rowsWithoutStaining } = panelCocktails(card);
+    const { stainings, rowsWithoutStaining } = panelCocktails(flowPanel);
     const ics = stainings.find(staining => staining.staining === 'ICS');
     expect(ics?.cocktails.map(cocktail => cocktail.name)).toEqual([
       'Full stain ICS cocktail',

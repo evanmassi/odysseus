@@ -24,7 +24,6 @@ function labelFieldWidth(name: string) {
 
 export function WorkbenchPageBar() {
   const pages = useWorkbenchStore(state => state.protocol.pages);
-  const cards = useWorkbenchStore(state => state.protocol.cards);
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const showPage = useWorkbenchStore(state => state.showPage);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
@@ -38,7 +37,7 @@ export function WorkbenchPageBar() {
   };
 
   const removingPage = pages.find(page => page.id === removingPageId);
-  const removingCardCount = cards.filter(card => card.page === removingPageId).length;
+  const removingStepCount = removingPage?.steps.length ?? 0;
 
   const addPage = () => {
     const page = { id: createId(), name: `Page ${pages.length + 1}`, steps: [] };
@@ -71,13 +70,11 @@ export function WorkbenchPageBar() {
 
   const requestRemove = (pageId: string) => {
     const page = pages.find(candidate => candidate.id === pageId);
-    const hasContent = !!page?.steps.length || cards.some(card => card.page === pageId);
-    if (hasContent) setDeletingPageId(pageId);
+    if (page?.steps.length) setDeletingPageId(pageId);
     else removePage(pageId);
   };
 
   const canDelete = pages.length > 1;
-  const cardWords = removingCardCount === 1 ? 'card' : 'cards';
 
   return (
     <div style={{ paddingInline: BOARD_MARGIN }}>
@@ -160,11 +157,7 @@ export function WorkbenchPageBar() {
           isOpen={!!removingPage}
           variant="danger"
           title="Remove page"
-          message={
-            removingCardCount
-              ? `Remove the "${removingPage?.name}" page and the ${removingCardCount} ${cardWords} on it?`
-              : `Remove the "${removingPage?.name}" page and its steps?`
-          }
+          message={`The "${removingPage?.name}" page's ${removingStepCount} ${removingStepCount === 1 ? 'step is' : 'steps are'} permanently removed. Its cards close, and what they show stays in the protocol.`}
           confirmText="Remove"
           onConfirm={() => removingPageId && removePage(removingPageId)}
           onCancel={() => setDeletingPageId(undefined)}

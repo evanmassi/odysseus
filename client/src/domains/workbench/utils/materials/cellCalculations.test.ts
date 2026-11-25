@@ -62,6 +62,7 @@ function protocolWith(
         stainedIn: {},
       },
     ],
+    flowCytometryPanels: [],
     cards: [
       { id: 'materials', type: 'materials', page: 'page' },
       { id: 'plate-card', type: 'plateMap', page: 'page', shows: 'plate', side: 'assay' },

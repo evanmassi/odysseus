@@ -13,6 +13,7 @@ import { WorkbenchCalculationSettingsButton } from './WorkbenchCalculationSettin
 import { lineAnswer, WorkbenchCalculationWorkingLines } from './WorkbenchCalculationWorkingLines';
 
 import type { WorkedOutLine, WorkedOutSettings } from './WorkbenchCalculationWorkedOutGroup';
+import type { CardTarget } from '../../../../utils/cards/createCard';
 import type { PlateSwatchOf } from '../../../../utils/plateMap/plateSwatches';
 
 export interface CalculationTableRowView {
@@ -28,7 +29,7 @@ interface WorkbenchCalculationTableProps {
   rows: readonly CalculationTableRowView[];
   settings: WorkedOutSettings | undefined;
   swatchOf: PlateSwatchOf;
-  onShowCard: (cardId: string) => void;
+  onShow: (target: CardTarget) => void;
 }
 
 const HEAD_CELL = `${META_LABEL} px-2 pb-1 align-bottom font-normal`;
@@ -39,16 +40,14 @@ export const WorkbenchCalculationTable = memo(function WorkbenchCalculationTable
   rows,
   settings,
   swatchOf,
-  onShowCard,
+  onShow,
 }: WorkbenchCalculationTableProps) {
   const [openKey, setOpenKey] = useState<string>();
 
   return (
     <section className="min-w-0 break-inside-avoid">
       <WorkbenchCalculationSectionHeader title={title}>
-        {settings && (
-          <WorkbenchCalculationSettingsButton settings={settings} onShowCard={onShowCard} />
-        )}
+        {settings && <WorkbenchCalculationSettingsButton settings={settings} onShow={onShow} />}
       </WorkbenchCalculationSectionHeader>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
@@ -126,7 +125,7 @@ export const WorkbenchCalculationTable = memo(function WorkbenchCalculationTable
                         <WorkbenchCalculationWorkingLines
                           lines={row.lines}
                           shortName={shortName}
-                          onShowCard={onShowCard}
+                          onShow={onShow}
                         />
                       </td>
                     </tr>

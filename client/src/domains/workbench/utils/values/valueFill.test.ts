@@ -24,6 +24,7 @@ const sampleEntry = (id: string, name: string) => ({
 });
 
 const protocol = {
+  flowCytometryPanels: [],
   cards: [
     { id: 'materials', type: 'materials' },
     { id: 'values', type: 'values' },

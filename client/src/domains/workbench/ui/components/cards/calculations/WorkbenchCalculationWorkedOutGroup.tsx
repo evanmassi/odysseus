@@ -16,18 +16,20 @@ import { CALCULATION_WORKING_INDENT } from './calculationLineClasses';
 import { WorkbenchCalculationSettingsButton } from './WorkbenchCalculationSettingsButton';
 import { WorkbenchCalculationWorking } from './WorkbenchCalculationWorking';
 
+import type { CardTarget } from '../../../../utils/cards/createCard';
+
 export interface WorkedOutLine {
   id: string;
   name: string;
   result: CalculationResult | undefined;
-  links: Readonly<Record<string, string>>;
+  links: Readonly<Record<string, CardTarget>>;
   warnings: readonly string[];
   isIntermediate: boolean;
 }
 
 export interface WorkedOutSettings {
   label: string;
-  cardId: string;
+  target: CardTarget;
 }
 
 interface WorkbenchCalculationWorkedOutGroupProps {
@@ -35,7 +37,7 @@ interface WorkbenchCalculationWorkedOutGroupProps {
   lines: readonly WorkedOutLine[];
   subject: string;
   settings: WorkedOutSettings | undefined;
-  onShowCard: (cardId: string) => void;
+  onShow: (target: CardTarget) => void;
 }
 
 export const WorkbenchCalculationWorkedOutGroup = memo(function WorkbenchCalculationWorkedOutGroup({
@@ -43,7 +45,7 @@ export const WorkbenchCalculationWorkedOutGroup = memo(function WorkbenchCalcula
   lines,
   subject,
   settings,
-  onShowCard,
+  onShow,
 }: WorkbenchCalculationWorkedOutGroupProps) {
   const [openIds, setOpenIds] = useState<ReadonlySet<string>>(new Set());
   const [isShowingWorking, setIsShowingWorking] = useState(false);
@@ -65,9 +67,7 @@ export const WorkbenchCalculationWorkedOutGroup = memo(function WorkbenchCalcula
         <span className={`${META_LABEL} min-w-0 flex-1 truncate`}>
           {capsKeepingGreek(shortName(title))}
         </span>
-        {settings && (
-          <WorkbenchCalculationSettingsButton settings={settings} onShowCard={onShowCard} />
-        )}
+        {settings && <WorkbenchCalculationSettingsButton settings={settings} onShow={onShow} />}
       </div>
       {visibleLines.map(line => {
         const { result, links, warnings } = line;
@@ -101,8 +101,8 @@ export const WorkbenchCalculationWorkedOutGroup = memo(function WorkbenchCalcula
                   isCompact
                   shortName={shortName}
                   linkFor={name => {
-                    const cardId = links[name];
-                    return cardId ? () => onShowCard(cardId) : undefined;
+                    const target = links[name];
+                    return target ? () => onShow(target) : undefined;
                   }}
                 />
               </div>

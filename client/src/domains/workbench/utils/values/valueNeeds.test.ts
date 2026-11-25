@@ -21,6 +21,7 @@ const item = (id: string, name: string, group: string, recipe: unknown[] = []) =
 
 function needsFor(items: ProtocolValues['items']) {
   const protocol = {
+    flowCytometryPanels: [],
     cards: [
       { id: 'materials', type: 'materials' },
       { id: 'values', type: 'values' },

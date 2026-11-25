@@ -100,7 +100,7 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
     },
     size: [12, 10],
     fitsContent: true,
-    createContent: () => ({ markers: [], stains: [] }),
+    createContent: () => ({}),
   },
   procedure: {
     label: 'Procedure',

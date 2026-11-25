@@ -16,12 +16,7 @@ import { joinValueName, lowerLead } from '../values/valueNames';
 import { panelCocktails } from './flowCytometryCocktails';
 import { markerDose, type MarkerDose } from './markerAmount';
 
-import type {
-  FlowCytometryPanelCard,
-  MaterialItem,
-  Protocol,
-  Stain,
-} from '@odysseus/shared-schemas';
+import type { FlowCytometryPanel, MaterialItem, Protocol, Stain } from '@odysseus/shared-schemas';
 
 const SHARE_UNIT = '%';
 const PIPETTED_UNIT = 'µL';
@@ -35,14 +30,14 @@ const pluralOf = (noun: SampleNoun) => lowerLead(perLabwareKind(WELLS, noun).wor
 export const stainAmountId = (rowId: string, noun: SampleNoun): string =>
   `${rowId}:amount${nounEnd(noun)}`;
 
-export const cocktailWellsId = (cardId: string, cocktailKey: string, noun: SampleNoun): string =>
-  `${cardId}:${cocktailKey}:wells${nounEnd(noun)}`;
+export const cocktailWellsId = (panelId: string, cocktailKey: string, noun: SampleNoun): string =>
+  `${panelId}:${cocktailKey}:wells${nounEnd(noun)}`;
 
 export const cocktailAntibodiesId = (
-  cardId: string,
+  panelId: string,
   cocktailKey: string,
   noun: SampleNoun
-): string => `${cardId}:${cocktailKey}:antibodies${nounEnd(noun)}`;
+): string => `${panelId}:${cocktailKey}:antibodies${nounEnd(noun)}`;
 
 export function stainSampleNouns(stains: readonly Stain[], samples: SampleCounts): SampleNoun[] {
   const found = SAMPLE_NOUNS.filter(noun => stains.some(stain => samples.get(stain.id)?.has(noun)));
@@ -55,19 +50,20 @@ export const cocktailAntibodiesName = (
   isSplit: boolean
 ): string => `${cocktailName} antibodies${isSplit ? ` in the ${pluralOf(noun)}` : ''}`;
 
-function cardNames(
-  card: FlowCytometryPanelCard,
+function panelNames(
+  panel: FlowCytometryPanel,
   materials: ReadonlyMap<string, MaterialItem>,
   samples: SampleCounts,
   taken: Set<string>,
   ownNames: ReadonlyMap<string, BoardName>
 ): BoardName[] {
+  const origin = { type: 'flowCytometryPanel', shows: panel.id } as const;
   const claim = (name: string) => {
     const isFree = !taken.has(nameKey(name));
     taken.add(nameKey(name));
     return isFree;
   };
-  const { stainings } = panelCocktails(card);
+  const { stainings } = panelCocktails(panel);
   const nounsByStaining = new Map(
     stainings.map(({ staining, cocktails }) => [
       nameKey(staining),
@@ -88,7 +84,7 @@ function cardNames(
     return `Needs "${joinValueName(staining, word)}" or "${word}" in Values`;
   };
   const doses = new Map(
-    card.markers.flatMap(row => {
+    panel.markers.flatMap(row => {
       const material = materials.get(row.materialId);
       const staining = row.staining.trim();
       if (!material) return [];
@@ -108,10 +104,10 @@ function cardNames(
     return stainingCocktails.flatMap(cocktail => {
       if (!cocktail.name) return [];
       const group: WorkedOutGroup = {
-        key: `cocktail:${card.id}:${cocktail.key}`,
+        key: `cocktail:${panel.id}:${cocktail.key}`,
         subject: cocktail.name,
         title: COCKTAIL,
-        settingsCardId: card.id,
+        settings: origin,
       };
       const rows = cocktail.rows.filter(row => doses.has(row.id));
       return nouns.flatMap((noun): BoardName[] => {
@@ -120,14 +116,14 @@ function cardNames(
           ? [
               {
                 kind: 'count',
-                id: cocktailWellsId(card.id, cocktail.key, noun),
+                id: cocktailWellsId(panel.id, cocktail.key, noun),
                 name: wellsName,
                 count: cocktail.stains.reduce(
                   (sum, stain) => sum + (samples.get(stain.id)?.get(noun) ?? 0),
                   0
                 ),
                 workedOut: group,
-                originCardId: card.id,
+                origin,
               },
             ]
           : [];
@@ -146,19 +142,19 @@ function cardNames(
           ...count,
           {
             kind: 'calculation',
-            id: cocktailAntibodiesId(card.id, cocktail.key, noun),
+            id: cocktailAntibodiesId(panel.id, cocktail.key, noun),
             name: antibodiesName,
             formula: problem ? '' : rows.map(row => doseOf(row.id)?.share).join(' + '),
             unit: SHARE_UNIT,
             workedOut: group,
-            originCardId: card.id,
+            origin,
             ...(problem && { problem }),
           },
         ];
       });
     });
   });
-  const perWell = card.markers.flatMap(row => {
+  const perWell = panel.markers.flatMap(row => {
     const material = materials.get(row.materialId);
     const byNoun = doses.get(row.id);
     if (!material || !byNoun) return [];
@@ -182,9 +178,9 @@ function cardNames(
             key: `amount:${row.id}${nounEnd(noun)}`,
             subject: materialName,
             title: word,
-            settingsCardId: card.id,
+            settings: origin,
           },
-          originCardId: card.id,
+          origin,
           ...(problem && { problem }),
         },
       ];
@@ -201,9 +197,7 @@ export function flowCytometryCalculationNames(
   const samples = stainedSampleCounts(protocol.plateMaps);
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   const ownNames = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  return protocol.cards.flatMap(card =>
-    card.type === 'flowCytometryPanel'
-      ? cardNames(card, materials, samples, takenKeys, ownNames)
-      : []
+  return protocol.flowCytometryPanels.flatMap(panel =>
+    panelNames(panel, materials, samples, takenKeys, ownNames)
   );
 }

@@ -690,6 +690,7 @@ export {
   type ValueRow,
   type PlateMap,
   type PlateMapCard,
+  type FlowCytometryPanel,
   type FlowCytometryPanelCard,
   type Stain,
   type Cytometer,

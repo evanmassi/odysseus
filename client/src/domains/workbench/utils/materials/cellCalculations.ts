@@ -1,6 +1,5 @@
 import { UNIT_REGISTRY, type Protocol } from '@odysseus/shared-schemas';
 
-import { firstCardIdOf } from '../cards/createCard';
 import {
   nameKey,
   type SolvedBoard,
@@ -50,11 +49,7 @@ const missingCount = (count: Term, ...others: Term[]): CalculationGap => ({
   problem: `Needs a live count: ${count.word}, or ${others.map(term => term.word).join(' and ')}`,
 });
 
-function subjectNames(
-  plated: PlatedCells,
-  names: ReadonlyMap<string, BoardName>,
-  materialsCardId: string | undefined
-): BoardName[] {
+function subjectNames(plated: PlatedCells, names: ReadonlyMap<string, BoardName>): BoardName[] {
   const { subject, material, donor, placements } = plated;
   const donorList = donorListName(material);
   const materialName = nameWithoutNotes(material.name);
@@ -70,7 +65,7 @@ function subjectNames(
     key: id('group'),
     subject,
     title: CELLS_TO_PREPARE,
-    settingsCardId: materialsCardId,
+    settings: { type: 'materials' },
   };
   const inputs: BoardName[] = [];
   const calculations: CalculationName[] = [];
@@ -256,8 +251,7 @@ function subjectNames(
 
 export function cellCalculationNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  const materialsCardId = firstCardIdOf(protocol, 'materials');
-  return platedCells(protocol).flatMap(plated => subjectNames(plated, names, materialsCardId));
+  return platedCells(protocol).flatMap(plated => subjectNames(plated, names));
 }
 
 function shortfallOf(result: CalculationResult | undefined): string | undefined {

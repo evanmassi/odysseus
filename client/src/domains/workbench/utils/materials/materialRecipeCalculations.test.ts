@@ -48,6 +48,7 @@ function protocolWith(mixValues: Array<[name: string, value: string, unit: strin
     },
     calculations: { items: [], materialSections: [] },
     plateMaps: [],
+    flowCytometryPanels: [],
     cards: [
       { id: 'materials', type: 'materials', page: 'page' },
       { id: 'values', type: 'values', page: 'page' },

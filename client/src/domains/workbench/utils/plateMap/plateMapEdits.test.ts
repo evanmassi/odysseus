@@ -4,6 +4,7 @@ import {
   duplicateOfTab,
   hasAnyLabware,
   labwareCountOf,
+  removePlateMap,
   wellsLostTo,
   withoutPlate,
   withLabwareCount,
@@ -105,5 +106,18 @@ describe('plate map edits', () => {
     expect(copiedSeriesId).not.toBe('ser');
     expect(card.series[copiedSeriesId ?? '']).toEqual(card.series['ser']);
     expect(card.samples['s#2:1']).toEqual({ l: { valueId: 'v' } });
+  });
+});
+
+describe('removePlateMap', () => {
+  it('removes the plate map and closes only the cards showing it', () => {
+    const kept = { ...plateMap(), id: 'other' };
+    const draft = {
+      plateMaps: [plateMap(), kept],
+      cards: [cardShowing('map'), { ...cardShowing('other'), id: 'card-2' }, cardShowing('map')],
+    };
+    removePlateMap(draft, 'map');
+    expect(draft.plateMaps).toEqual([kept]);
+    expect(draft.cards.map(card => card.id)).toEqual(['card-2']);
   });
 });

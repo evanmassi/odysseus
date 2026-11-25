@@ -5,10 +5,10 @@ import { withGreekLetters } from '@odysseus/shared-schemas';
 import { AlertBanner, PanelEmptyState } from '@shared/ui';
 
 import { usePlateSwatches } from '../../../../hooks/usePlateSwatches';
-import { useShowCard } from '../../../../hooks/useShowCard';
+import { useShowTarget } from '../../../../hooks/useShowTarget';
 import { useStableColumns } from '../../../../hooks/useStableColumns';
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
-import { useProtocolWith } from '../../../../hooks/useWorkbenchSlice';
+import { useProtocolData } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { prepLineId } from '../../../../utils/dilutions/dilutionCalculations';
 import { dilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
@@ -64,6 +64,7 @@ import {
 } from './WorkbenchCalculationWorkedOutGroup';
 
 import type { CalculationTableRowView } from './WorkbenchCalculationTable';
+import type { CardTarget } from '../../../../utils/cards/createCard';
 import type { MaterialItem, Protocol, ProtocolCard } from '@odysseus/shared-schemas';
 
 interface GroupView {
@@ -101,12 +102,12 @@ const SETTINGS_LABELS: Partial<Record<ProtocolCard['type'], string>> = {
 function linksOf(
   board: SolvedBoard,
   result: CalculationResult | undefined
-): Readonly<Record<string, string>> {
+): Readonly<Record<string, CardTarget>> {
   if (result?.status !== 'ok') return {};
   return Object.fromEntries(
     workingRefs(result.working).flatMap(ref => {
-      const originCardId = board.names.get(nameKey(ref.name))?.originCardId;
-      return originCardId ? [[ref.name, originCardId]] : [];
+      const origin = board.names.get(nameKey(ref.name))?.origin;
+      return origin ? [[ref.name, origin]] : [];
     })
   );
 }
@@ -128,11 +129,11 @@ function prepWarnings(
 }
 
 export function WorkbenchCalculationsPanel() {
-  const protocol = useProtocolWith('dilutions', 'materials');
+  const protocol = useProtocolData();
   const board = useWorkbenchStore(state => state.board);
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
-  const showCard = useShowCard();
+  const showTarget = useShowTarget();
   const [openId, setOpenId] = useState<string>();
   const [typed, setTyped] = useState('');
   const columnsRef = useRef<HTMLDivElement>(null);
@@ -175,10 +176,9 @@ export function WorkbenchCalculationsPanel() {
   );
   const workedOut = useStructuralSharing(
     useMemo(() => {
-      const settingsOf = (cardId: string | undefined): WorkedOutSettings | undefined => {
-        const settingsCard = protocol.cards.find(candidate => candidate.id === cardId);
-        const label = settingsCard && SETTINGS_LABELS[settingsCard.type];
-        return settingsCard && label ? { label, cardId: settingsCard.id } : undefined;
+      const settingsOf = (target: CardTarget): WorkedOutSettings | undefined => {
+        const label = SETTINGS_LABELS[target.type];
+        return label ? { label, target } : undefined;
       };
       const lineOf = (line: {
         id: string;
@@ -197,7 +197,7 @@ export function WorkbenchCalculationsPanel() {
           part.kind === 'section'
             ? part.section.groups.map(({ group, lines }): [string, GroupView] => [
                 `${part.section.key}/${group.key}`,
-                { settings: settingsOf(group.settingsCardId), lines: lines.map(lineOf) },
+                { settings: settingsOf(group.settings), lines: lines.map(lineOf) },
               ])
             : []
       );
@@ -208,7 +208,7 @@ export function WorkbenchCalculationsPanel() {
                 [
                   part.table.key,
                   {
-                    settings: settingsOf(part.table.settingsCardId),
+                    settings: settingsOf(part.table.settings),
                     rows: part.table.rows.map(row => ({ ...row, lines: row.lines.map(lineOf) })),
                   },
                 ],
@@ -216,7 +216,7 @@ export function WorkbenchCalculationsPanel() {
             : []
       );
       return { groups: Object.fromEntries(groups), tables: Object.fromEntries(tables) };
-    }, [layout, protocol, board, warnings])
+    }, [layout, board, warnings])
   );
 
   const sectionOf = (name: string) => calculationMaterial(name, materials)?.id ?? GENERAL;
@@ -311,7 +311,7 @@ export function WorkbenchCalculationsPanel() {
           rows={view.rows}
           settings={view.settings}
           swatchOf={swatchOf}
-          onShowCard={showCard}
+          onShow={showTarget}
         />
       );
     }
@@ -345,7 +345,7 @@ export function WorkbenchCalculationsPanel() {
               lines={view.lines}
               subject={group.subject}
               settings={view.settings}
-              onShowCard={showCard}
+              onShow={showTarget}
             />
           );
         })}

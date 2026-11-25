@@ -4,7 +4,7 @@ import { useStoreWithEqualityFn } from 'zustand/traditional';
 
 import { useWorkbenchStore } from '../stores/workbenchStore';
 
-import type { Protocol, ProtocolCard } from '@odysseus/shared-schemas';
+import type { Protocol } from '@odysseus/shared-schemas';
 
 type WorkbenchState = ReturnType<typeof useWorkbenchStore.getState>;
 
@@ -15,41 +15,21 @@ const isSameOutsidePages = (a: Protocol, b: Protocol) =>
 
 const isSameData = <Value>(a: Value, b: Value) => JSON.stringify(a) === JSON.stringify(b);
 
-const isSameEntries = <Entry>(a: readonly Entry[], b: readonly Entry[]) =>
-  a.length === b.length && a.every((entry, index) => entry === b[index]);
-
 export const useProtocolOutsidePages = (): ProtocolOutsidePages =>
   useStoreWithEqualityFn(useWorkbenchStore, state => state.protocol, isSameOutsidePages);
 
 export const useWorkbenchData = <Value>(select: (state: WorkbenchState) => Value): Value =>
   useStoreWithEqualityFn(useWorkbenchStore, select, isSameData);
 
-type ProtocolData = Pick<Protocol, 'cards' | 'materials' | 'values' | 'calculations' | 'plateMaps'>;
+type ProtocolData = Pick<Protocol, 'materials' | 'values' | 'calculations' | 'plateMaps'>;
 
-export function useProtocolWith(...types: ProtocolCard['type'][]): ProtocolData {
-  const cards = useStoreWithEqualityFn(
-    useWorkbenchStore,
-    state => state.protocol.cards.filter(card => types.includes(card.type)),
-    isSameEntries
-  );
+export function useProtocolData(): ProtocolData {
   const materials = useWorkbenchStore(state => state.protocol.materials);
   const values = useWorkbenchStore(state => state.protocol.values);
   const calculations = useWorkbenchStore(state => state.protocol.calculations);
   const plateMaps = useWorkbenchStore(state => state.protocol.plateMaps);
   return useMemo(
-    () => ({ cards, materials, values, calculations, plateMaps }),
-    [cards, materials, values, calculations, plateMaps]
+    () => ({ materials, values, calculations, plateMaps }),
+    [materials, values, calculations, plateMaps]
   );
 }
-
-export const useCardsOf = <Type extends ProtocolCard['type']>(
-  type: Type
-): Extract<ProtocolCard, { type: Type }>[] =>
-  useStoreWithEqualityFn(
-    useWorkbenchStore,
-    state =>
-      state.protocol.cards.filter(
-        (card): card is Extract<ProtocolCard, { type: Type }> => card.type === type
-      ),
-    isSameEntries
-  );

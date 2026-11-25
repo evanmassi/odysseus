@@ -6,17 +6,19 @@ import { withPerLabwareKind } from '../../../../utils/terms/termLookup';
 
 import { WorkbenchCalculationWorking } from './WorkbenchCalculationWorking';
 
+import type { CardTarget } from '../../../../utils/cards/createCard';
+
 export interface WorkingLine {
   id: string;
   name: string;
   result: CalculationResult | undefined;
-  links?: Readonly<Record<string, string>>;
+  links?: Readonly<Record<string, CardTarget>>;
 }
 
 interface WorkbenchCalculationWorkingLinesProps {
   lines: readonly WorkingLine[];
   shortName: (name: string) => string;
-  onShowCard?: (cardId: string) => void;
+  onShow: (target: CardTarget) => void;
 }
 
 const WORKING_ROW = 'border-t border-line-soft first:border-t-0';
@@ -29,7 +31,7 @@ export const lineAnswer = (line: WorkingLine): string =>
 export function WorkbenchCalculationWorkingLines({
   lines,
   shortName,
-  onShowCard,
+  onShow,
 }: WorkbenchCalculationWorkingLinesProps) {
   return (
     <table className="w-full border-collapse">
@@ -48,8 +50,8 @@ export function WorkbenchCalculationWorkingLines({
                   isCompact
                   shortName={shortName}
                   linkFor={name => {
-                    const cardId = line.links?.[name];
-                    return cardId && onShowCard ? () => onShowCard(cardId) : undefined;
+                    const target = line.links?.[name];
+                    return target ? () => onShow(target) : undefined;
                   }}
                 />
               </td>

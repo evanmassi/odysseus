@@ -6,10 +6,9 @@ import {
   stainWells,
 } from './stainSide';
 
-import type { FlowCytometryPanelCard, PlateMap } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanel, PlateMap } from '@odysseus/shared-schemas';
 
-const panel = (stains: FlowCytometryPanelCard['stains']) =>
-  ({ stains: stains }) as FlowCytometryPanelCard;
+const panel = (stains: FlowCytometryPanel['stains']) => ({ stains: stains }) as FlowCytometryPanel;
 const plate = (stain: Record<string, string>) =>
   ({
     plates: [
@@ -71,12 +70,12 @@ describe('stained wells', () => {
       stainedIn: {},
     } as unknown as PlateMap;
     expect(stainedPlaces([plateMap]).get('full')).toEqual([
-      { cardId: 'map', name: 'P1', count: 2 },
-      { cardId: 'map', name: 'Plate 2', count: 1 },
-      { cardId: 'map', name: 'Tubes', count: 1 },
+      { plateMapId: 'map', name: 'P1', count: 2 },
+      { plateMapId: 'map', name: 'Plate 2', count: 1 },
+      { plateMapId: 'map', name: 'Tubes', count: 1 },
     ]);
     expect(stainedPlaces([plateMap]).get('fmo')).toEqual([
-      { cardId: 'map', name: 'Tubes', count: 1 },
+      { plateMapId: 'map', name: 'Tubes', count: 1 },
     ]);
   });
 

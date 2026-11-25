@@ -1,24 +1,28 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
+import { defaultCardTitle } from '../cards/cardTypes';
+import { closeCardsShowing } from '../cards/createCard';
 import { type FluorCatalog } from '../fluors/fluorCatalog';
+import { createId } from '../ids/createId';
 import { CONJUGATE_FIELD } from '../materials/conjugateConflicts';
 import { ANTIBODY_GROUP, materialFields } from '../materials/materialCatalog';
 import { guessMaterial, type MaterialKnowledge } from '../materials/materialGuesser';
 import { applyMaterialType, materialFromGuess } from '../materials/materialItems';
 import { type LabMemory } from '../materials/materialMemory';
+import { unpaintStains } from '../plateMap/stainSide';
 
 import { markerAmount, type MarkerAmount } from './markerAmount';
 import { misplacementText, type Misplacement } from './markerPlacement';
 import { filterCenter, wavelengthColor, wavelengthTone } from './wavelengthColor';
 
 import type {
-  FlowCytometryPanelCard,
+  FlowCytometryPanel,
   Cytometer,
   MaterialItem,
   Protocol,
 } from '@odysseus/shared-schemas';
 
-type PanelRow = FlowCytometryPanelCard['markers'][number];
+type PanelRow = FlowCytometryPanel['markers'][number];
 type Detector = Cytometer['lasers'][number]['detectors'][number];
 
 export interface PanelMarker {
@@ -103,17 +107,35 @@ function readMarker(
 const markerLabel = (marker: PanelMarker) =>
   [marker.fluor, marker.markerName, marker.material?.name.trim()].find(Boolean) ?? 'another marker';
 
+export const newFlowCytometryPanel = (): FlowCytometryPanel => ({
+  id: createId(),
+  title: defaultCardTitle('flowCytometryPanel'),
+  markers: [],
+  stains: [],
+});
+
+export function removeFlowCytometryPanel(
+  draft: Pick<Protocol, 'flowCytometryPanels' | 'plateMaps' | 'cards'>,
+  panelId: string
+): void {
+  const panel = draft.flowCytometryPanels.find(candidate => candidate.id === panelId);
+  if (!panel) return;
+  unpaintStains(draft.plateMaps, new Set(panel.stains.map(stain => stain.id)));
+  draft.flowCytometryPanels = draft.flowCytometryPanels.filter(other => other !== panel);
+  closeCardsShowing(draft, panelId);
+}
+
 export function panelLayout(
-  card: FlowCytometryPanelCard,
+  panel: FlowCytometryPanel,
   materials: readonly MaterialItem[],
   catalog: FluorCatalog
 ): PanelLayout {
   const byId = new Map(materials.map(item => [item.id, item]));
-  const markers = card.markers.map(row =>
-    readMarker(row, byId.get(row.materialId), card.cytometer, catalog)
+  const markers = panel.markers.map(row =>
+    readMarker(row, byId.get(row.materialId), panel.cytometer, catalog)
   );
   const placed = new Set<PanelMarker>();
-  const lasers = (card.cytometer?.lasers ?? []).map(laser => ({
+  const lasers = (panel.cytometer?.lasers ?? []).map(laser => ({
     name: laser.name,
     nm: laser.nm,
     color: wavelengthColor(laser.nm),
@@ -139,10 +161,10 @@ export function panelLayout(
 }
 
 export const markerCandidates = (
-  card: FlowCytometryPanelCard,
+  panel: FlowCytometryPanel,
   materials: readonly MaterialItem[]
 ): MaterialItem[] => {
-  const onPanel = new Set(card.markers.map(row => row.materialId));
+  const onPanel = new Set(panel.markers.map(row => row.materialId));
   return materials.filter(
     item =>
       item.group === ANTIBODY_GROUP &&
@@ -152,9 +174,9 @@ export const markerCandidates = (
   );
 };
 
-export function panelStainings(card: FlowCytometryPanelCard): string[] {
+export function panelStainings(panel: FlowCytometryPanel): string[] {
   const byKey = new Map<string, string>();
-  for (const staining of [...card.markers.map(row => row.staining), ...STARTING_STAININGS]) {
+  for (const staining of [...panel.markers.map(row => row.staining), ...STARTING_STAININGS]) {
     const key = normalizeMaterialKey(staining);
     if (key && !byKey.has(key)) byKey.set(key, staining.trim());
   }
@@ -166,11 +188,12 @@ export const dilutionFactor = (typed: string): string => typed.replace(/^\s*1\s*
 export const firstOpenDetector = (laser: LaserGroup): string | undefined =>
   (laser.slots.find(slot => !slot.markers.length) ?? laser.slots[0])?.detector.id;
 
-export function panelDetectorLabels(protocol: Pick<Protocol, 'cards'>): Map<string, string> {
+export function panelDetectorLabels(
+  protocol: Pick<Protocol, 'flowCytometryPanels'>
+): Map<string, string> {
   const detectors = new Map<string, string[]>();
-  for (const card of protocol.cards) {
-    if (card.type !== 'flowCytometryPanel') continue;
-    for (const row of card.markers) {
+  for (const panel of protocol.flowCytometryPanels) {
+    for (const row of panel.markers) {
       detectors.set(row.materialId, [...(detectors.get(row.materialId) ?? []), row.detectorId]);
     }
   }

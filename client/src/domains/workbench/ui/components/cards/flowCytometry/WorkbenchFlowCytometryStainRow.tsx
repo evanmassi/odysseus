@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 
 import { Select, Tooltip, type SelectOption } from '@shared/ui';
 
-import { useShowCard } from '../../../../hooks/useShowCard';
+import { useShowTarget } from '../../../../hooks/useShowTarget';
 
 import { FLOW_CYTOMETRY_CELL, FLUOR_SQUARE, HOVER_ROW } from './flowCytometryTableStyles';
 import { WorkbenchFlowCytometryTextCell } from './WorkbenchFlowCytometryTextCell';
@@ -12,10 +12,10 @@ import { WorkbenchFlowCytometryTextCell } from './WorkbenchFlowCytometryTextCell
 import type { FlowCytometryActions } from './useFlowCytometryActions';
 import type { MarkerColumn } from '../../../../utils/flowCytometry/flowCytometryStains';
 import type { StainedPlace } from '../../../../utils/plateMap/stainSide';
-import type { FlowCytometryPanelCard } from '@odysseus/shared-schemas';
+import type { Stain } from '@odysseus/shared-schemas';
 
 interface WorkbenchFlowCytometryStainRowProps {
-  stain: FlowCytometryPanelCard['stains'][number];
+  stain: Stain;
   columns: readonly MarkerColumn[];
   places: readonly StainedPlace[];
   materialNames: ReadonlyMap<string, string>;
@@ -35,7 +35,7 @@ export function WorkbenchFlowCytometryStainRow({
   stainingOptions,
   actions,
 }: WorkbenchFlowCytometryStainRowProps) {
-  const showCard = useShowCard();
+  const showTarget = useShowTarget();
   const stainName = stain.name.trim() || 'this stain';
   const plusIds = new Set(stain.plus.map(plus => plus.materialId));
 
@@ -126,10 +126,10 @@ export function WorkbenchFlowCytometryStainRow({
           <span className="inline-flex flex-wrap justify-end gap-x-2">
             {places.map(place => (
               <button
-                key={`${place.cardId}:${place.name}`}
+                key={`${place.plateMapId}:${place.name}`}
                 type="button"
                 className="whitespace-nowrap hover:text-primary"
-                onClick={() => showCard(place.cardId)}
+                onClick={() => showTarget({ type: 'plateMap', shows: place.plateMapId })}
               >
                 {place.name} · {place.count}
               </button>

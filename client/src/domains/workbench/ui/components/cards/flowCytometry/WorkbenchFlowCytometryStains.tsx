@@ -23,10 +23,10 @@ import { WorkbenchFlowCytometryStainRow } from './WorkbenchFlowCytometryStainRow
 import type { FlowCytometryActions } from './useFlowCytometryActions';
 import type { PanelLayout } from '../../../../utils/flowCytometry/flowCytometryPanel';
 import type { StainedPlace } from '../../../../utils/plateMap/stainSide';
-import type { FlowCytometryPanelCard, MaterialItem } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanel, MaterialItem } from '@odysseus/shared-schemas';
 
 interface WorkbenchFlowCytometryStainsProps {
-  card: FlowCytometryPanelCard;
+  panel: FlowCytometryPanel;
   layout: PanelLayout;
   materials: readonly MaterialItem[];
   materialNames: ReadonlyMap<string, string>;
@@ -36,7 +36,7 @@ interface WorkbenchFlowCytometryStainsProps {
 }
 
 export function WorkbenchFlowCytometryStains({
-  card,
+  panel,
   layout,
   materials,
   materialNames,
@@ -56,7 +56,7 @@ export function WorkbenchFlowCytometryStains({
   return (
     <section aria-label="Stains" className="mt-4 flex flex-col gap-2.5">
       <div className="flex items-center gap-2.5">
-        <SubsectionHeader title="Stains" meta={card.stains.length || undefined} />
+        <SubsectionHeader title="Stains" meta={panel.stains.length || undefined} />
         <span aria-hidden className={SECTION_RULE} />
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -125,7 +125,7 @@ export function WorkbenchFlowCytometryStains({
         </Button>
       </div>
 
-      {card.stains.length > 0 && (
+      {panel.stains.length > 0 && (
         <div className="overflow-x-auto">
           <table className="border-separate border-spacing-y-0.5">
             <thead>
@@ -156,7 +156,7 @@ export function WorkbenchFlowCytometryStains({
               </tr>
             </thead>
             <tbody>
-              {card.stains.map(stain => (
+              {panel.stains.map(stain => (
                 <WorkbenchFlowCytometryStainRow
                   key={stain.id}
                   stain={stain}

@@ -1,14 +1,21 @@
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useState, type ReactNode } from 'react';
 
-import { Plus } from 'lucide-react';
-
-import { DropdownMenu } from '@shared/ui';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useShowCard } from '../../../hooks/useShowCard';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { CARD_TYPES } from '../../../utils/cards/cardTypes';
-import { cardsShowing, createCard, showPlateMap } from '../../../utils/cards/createCard';
-import { newPlateMap } from '../../../utils/plateMap/plateMapEdits';
+import { cardsShowing, openCard, type CardTarget } from '../../../utils/cards/createCard';
+import {
+  removalMessage,
+  removalTitle,
+  type RemovableType,
+} from '../../../utils/cards/permanentRemoval';
+import {
+  newFlowCytometryPanel,
+  removeFlowCytometryPanel,
+} from '../../../utils/flowCytometry/flowCytometryPanel';
+import { newPlateMap, removePlateMap } from '../../../utils/plateMap/plateMapEdits';
 import {
   plateNameOf,
   otherLabwareTabNameOf,
@@ -18,9 +25,22 @@ import {
 
 import { CARD_ICONS } from './cardIcons';
 import { CARD_PANELS } from './cardPanels';
+import { RAIL_HEADING } from './cardRailStyles';
 import { WorkbenchCardRailItem } from './WorkbenchCardRailItem';
+import {
+  WorkbenchCardRailShowMenu,
+  type RailShownEntry,
+  type RailShownSection,
+} from './WorkbenchCardRailShowMenu';
 
-import type { PlateMap, Protocol, ProtocolCardType } from '@odysseus/shared-schemas';
+import type {
+  FlowCytometryPanel,
+  PlateMap,
+  Protocol,
+  ProtocolCard,
+  ProtocolCardType,
+  ProtocolPage,
+} from '@odysseus/shared-schemas';
 
 const RAIL_GROUPS: ReadonlyArray<[string, ProtocolCardType[]]> = [
   ['Inputs', ['materials', 'flowCytometryPanel']],
@@ -29,10 +49,7 @@ const RAIL_GROUPS: ReadonlyArray<[string, ProtocolCardType[]]> = [
   ['Layout', ['plateMap']],
 ];
 
-const MENU_GAP = 8;
 const NOT_SHOWN = 'Not shown';
-const RAIL_HEADING = 'px-2 pb-1 type-label text-label-xs text-muted-foreground';
-const MENU_HEADING = `${RAIL_HEADING} block pt-3`;
 
 const tabNames = (plateMap: PlateMap) =>
   plateMapTabs(plateMap)
@@ -41,8 +58,43 @@ const tabNames = (plateMap: PlateMap) =>
     )
     .join(', ');
 
-const bottomOf = (draft: Protocol, page: string) =>
-  Math.max(0, ...draft.cards.filter(card => card.page === page).map(card => card.y + card.h));
+const plateMapEntry = (plateMap: PlateMap): RailShownEntry => ({
+  id: plateMap.id,
+  label: labwareTitle(plateMap),
+  hint: tabNames(plateMap),
+});
+
+const panelEntry = (panel: FlowCytometryPanel): RailShownEntry => ({
+  id: panel.id,
+  label: panel.title,
+  hint: [
+    panel.cytometer?.name ?? 'No cytometer picked',
+    `${panel.markers.length} ${panel.markers.length === 1 ? 'marker' : 'markers'}`,
+  ].join(' · '),
+});
+
+function shownSections(
+  entries: readonly RailShownEntry[],
+  pages: readonly ProtocolPage[],
+  cards: readonly ProtocolCard[]
+): RailShownSection[] {
+  const isOn = (entry: RailShownEntry, pageId: string) =>
+    cardsShowing(cards, entry.id).some(card => card.page === pageId);
+  return [
+    ...pages.map(page => ({
+      id: page.id,
+      heading: page.name,
+      entries: entries.filter(entry => isOn(entry, page.id)),
+      canRemove: false,
+    })),
+    {
+      id: NOT_SHOWN,
+      heading: NOT_SHOWN,
+      entries: entries.filter(entry => !cardsShowing(cards, entry.id).length),
+      canRemove: true,
+    },
+  ].filter(section => section.entries.length);
+}
 
 export function WorkbenchCardRail() {
   const activePageId = useWorkbenchStore(state => state.activePageId);
@@ -50,90 +102,101 @@ export function WorkbenchCardRail() {
   const pages = useWorkbenchStore(state => state.protocol.pages);
   const cards = useWorkbenchStore(state => state.protocol.cards);
   const plateMaps = useWorkbenchStore(state => state.protocol.plateMaps);
+  const panels = useWorkbenchStore(state => state.protocol.flowCytometryPanels);
   const showCard = useShowCard();
-  const plateMapsOn = (pageId: string) =>
-    plateMaps.filter(plateMap =>
-      cardsShowing(cards, plateMap.id).some(card => card.page === pageId)
-    );
-  const notShown = plateMaps.filter(plateMap => !cardsShowing(cards, plateMap.id).length);
+  const [removing, setRemoving] = useState<{ type: RemovableType; entry: RailShownEntry }>();
   const hasProcedure = cards.some(card => card.page === activePageId && card.type === 'procedure');
-  const startFromRef = useRef<HTMLDivElement>(null);
-  const plateItemRef = useRef<HTMLButtonElement>();
-  const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
-  const [startMenuAt, setStartMenuAt] = useState<{ top: number; left: number }>();
-  const closeStartMenu = () => setIsStartMenuOpen(false);
 
   const added = (cardId: string, railItem: HTMLButtonElement | undefined) =>
     showCard(cardId, { isNew: true, addedFrom: railItem });
 
-  const placePlateCard = (draft: Protocol, plateMapId: string, side: 'assay' | 'stain') => {
-    const [w, h] = CARD_TYPES.plateMap.size;
-    const page = activePageId;
-    const shownWidth = cardsShowing(draft.cards, plateMapId)[0]?.w;
-    return showPlateMap(
-      draft,
-      plateMapId,
-      { page, x: 0, y: bottomOf(draft, page), w: shownWidth ?? w, h },
-      side
-    ).id;
-  };
-
-  const showExisting = (plateMap: PlateMap) => {
+  const showInCard = (
+    railItem: HTMLButtonElement | undefined,
+    recipe: (draft: Protocol) => ProtocolCard
+  ) => {
     let cardId = '';
     updateProtocol(draft => {
-      const hasStains = draft.cards.some(
-        card => card.type === 'flowCytometryPanel' && card.stains.length
-      );
-      cardId = placePlateCard(draft, plateMap.id, hasStains ? 'stain' : 'assay');
-    });
-    added(cardId, plateItemRef.current);
-  };
-
-  const addCard = (type: ProtocolCardType, railItem: HTMLButtonElement | undefined) => {
-    let cardId = '';
-    updateProtocol(draft => {
-      if (type === 'plateMap') {
-        const plateMap = newPlateMap();
-        draft.plateMaps.push(plateMap);
-        cardId = placePlateCard(draft, plateMap.id, 'assay');
-        return;
-      }
-      const [w, h] = CARD_TYPES[type].size;
-      const card = createCard(type, {
-        page: activePageId,
-        x: 0,
-        y: bottomOf(draft, activePageId),
-        w,
-        h,
-      });
-      draft.cards.push(card);
-      cardId = card.id;
+      cardId = recipe(draft).id;
     });
     added(cardId, railItem);
   };
 
-  const pick = (type: ProtocolCardType, railItem: HTMLButtonElement) => {
-    if (type !== 'plateMap' || !plateMaps.length) return addCard(type, railItem);
-    if (isStartMenuOpen) return closeStartMenu();
-    plateItemRef.current = railItem;
-    const item = startFromRef.current?.getBoundingClientRect();
-    if (item) setStartMenuAt({ top: item.top, left: item.right + MENU_GAP });
-    setIsStartMenuOpen(true);
+  const open = (draft: Protocol, target: CardTarget) => openCard(draft, target, activePageId);
+
+  const showPlateMapIn = (draft: Protocol, plateMapId: string) => {
+    const card = open(draft, { type: 'plateMap', shows: plateMapId });
+    const hasStains = draft.flowCytometryPanels.some(panel => panel.stains.length);
+    if (card.type === 'plateMap' && hasStains) card.side = 'stain';
+    return card;
   };
 
-  const plateMapItem = (plateMap: PlateMap) => (
-    <WorkbenchCardRailItem
-      key={plateMap.id}
+  const newPlateMapIn = (draft: Protocol) => {
+    const plateMap = newPlateMap();
+    draft.plateMaps.push(plateMap);
+    return open(draft, { type: 'plateMap', shows: plateMap.id });
+  };
+
+  const newPanelIn = (draft: Protocol) => {
+    const panel = newFlowCytometryPanel();
+    draft.flowCytometryPanels.push(panel);
+    return open(draft, { type: 'flowCytometryPanel', shows: panel.id });
+  };
+
+  const addCard = (type: ProtocolCardType, railItem: HTMLButtonElement | undefined) => {
+    if (type === 'plateMap') return showInCard(railItem, newPlateMapIn);
+    if (type === 'flowCytometryPanel') return showInCard(railItem, newPanelIn);
+    showInCard(railItem, draft => open(draft, { type }));
+  };
+
+  const removeForGood = () => {
+    if (!removing) return;
+    const { type, entry } = removing;
+    setRemoving(undefined);
+    updateProtocol(draft =>
+      type === 'plateMap'
+        ? removePlateMap(draft, entry.id)
+        : removeFlowCytometryPanel(draft, entry.id)
+    );
+  };
+
+  const plateMapMenu = (
+    <WorkbenchCardRailShowMenu
       icon={CARD_ICONS.plateMap}
-      label={labwareTitle(plateMap)}
-      hint={tabNames(plateMap)}
-      isMenuItem
-      onPick={() => {
-        closeStartMenu();
-        showExisting(plateMap);
-      }}
+      label={CARD_TYPES.plateMap.label}
+      hint={CARD_TYPES.plateMap.hint}
+      menuLabel="Show a plate map"
+      newLabel="Empty plate map"
+      newHint="Start a new set of plates"
+      sections={shownSections(plateMaps.map(plateMapEntry), pages, cards)}
+      onNew={railItem => showInCard(railItem, newPlateMapIn)}
+      onRemove={entry => setRemoving({ type: 'plateMap', entry })}
+      onShow={(plateMapId, railItem) =>
+        showInCard(railItem, draft => showPlateMapIn(draft, plateMapId))
+      }
     />
   );
+
+  const panelMenu = (
+    <WorkbenchCardRailShowMenu
+      icon={CARD_ICONS.flowCytometryPanel}
+      label={CARD_TYPES.flowCytometryPanel.label}
+      hint={CARD_TYPES.flowCytometryPanel.hint}
+      menuLabel="Show a Flow panel"
+      newLabel="Empty flow panel"
+      newHint="Start a new panel of markers"
+      sections={shownSections(panels.map(panelEntry), pages, cards)}
+      onNew={railItem => showInCard(railItem, newPanelIn)}
+      onRemove={entry => setRemoving({ type: 'flowCytometryPanel', entry })}
+      onShow={(panelId, railItem) =>
+        showInCard(railItem, draft => open(draft, { type: 'flowCytometryPanel', shows: panelId }))
+      }
+    />
+  );
+
+  const showMenus: Partial<Record<ProtocolCardType, ReactNode>> = {
+    plateMap: plateMaps.length ? plateMapMenu : undefined,
+    flowCytometryPanel: panels.length ? panelMenu : undefined,
+  };
 
   const groups = RAIL_GROUPS.map(
     ([label, types]) => [label, types.filter(type => CARD_PANELS[type])] as const
@@ -145,66 +208,35 @@ export function WorkbenchCardRail() {
         <section key={label}>
           <h4 className={RAIL_HEADING}>{label}</h4>
           {types.map(type => {
+            const showMenu = showMenus[type];
+            if (showMenu) return <Fragment key={type}>{showMenu}</Fragment>;
             const isOnPage = type === 'procedure' && hasProcedure;
-            const hasStartChoice = type === 'plateMap' && plateMaps.length > 0;
             return (
-              <div key={type} ref={hasStartChoice ? startFromRef : undefined} className="relative">
-                <WorkbenchCardRailItem
-                  icon={CARD_ICONS[type]}
-                  label={CARD_TYPES[type].label}
-                  hint={
-                    isOnPage
-                      ? 'This page has its Procedure. Add a page for another.'
-                      : CARD_TYPES[type].hint
-                  }
-                  isDisabled={isOnPage}
-                  isExpanded={hasStartChoice ? isStartMenuOpen : undefined}
-                  onPick={railItem => pick(type, railItem)}
-                />
-                {hasStartChoice && (
-                  <DropdownMenu
-                    isOpen={isStartMenuOpen}
-                    onClose={closeStartMenu}
-                    triggerRef={startFromRef}
-                    portal
-                    motion="slide-right"
-                    aria-label="Show a plate map"
-                    className="min-w-[200px] max-w-sm py-1"
-                    style={startMenuAt}
-                  >
-                    <WorkbenchCardRailItem
-                      icon={Plus}
-                      label="Empty plate map"
-                      hint="Start a new set of plates"
-                      isMenuItem
-                      onPick={() => {
-                        closeStartMenu();
-                        addCard('plateMap', plateItemRef.current);
-                      }}
-                    />
-                    {pages.map(page => {
-                      const onPage = plateMapsOn(page.id);
-                      if (!onPage.length) return null;
-                      return (
-                        <Fragment key={page.id}>
-                          <span className={MENU_HEADING}>{page.name}</span>
-                          {onPage.map(plateMapItem)}
-                        </Fragment>
-                      );
-                    })}
-                    {notShown.length > 0 && (
-                      <>
-                        <span className={MENU_HEADING}>{NOT_SHOWN}</span>
-                        {notShown.map(plateMapItem)}
-                      </>
-                    )}
-                  </DropdownMenu>
-                )}
-              </div>
+              <WorkbenchCardRailItem
+                key={type}
+                icon={CARD_ICONS[type]}
+                label={CARD_TYPES[type].label}
+                hint={
+                  isOnPage
+                    ? 'This page has its Procedure. Add a page for another.'
+                    : CARD_TYPES[type].hint
+                }
+                isDisabled={isOnPage}
+                onPick={railItem => addCard(type, railItem)}
+              />
             );
           })}
         </section>
       ))}
+      <ConfirmDialog
+        isOpen={!!removing}
+        variant="danger"
+        title={removing ? removalTitle(removing.type) : ''}
+        message={removing ? removalMessage(removing.type, removing.entry.label) : ''}
+        confirmText="Remove"
+        onConfirm={removeForGood}
+        onCancel={() => setRemoving(undefined)}
+      />
     </nav>
   );
 }

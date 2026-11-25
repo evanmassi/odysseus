@@ -3,7 +3,7 @@ import { plateNameOf, otherLabwareTabNameOf } from './plateMapTabs';
 
 import type { WellColor } from './wellContents';
 import type { SampleNoun } from '../terms/termList';
-import type { FlowCytometryPanelCard, PlateMap } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanel, PlateMap } from '@odysseus/shared-schemas';
 
 export interface PlateStain {
   id: string;
@@ -28,7 +28,7 @@ const STAIN_SIDE_DIM = 0.45;
 export const dimmedForStain = (color: WellColor | undefined): WellColor | undefined =>
   color && { ...color, tint: Math.round(color.tint * STAIN_SIDE_DIM) };
 
-export function plateStains(panels: readonly FlowCytometryPanelCard[]): PlateStain[] {
+export function plateStains(panels: readonly FlowCytometryPanel[]): PlateStain[] {
   let colored = 0;
   return panels
     .flatMap(panel => panel.stains)
@@ -70,31 +70,36 @@ export function stainedSampleCounts(
 }
 
 export interface StainedPlace {
-  cardId: string;
+  plateMapId: string;
   name: string;
   count: number;
 }
 
 export function stainedPlaces(plates: readonly PlateMap[]): Map<string, StainedPlace[]> {
   const places = new Map<string, StainedPlace[]>();
-  for (const card of plates) {
+  for (const plateMap of plates) {
     const tabs = [
-      ...card.plates.map(plate => ({ prefix: `${plate.id}:`, name: plateNameOf(card, plate) })),
-      ...card.otherLabware.map(set => ({
+      ...plateMap.plates.map(plate => ({
+        prefix: `${plate.id}:`,
+        name: plateNameOf(plateMap, plate),
+      })),
+      ...plateMap.otherLabware.map(set => ({
         prefix: `${set.id}#`,
-        name: otherLabwareTabNameOf(card),
+        name: otherLabwareTabNameOf(plateMap),
       })),
     ];
     for (const { prefix, name } of tabs) {
       const counts = new Map<string, number>();
-      for (const [key, stainId] of Object.entries(card.stain)) {
+      for (const [key, stainId] of Object.entries(plateMap.stain)) {
         if (key.startsWith(prefix)) counts.set(stainId, (counts.get(stainId) ?? 0) + 1);
       }
       for (const [stainId, count] of counts) {
         const list = places.get(stainId) ?? [];
-        const sameName = list.find(place => place.cardId === card.id && place.name === name);
+        const sameName = list.find(
+          place => place.plateMapId === plateMap.id && place.name === name
+        );
         if (sameName) sameName.count += count;
-        else list.push({ cardId: card.id, name, count });
+        else list.push({ plateMapId: plateMap.id, name, count });
         places.set(stainId, list);
       }
     }
@@ -110,5 +115,13 @@ export function stainWells(
   for (const key of keys) {
     if (stainId) card.stain[key] = stainId;
     else delete card.stain[key];
+  }
+}
+
+export function unpaintStains(plateMaps: readonly PlateMap[], stainIds: ReadonlySet<string>): void {
+  for (const plateMap of plateMaps) {
+    for (const [key, stainId] of Object.entries(plateMap.stain)) {
+      if (stainIds.has(stainId)) delete plateMap.stain[key];
+    }
   }
 }

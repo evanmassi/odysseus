@@ -195,8 +195,7 @@ export function countSubjects(protocol: Pick<Protocol, 'materials' | 'plateMaps'
 
 export function cellCountNames(
   subjects: readonly CountSubject[],
-  taken: readonly BoardName[],
-  materialsCardId: string | undefined
+  taken: readonly BoardName[]
 ): BoardName[] {
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   return subjects.flatMap(subject => {
@@ -207,7 +206,7 @@ export function cellCountNames(
           key: cellPartId(subject, 'group'),
           subject: subject.subject,
           title: CELLS_TO_PREPARE,
-          settingsCardId: materialsCardId,
+          settings: { type: 'materials' },
         }
       : undefined;
     return CELL_COUNTS.flatMap((count): BoardName[] => {

@@ -48,28 +48,28 @@ import { WorkbenchFlowCytometryPeakMap } from './WorkbenchFlowCytometryPeakMap';
 import { WorkbenchFlowCytometryStains } from './WorkbenchFlowCytometryStains';
 import { WorkbenchFlowCytometryUsageBar } from './WorkbenchFlowCytometryUsageBar';
 
-import type { FlowCytometryPanelCard } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanel } from '@odysseus/shared-schemas';
 
 interface WorkbenchFlowCytometryPanelProps {
-  card: FlowCytometryPanelCard;
+  panel: FlowCytometryPanel;
 }
 
 const NUMBER_HEAD_CELL = `w-24 ${FLOW_CYTOMETRY_NUMBER_HEAD_CELL}`;
 const COLUMNS_BESIDE_AMOUNTS = 10;
 
-export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPanelProps) {
-  const actions = useFlowCytometryActions(card);
+export function WorkbenchFlowCytometryPanel({ panel }: WorkbenchFlowCytometryPanelProps) {
+  const actions = useFlowCytometryActions(panel.id);
   const materialList = useWorkbenchStore(state => state.protocol.materials);
   const materials = useMemo(() => listedMaterials({ materials: materialList }), [materialList]);
   const catalog = useFluorCatalog();
-  const layout = useMemo(() => panelLayout(card, materials, catalog), [card, materials, catalog]);
-  const stainings = useMemo(() => panelStainings(card), [card]);
+  const layout = useMemo(() => panelLayout(panel, materials, catalog), [panel, materials, catalog]);
+  const stainings = useMemo(() => panelStainings(panel), [panel]);
   const plateMaps = useWorkbenchStore(state => state.protocol.plateMaps);
   const stainPlaces = useMemo(() => stainedPlaces(plateMaps), [plateMaps]);
   const samples = useMemo(() => stainedSampleCounts(plateMaps), [plateMaps]);
-  const amountNouns = useMemo(() => stainSampleNouns(card.stains, samples), [card, samples]);
+  const amountNouns = useMemo(() => stainSampleNouns(panel.stains, samples), [panel, samples]);
   const amountEntries = useWorkbenchData(state =>
-    card.markers.map((row): [string, StainAmount[]] => [
+    panel.markers.map((row): [string, StainAmount[]] => [
       row.id,
       amountNouns.map((noun): StainAmount => {
         const result = state.board.results.get(stainAmountId(row.id, noun));
@@ -86,18 +86,18 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
   );
   const candidates = useMemo(
     () =>
-      card.cytometer
+      panel.cytometer
         ? markerCandidatesOn(
-            card.cytometer,
+            panel.cytometer,
             catalog,
-            markerCandidates(card, materials).map(item => ({
+            markerCandidates(panel, materials).map(item => ({
               materialId: item.id,
               name: item.name.trim(),
               fluor: markerFluor(item),
             }))
           )
         : [],
-    [card, materials, catalog]
+    [panel, materials, catalog]
   );
   const detectorOptions = useMemo(
     () =>
@@ -114,7 +114,7 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
     value: cytometer.name,
     label: cytometer.name,
   }));
-  const cytometer = card.cytometer;
+  const cytometer = panel.cytometer;
   const isSpectral = cytometer?.kind === 'spectral';
 
   return (
@@ -242,7 +242,7 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
             </table>
           </div>
           <WorkbenchFlowCytometryStains
-            card={card}
+            panel={panel}
             layout={layout}
             materials={materials}
             materialNames={materialNames}
@@ -251,7 +251,7 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
             actions={actions}
           />
           <WorkbenchFlowCytometryCocktails
-            card={card}
+            panel={panel}
             layout={layout}
             samples={samples}
             materialNames={materialNames}

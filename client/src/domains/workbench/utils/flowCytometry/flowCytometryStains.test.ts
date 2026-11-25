@@ -13,7 +13,7 @@ import {
   unstainedControl,
 } from './flowCytometryStains';
 
-import type { FlowCytometryPanelCard } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanel } from '@odysseus/shared-schemas';
 
 const antibody = (name: string, target: string, conjugate: string) => {
   const item = materialFromGuess(
@@ -28,16 +28,9 @@ const cd4 = antibody('CD4 BV421', 'CD4', 'BV421');
 const cd3 = antibody('CD3 FITC', 'CD3', 'FITC');
 const foxp3 = antibody('Foxp3 PE', 'Foxp3', 'PE');
 
-const card: FlowCytometryPanelCard = {
+const card: FlowCytometryPanel = {
   id: 'panel',
-  type: 'flowCytometryPanel',
   title: 'Flow panel',
-  page: 'page',
-  x: 0,
-  y: 0,
-  w: 12,
-  h: 10,
-  isCollapsed: false,
   cytometer: BUILT_IN_CYTOMETERS[0],
   markers: [
     { id: 'foxp3', materialId: foxp3.id, detectorId: 'BL2', staining: 'ICS' },

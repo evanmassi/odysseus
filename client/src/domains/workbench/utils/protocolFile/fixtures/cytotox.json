@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 10,
+  "version": 11,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "T cell killing assay",
@@ -903,6 +903,7 @@
         "stainedIn": {}
       }
     ],
+    "flowCytometryPanels": [],
     "cards": [
       {
         "id": "85fqukl",

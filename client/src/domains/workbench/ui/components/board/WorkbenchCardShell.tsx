@@ -4,18 +4,17 @@ import { withGreekLetters } from '@odysseus/shared-schemas';
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
 
 import { ConsolePanel, Tooltip, WELL_BASE } from '@shared/ui';
-import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { useFitCardHeight } from '../../../hooks/useFitCardHeight';
 import { CARD_SURFACE_ATTRIBUTE } from '../../../hooks/useShowCard';
 import { useUpdateCard } from '../../../hooks/useUpdateCard';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
-import { removalMessage } from '../../../utils/cards/cardRemoval';
 import { CARD_TYPES, defaultCardTitle } from '../../../utils/cards/cardTypes';
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
 import { labwareKinds, labwareTitle } from '../../../utils/plateMap/plateMapTabs';
 
 import { capsKeepingGreek } from './capsKeepingGreek';
+import { CARD_HEADER_BUTTON } from './cardHeaderStyles';
 import { CARD_ICONS } from './cardIcons';
 import { CARD_HEADER_CONTROLS, CARD_PANELS } from './cardPanels';
 import { WorkbenchCardPendingPanel } from './WorkbenchCardPendingPanel';
@@ -29,9 +28,6 @@ interface WorkbenchCardShellProps {
   card: ProtocolCard;
 }
 
-const HEADER_BUTTON =
-  'inline-flex h-6 w-6 flex-none items-center justify-center text-muted-foreground transition-colors hover:text-foreground';
-
 export const WorkbenchCardShell = memo(function WorkbenchCardShell({
   card,
 }: WorkbenchCardShellProps) {
@@ -41,9 +37,13 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
       ? state.protocol.plateMaps.find(candidate => candidate.id === card.shows)
       : undefined
   );
+  const panelTitle = useWorkbenchStore(state =>
+    card.type === 'flowCytometryPanel'
+      ? state.protocol.flowCytometryPanels.find(candidate => candidate.id === card.shows)?.title
+      : undefined
+  );
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const [isRenaming, setIsRenaming] = useState(false);
-  const [isConfirmingRemove, setIsConfirmingRemove] = useState(false);
   const shellRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   useFitCardHeight(card, shellRef, contentRef);
@@ -56,9 +56,9 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
   const automaticTitle = plateMap ? labwareKinds(plateMap) : cardType.label;
   const shownTitle = plateMap
     ? labwareTitle(plateMap)
-    : card.type === 'plateMap'
-      ? automaticTitle
-      : card.title;
+    : 'title' in card
+      ? card.title
+      : (panelTitle ?? automaticTitle);
   const hasOwnTitle = shownTitle.trim().toLowerCase() !== automaticTitle.toLowerCase();
 
   const toggleFold = () =>
@@ -77,26 +77,27 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
     setIsRenaming(false);
     const typed = withGreekLetters(title.trim());
     const isAutomatic = !typed || typed.toLowerCase() === automaticTitle.toLowerCase();
+    const savedTitle = isAutomatic ? defaultCardTitle(card.type) : typed;
     updateProtocol(draft => {
       if (card.type === 'plateMap') {
         const target = draft.plateMaps.find(candidate => candidate.id === card.shows);
         if (target) target.title = isAutomatic ? '' : typed;
         return;
       }
-      const target = draft.cards.find(candidate => candidate.id === card.id);
-      if (target && target.type !== 'plateMap') {
-        target.title = isAutomatic ? defaultCardTitle(target.type) : typed;
+      if (card.type === 'flowCytometryPanel') {
+        const target = draft.flowCytometryPanels.find(candidate => candidate.id === card.shows);
+        if (target) target.title = savedTitle;
+        return;
       }
+      const target = draft.cards.find(candidate => candidate.id === card.id);
+      if (target && 'title' in target) target.title = savedTitle;
     });
   };
 
-  const removeThisCard = () => {
-    setIsConfirmingRemove(false);
+  const closeCard = () =>
     updateProtocol(draft => {
       draft.cards = draft.cards.filter(candidate => candidate.id !== card.id);
     });
-  };
-  const removeMessage = useWorkbenchStore(state => removalMessage(state.protocol, card));
 
   return (
     <div ref={shellRef} className="h-full">
@@ -110,7 +111,7 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
         >
           <button
             type="button"
-            className={HEADER_BUTTON}
+            className={CARD_HEADER_BUTTON}
             onClick={toggleFold}
             aria-label={card.isCollapsed ? 'Expand card' : 'Collapse card'}
           >
@@ -154,9 +155,9 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
           {HeaderControls && !card.isCollapsed && <HeaderControls card={card} />}
           <button
             type="button"
-            className={HEADER_BUTTON}
-            onClick={() => setIsConfirmingRemove(true)}
-            aria-label="Remove card"
+            className={CARD_HEADER_BUTTON}
+            onClick={closeCard}
+            aria-label="Close card"
           >
             <X className="h-4 w-4" />
           </button>
@@ -169,15 +170,6 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
             {Panel ? <Panel card={card} /> : <WorkbenchCardPendingPanel card={card} />}
           </div>
         )}
-        <ConfirmDialog
-          isOpen={isConfirmingRemove}
-          variant="danger"
-          title="Remove card"
-          message={removeMessage}
-          confirmText="Remove"
-          onConfirm={removeThisCard}
-          onCancel={() => setIsConfirmingRemove(false)}
-        />
       </ConsolePanel>
     </div>
   );

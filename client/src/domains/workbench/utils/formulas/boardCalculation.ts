@@ -22,15 +22,17 @@ import {
 } from './quantities';
 import { type WorkingNode } from './workingTree';
 
+import type { CardTarget } from '../cards/createCard';
+
 export interface WorkedOutGroup {
   key: string;
   subject: string;
   title: string;
-  settingsCardId: string | undefined;
+  settings: CardTarget;
 }
 
 interface NameOrigin {
-  originCardId?: string;
+  origin?: CardTarget;
   workedOut?: WorkedOutGroup;
 }
 

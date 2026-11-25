@@ -29,7 +29,7 @@ const board = calculateBoard([
       key: 'run',
       subject: 'Drug X',
       title: 'Dilution prep',
-      settingsCardId: undefined,
+      settings: { type: 'dilutions' },
     },
   },
   { kind: 'count', id: 'c1', name: 'Drug X wells', count: 24 },

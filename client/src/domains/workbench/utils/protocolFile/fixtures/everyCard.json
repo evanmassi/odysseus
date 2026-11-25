@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 10,
+  "version": 11,
   "savedAt": "2026-11-22T12:00:00.000Z",
   "protocol": {
     "title": "Safety net protocol",
@@ -507,6 +507,86 @@
         }
       }
     ],
+    "flowCytometryPanels": [
+      {
+        "id": "card-flow-panel",
+        "title": "Flow panel",
+        "cytometer": {
+          "name": "Test cytometer",
+          "kind": "conventional",
+          "lasers": [
+            {
+              "name": "Violet",
+              "nm": 405,
+              "detectors": [
+                {
+                  "id": "VL1",
+                  "filter": "450/50",
+                  "usual": "BV421"
+                }
+              ]
+            },
+            {
+              "name": "Blue",
+              "nm": 488,
+              "detectors": [
+                {
+                  "id": "BL2",
+                  "filter": "585/40",
+                  "usual": "PE"
+                }
+              ]
+            }
+          ]
+        },
+        "markers": [
+          {
+            "id": "marker-cd3",
+            "materialId": "mat-cd3",
+            "detectorId": "VL1",
+            "staining": "Surface"
+          },
+          {
+            "id": "marker-cd8",
+            "materialId": "mat-cd8",
+            "detectorId": "BL2",
+            "staining": "Surface"
+          }
+        ],
+        "stains": [
+          {
+            "id": "stain-full",
+            "name": "Full stain",
+            "color": "#d6aa64",
+            "markerIds": ["marker-cd3", "marker-cd8"],
+            "plus": [
+              {
+                "id": "plus-viability",
+                "materialId": "mat-dye",
+                "staining": "Viability"
+              },
+              {
+                "id": "plus-fc",
+                "materialId": "mat-fc",
+                "staining": "Surface"
+              }
+            ]
+          },
+          {
+            "id": "stain-fmo",
+            "name": "FMO CD8",
+            "markerIds": ["marker-cd3"],
+            "plus": []
+          },
+          {
+            "id": "stain-unstained",
+            "name": "Unstained",
+            "markerIds": [],
+            "plus": []
+          }
+        ]
+      }
+    ],
     "cards": [
       {
         "id": "card-materials",
@@ -606,7 +686,6 @@
       },
       {
         "id": "card-flow-panel",
-        "title": "Flow panel",
         "page": "page-plates",
         "x": 6,
         "y": 8,
@@ -614,80 +693,7 @@
         "h": 6,
         "isCollapsed": false,
         "type": "flowCytometryPanel",
-        "cytometer": {
-          "name": "Test cytometer",
-          "kind": "conventional",
-          "lasers": [
-            {
-              "name": "Violet",
-              "nm": 405,
-              "detectors": [
-                {
-                  "id": "VL1",
-                  "filter": "450/50",
-                  "usual": "BV421"
-                }
-              ]
-            },
-            {
-              "name": "Blue",
-              "nm": 488,
-              "detectors": [
-                {
-                  "id": "BL2",
-                  "filter": "585/40",
-                  "usual": "PE"
-                }
-              ]
-            }
-          ]
-        },
-        "markers": [
-          {
-            "id": "marker-cd3",
-            "materialId": "mat-cd3",
-            "detectorId": "VL1",
-            "staining": "Surface"
-          },
-          {
-            "id": "marker-cd8",
-            "materialId": "mat-cd8",
-            "detectorId": "BL2",
-            "staining": "Surface"
-          }
-        ],
-        "stains": [
-          {
-            "id": "stain-full",
-            "name": "Full stain",
-            "color": "#d6aa64",
-            "markerIds": ["marker-cd3", "marker-cd8"],
-            "plus": [
-              {
-                "id": "plus-viability",
-                "materialId": "mat-dye",
-                "staining": "Viability"
-              },
-              {
-                "id": "plus-fc",
-                "materialId": "mat-fc",
-                "staining": "Surface"
-              }
-            ]
-          },
-          {
-            "id": "stain-fmo",
-            "name": "FMO CD8",
-            "markerIds": ["marker-cd3"],
-            "plus": []
-          },
-          {
-            "id": "stain-unstained",
-            "name": "Unstained",
-            "markerIds": [],
-            "plus": []
-          }
-        ]
+        "shows": "card-flow-panel"
       }
     ],
     "lotMemory": {

@@ -2,7 +2,8 @@ import type { ComponentType } from 'react';
 
 import { WorkbenchCalculationsPanel } from '../cards/calculations/WorkbenchCalculationsPanel';
 import { WorkbenchDilutionsPanel } from '../cards/dilutions/WorkbenchDilutionsPanel';
-import { WorkbenchFlowCytometryPanel } from '../cards/flowCytometry/WorkbenchFlowCytometryPanel';
+import { WorkbenchFlowCytometryCardControls } from '../cards/flowCytometry/WorkbenchFlowCytometryCardControls';
+import { WorkbenchFlowCytometryCardPanel } from '../cards/flowCytometry/WorkbenchFlowCytometryCardPanel';
 import { WorkbenchFlowDiagramPanel } from '../cards/flowDiagram/WorkbenchFlowDiagramPanel';
 import { WorkbenchMaterialsPanel } from '../cards/materials/WorkbenchMaterialsPanel';
 import { WorkbenchPlateMapCardControls } from '../cards/plateMap/WorkbenchPlateMapCardControls';
@@ -22,11 +23,12 @@ export const CARD_PANELS: CardPanels = {
   values: WorkbenchValuesPanel,
   calculations: WorkbenchCalculationsPanel,
   plateMap: WorkbenchPlateMapCardPanel,
-  flowCytometryPanel: WorkbenchFlowCytometryPanel,
+  flowCytometryPanel: WorkbenchFlowCytometryCardPanel,
   dilutions: WorkbenchDilutionsPanel,
   flowDiagram: WorkbenchFlowDiagramPanel,
 };
 
 export const CARD_HEADER_CONTROLS: CardPanels = {
   plateMap: WorkbenchPlateMapCardControls,
+  flowCytometryPanel: WorkbenchFlowCytometryCardControls,
 };

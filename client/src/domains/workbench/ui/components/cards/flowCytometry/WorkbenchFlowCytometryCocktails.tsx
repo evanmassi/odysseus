@@ -17,10 +17,10 @@ import { SECTION_RULE } from '../../board/sectionRuleClass';
 import { FLUOR_SQUARE } from './flowCytometryTableStyles';
 
 import type { PanelLayout } from '../../../../utils/flowCytometry/flowCytometryPanel';
-import type { FlowCytometryPanelCard } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanel } from '@odysseus/shared-schemas';
 
 interface WorkbenchFlowCytometryCocktailsProps {
-  card: FlowCytometryPanelCard;
+  panel: FlowCytometryPanel;
   layout: PanelLayout;
   samples: ReadonlyMap<string, ReadonlyMap<SampleNoun, number>>;
   materialNames: ReadonlyMap<string, string>;
@@ -46,12 +46,12 @@ function shareText(shares: readonly CocktailShare[]): string | undefined {
 }
 
 export function WorkbenchFlowCytometryCocktails({
-  card,
+  panel,
   layout,
   samples,
   materialNames,
 }: WorkbenchFlowCytometryCocktailsProps) {
-  const { stainings, rowsWithoutStaining } = useMemo(() => panelCocktails(card), [card]);
+  const { stainings, rowsWithoutStaining } = useMemo(() => panelCocktails(panel), [panel]);
   const cocktails = useMemo(() => stainings.flatMap(staining => staining.cocktails), [stainings]);
   const nounsByCocktail = useMemo(
     () =>
@@ -70,7 +70,7 @@ export function WorkbenchFlowCytometryCocktails({
     cocktails.map(cocktail => {
       const nouns = nounsByCocktail.get(cocktail.key) ?? ['well'];
       return nouns.map((noun): CocktailShare => {
-        const id = cocktailAntibodiesId(card.id, cocktail.key, noun);
+        const id = cocktailAntibodiesId(panel.id, cocktail.key, noun);
         const result = state.board.results.get(id);
         const owner = state.board.names.get(
           nameKey(cocktailAntibodiesName(cocktail.name, noun, nouns.length > 1))

@@ -13,7 +13,7 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { useElementWidth } from '../../../../hooks/useElementWidth';
 import { CARD_ID_ATTRIBUTE } from '../../../../hooks/useShowCard';
 import { useUpdateCard } from '../../../../hooks/useUpdateCard';
-import { useCardsOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
+import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { APP_ROOT_ID } from '../../../../utils/dom/appRoot';
 import { donorSummaries } from '../../../../utils/materials/materialDonors';
@@ -86,7 +86,7 @@ export function WorkbenchPlateMapPanel({ card, plateMap }: WorkbenchPlateMapPane
   const sheet = useMemo(() => sheetOf(plateMap, tab), [plateMap, tab]);
   const words = tabWords(plateMap, tab);
   const isStain = plateMap.side === 'stain';
-  const panels = useCardsOf('flowCytometryPanel');
+  const panels = useWorkbenchStore(state => state.protocol.flowCytometryPanels);
   const stains = useMemo(() => plateStains(panels), [panels]);
   const stainById = useMemo(() => new Map(stains.map(stain => [stain.id, stain])), [stains]);
   const colorLine = useMemo(() => colorLineOf(plateMap), [plateMap]);
@@ -107,8 +107,7 @@ export function WorkbenchPlateMapPanel({ card, plateMap }: WorkbenchPlateMapPane
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const recolorStain = (stainId: string, color: string) =>
     updateProtocol(draft => {
-      for (const panel of draft.cards) {
-        if (panel.type !== 'flowCytometryPanel') continue;
+      for (const panel of draft.flowCytometryPanels) {
         const stain = panel.stains.find(candidate => candidate.id === stainId);
         if (stain) stain.color = color;
       }
@@ -140,6 +139,8 @@ export function WorkbenchPlateMapPanel({ card, plateMap }: WorkbenchPlateMapPane
   const {
     onKeyDown,
     clearSelected,
+    clearTab,
+    canClearTab,
     copySelected,
     cutSelected,
     paste,
@@ -271,6 +272,9 @@ export function WorkbenchPlateMapPanel({ card, plateMap }: WorkbenchPlateMapPane
           }
           onRenameTab={renameTab}
           onRemovePlate={labwareChanges.removePlate}
+          onRemovePlateMap={labwareChanges.removePlateMap}
+          canClearTab={canClearTab}
+          onClearTab={clearTab}
           onToggleReplicatesAsOne={() =>
             updateDisplay(draft => {
               draft.showsReplicatesAsOne = !draft.showsReplicatesAsOne;

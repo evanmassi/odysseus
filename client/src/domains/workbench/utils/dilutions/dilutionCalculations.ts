@@ -5,7 +5,6 @@ import {
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
-import { cardIdShowing, firstCardIdOf } from '../cards/createCard';
 import {
   nameKey,
   type BoardName,
@@ -183,8 +182,7 @@ function runNames(
   protocol: Protocol,
   run: DilutionRun,
   tag: string,
-  names: ReadonlyMap<string, BoardName>,
-  dilutionsCardId: string | undefined
+  names: ReadonlyMap<string, BoardName>
 ): BoardName[] {
   const subject = run.subject;
   const settings = prepSettingsOf(run);
@@ -224,7 +222,7 @@ function runNames(
     key: run.key,
     subject,
     title: `Dilution prep for ${run.places.join(', ')}`,
-    settingsCardId: dilutionsCardId,
+    settings: { type: 'dilutions' },
   };
   const inputs: BoardName[] = [
     {
@@ -234,7 +232,7 @@ function runNames(
       value: settings.roundTo,
       unit: 'µL',
       workedOut: group,
-      originCardId: dilutionsCardId,
+      origin: { type: 'dilutions' },
     },
     {
       kind: 'count',
@@ -242,7 +240,7 @@ function runNames(
       name: busiest,
       count: Math.max(...run.replicatesByPoint.values()),
       workedOut: group,
-      originCardId: cardIdShowing(protocol, run.members[0].plateId),
+      origin: { type: 'plateMap', shows: run.members[0].plateId },
     },
   ];
   const takenName = [
@@ -277,8 +275,7 @@ interface DiluentUse {
 function diluentNeedNames(
   protocol: Protocol,
   uses: ReadonlyMap<string, DiluentUse>,
-  names: ReadonlyMap<string, BoardName>,
-  dilutionsCardId: string | undefined
+  names: ReadonlyMap<string, BoardName>
 ): BoardName[] {
   return [...uses.values()].map(({ name, totals }) => {
     const shownName = materialNamed(protocol, name)?.name.trim() ?? name;
@@ -293,7 +290,7 @@ function diluentNeedNames(
         key: diluentNeedId(name),
         subject: shownName,
         title: `${shownName} for dilutions`,
-        settingsCardId: dilutionsCardId,
+        settings: { type: 'dilutions' },
       },
       ...(names.has(nameKey(needName)) && {
         problem: `Rename "${needName}": the dilution prep needs that name.`,
@@ -307,7 +304,6 @@ export function dilutionCalculationNames(
   taken: readonly BoardName[]
 ): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  const dilutionsCardId = firstCardIdOf(protocol, 'dilutions');
   const runs = dilutionRuns(protocol);
   const tags = runTags(runs);
   const diluents = runDiluents(runs, protocol.diluent);
@@ -321,7 +317,7 @@ export function dilutionCalculationNames(
       use.totals.push(`${run.subject} ${PREP_LINES.diluentTotal}${tag}`);
       uses.set(normalizeMaterialKey(diluent), use);
     }
-    return runNames(protocol, run, tag, names, dilutionsCardId);
+    return runNames(protocol, run, tag, names);
   });
-  return [...runEntries, ...diluentNeedNames(protocol, uses, names, dilutionsCardId)];
+  return [...runEntries, ...diluentNeedNames(protocol, uses, names)];
 }

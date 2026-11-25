@@ -1,7 +1,7 @@
 # Workbench: Where the Data Lives
 
 Design for moving the workbench's saved data out of cards and into the protocol, so a card only
-shows and edits it. Started 2026-11-24 with Evan. Built: steps 0, 1, 2a and 2b; next 2c.
+shows and edits it. Started 2026-11-24 with Evan. Built: steps 0 to 3; next 4.
 
 ## Why
 
@@ -122,14 +122,12 @@ type without one, so nothing can make one and neither protocol has one. Removed 
   first), and the same for Values and Calculations; a name used twice is flagged as today.
 - **Every Calculations card shows the same list**, worked-out groups included (today only the
   first Calculations card shows them, `showsWorkedOut`).
-- **Delete for good** of a whole plate map or Flow panel sits in the card's menu, and beside it on
-  the card rail when no card shows it. A card's close button only closes.
+- **Removing** a whole plate map or Flow panel sits on the card (the last tab's ×, the Flow card's
+  trash), and beside it on the card rail when no card shows it. A card's close button only closes.
 
 ## Open, asked when its step comes
 
-- **A jump with no window.** "Go to where this is set" and the settings buttons jump to a card
-  (`originCardId`, `settingsCardId`, 20 uses). When no card shows that data, what does the jump do?
-  Asked in step 3.
+- **A jump with no window.** Answered in step 3: it opens a card for that data on this page.
 
 ## Build plan (drafted 2026-11-24, reviewed against AGENTS.md and the audit standards)
 
@@ -285,6 +283,34 @@ The protocol gains one home per kind of data; a card keeps only its window setti
   through HTML attributes so the card's surface can be marked (`CARD_SURFACE_ATTRIBUTE`).
 - Checked: the two protocols' 122 answers identical; the every-card sample holds every fact.
 
+**2c built 2026-11-24 (file version 11):**
+
+- `protocol.flowCytometryPanels` (`FlowCytometryPanel`: id, title, cytometer, markers, stains). A
+  Flow panel card (`FlowCytometryPanelCard`) is a frame and `shows`, nothing else; its header
+  shows and renames the panel's title. A new panel is `newFlowCytometryPanel()`.
+- `WorkbenchFlowCytometryCardPanel` finds the panel a card shows and hands it to
+  `WorkbenchFlowCytometryPanel`; every Flow edit goes through the panel's id
+  (`useFlowCytometryActions(panelId)`). The plate's stain list and recoloring, the Materials
+  detector labels and the Flow names read the panels directly, shown or not, so closing a Flow card
+  leaves the plate's stain painting working.
+- Flow names keep the panel's id in theirs (`cocktailWellsId`, `cocktailAntibodiesId`, the
+  worked-out keys), so the pool is unchanged; their "go to" and settings targets are the first
+  card showing the panel (`cardIdShowing`), none when no card shows it (step 3's open question).
+- `cardsShowing` and `cardIdShowing` cover both kinds of window (`ShowingCard`);
+  `showFlowCytometryPanel` beside `showPlateMap`. The removal message says the markers and stains
+  stay. `useCardsOf` lost its last callers and went.
+- The card rail: Flow panel gets the Plate map's menu once a panel exists ("Empty flow panel",
+  panels by page, "Not shown"; each entry's hint is its cytometer and marker count). The menu is
+  one component for both, `WorkbenchCardRailShowMenu`, with the heading style in
+  `cardRailStyles.ts`.
+- Fixed while here (from 2b): a stain's places ("Plate 1 · 4") jumped by plate map id, which only
+  matched a card in converted files, so on a plate map made since 2b the click did nothing.
+  `stainedPlaces` now names the plate map (`plateMapId`) and the click goes to a card showing it.
+- Converted by `%TEMP%/data-home/convert-v11.mjs` (v10 copies in `Old versions/Version 10`).
+- Checked: typecheck and lint clean; 843 client tests (one new: a cocktail's "go to" follows the
+  card showing its panel, and its count stays when none does); the two protocols' 122 answers
+  identical; the every-card sample holds every fact.
+
 ### Step 3: closing is closing, deleting is deleting (no file change)
 
 - The card's close button closes without a warning.
@@ -293,6 +319,37 @@ The protocol gains one home per kind of data; a card keeps only its window setti
 - The card's menu gets delete for good (warning and undo).
 - Removing a page deletes its steps and closes its cards (decision 5).
 - Tests: close then re-add shows the same data; removing a page keeps its cards' data.
+
+**Built 2026-11-24 (no file change):**
+
+- **A jump with no window (the open question), Evan: go with the recommendation.** A jump names
+  the thing, not a card: `CardTarget` (`{ type }` for Materials, Values, Calculations, Dilutions,
+  Procedure; `{ type, shows }` for a plate map or Flow panel). `useShowTarget` goes to a card
+  showing it, the one on this page first; if none, `openCard` opens one at the bottom of this page
+  and flashes it. Procedure counts only on its own page (each page has its own steps). Covers the
+  links in workings, "Set in Materials / Dilutions", a stain's places in the Flow panel, and
+  double-clicking a flow diagram step. Board names carry `origin` and worked-out groups `settings`
+  as targets, so the board no longer reads `protocol.cards` at all; `firstCardIdOf`,
+  `cardIdShowing`, the `materialsCardId` / `dilutionsCardId` parameters and `useProtocolWith`'s
+  card filter went (`useProtocolData`). `pageBottom` replaces three copies of the page-bottom math.
+- **Close:** the card's × closes with no warning; `cardRemoval.ts` and its test deleted (Evan OK).
+- **Permanent removal, Evan's wording:** "Remove" with a red confirm button and a warning that it
+  is permanently removed (`utils/cards/permanentRemoval.ts`, one wording for every place). Not
+  "delete for good".
+  - Plate map: the × on the last tab (only one left) removes the whole plate map; with more tabs
+    it still removes just that plate. Evan: decide beside the plate you're looking at.
+  - Flow panel: a trash icon beside the card's × (`WorkbenchFlowCytometryCardControls`).
+  - The card rail: a trash icon on hover beside each "Not shown" entry.
+  - `removePlateMap` and `removeFlowCytometryPanel` close the cards showing it
+    (`closeCardsShowing`); removing a panel takes its stains off the plates (`unpaintStains`,
+    shared with removing one stain).
+- **Clear (Evan's idea):** an eraser beside Duplicate empties every well on the tab shown, after a
+  warning; on the Stain side it takes off the painted stains. Shares `clearWells` with clearing
+  the selection.
+- **Removing a page:** warns only when it has steps ("its N steps are permanently removed; its
+  cards close, and what they show stays in the protocol").
+- Checked: typecheck and lint clean; 848 client tests (new: `createCard.test.ts`, removing a plate
+  map, removing a Flow panel); the two protocols' 122 answers identical.
 
 ### Step 4: formulas and steps point at the number (file change)
 

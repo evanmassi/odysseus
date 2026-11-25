@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 10,
+  "version": 11,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "IL-6 sandwich ELISA",
@@ -824,6 +824,7 @@
         "stainedIn": {}
       }
     ],
+    "flowCytometryPanels": [],
     "cards": [
       {
         "id": "c4wnnas",

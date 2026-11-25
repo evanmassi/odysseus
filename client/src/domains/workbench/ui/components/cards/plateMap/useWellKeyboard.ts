@@ -153,10 +153,10 @@ export function useWellKeyboard(
     markSelected(true);
   };
 
-  const clearWells = () =>
+  const clearWells = (keys: ReadonlySet<string>) =>
     updatePlateMap(draft => {
-      if (!isStainSide) forgetStainOf(draft, selection.keys);
-      for (const key of selection.keys) {
+      if (!isStainSide) forgetStainOf(draft, keys);
+      for (const key of keys) {
         if (isStainSide) delete draft.stain[key];
         else delete draft.samples[key];
       }
@@ -164,14 +164,29 @@ export function useWellKeyboard(
 
   const clearSelected = () =>
     isStainSide
-      ? clearWells()
+      ? clearWells(selection.keys)
       : confirmIfFilled({
           keys: [...selection.keys],
           title: 'Clear wells',
           confirmText: 'Clear',
           describe: filled => `Clear everything in ${filled}?`,
-          apply: clearWells,
+          apply: () => clearWells(selection.keys),
         });
+
+  const tabKeys = sheet.positions.map(position => position.key);
+  const filledOnTab = tabKeys.filter(key =>
+    isStainSide ? card.stain[key] !== undefined : isWellFilled(card, key)
+  ).length;
+
+  const clearTab = () =>
+    ask({
+      title: isStainSide ? 'Clear stains' : 'Clear',
+      confirmText: 'Clear',
+      message: isStainSide
+        ? `Remove the stains painted on ${counted(filledOnTab)}?`
+        : `Clear everything in ${counted(filledOnTab)}? The ${tab.kind === 'plate' ? 'plate' : plural} stay${tab.kind === 'plate' ? 's' : ''}.`,
+      onConfirm: () => clearWells(new Set(tabKeys)),
+    });
 
   const onKeyDown = (event: KeyboardEvent) => {
     const step = ARROW_STEPS[event.key];
@@ -212,6 +227,8 @@ export function useWellKeyboard(
   return {
     onKeyDown,
     clearSelected,
+    clearTab,
+    canClearTab: filledOnTab > 0,
     copySelected,
     cutSelected,
     paste,

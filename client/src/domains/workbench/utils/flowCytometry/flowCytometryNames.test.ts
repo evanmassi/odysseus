@@ -4,7 +4,7 @@ import { materialFromGuess } from '../materials/materialItems';
 import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
 
 import type {
-  FlowCytometryPanelCard,
+  FlowCytometryPanel,
   PlateMap,
   Protocol,
   ProtocolCard,
@@ -27,10 +27,8 @@ const cd4 = antibody('CD4 FITC', { amount: '200' }, { amount: '1:N' });
 
 const placement = { page: 'page', x: 0, y: 0, w: 12, h: 10, isCollapsed: false };
 
-const panel: FlowCytometryPanelCard = {
-  ...placement,
+const panel: FlowCytometryPanel = {
   id: 'panel',
-  type: 'flowCytometryPanel',
   title: 'Flow panel',
   markers: [
     { id: 'cd3', materialId: cd3.id, detectorId: 'VL1', staining: 'Surface' },
@@ -56,6 +54,13 @@ const plateMap: PlateMap = {
   stainedIn: {},
 };
 
+const panelCard: ProtocolCard = {
+  ...placement,
+  id: 'panel-card',
+  type: 'flowCytometryPanel',
+  shows: 'panel',
+};
+
 const plateCard: ProtocolCard = {
   ...placement,
   id: 'plate-card',
@@ -68,7 +73,8 @@ const plateCard: ProtocolCard = {
 
 const protocol = (
   data: Partial<Pick<Protocol, 'values' | 'calculations'>> = {},
-  items = [cd3, cd4]
+  items = [cd3, cd4],
+  panelCards: ProtocolCard[] = [panelCard]
 ): Protocol => ({
   title: 'Panel',
   descriptor: '',
@@ -82,6 +88,7 @@ const protocol = (
   values: data.values ?? { items: [], rows: [] },
   calculations: data.calculations ?? { items: [], materialSections: [] },
   plateMaps: [plateMap],
+  flowCytometryPanels: [panel],
   cards: [
     {
       ...placement,
@@ -91,7 +98,7 @@ const protocol = (
       foldedGroups: [],
       isSetAsideOpen: false,
     },
-    panel,
+    ...panelCards,
     plateCard,
   ],
   lotMemory: {},
@@ -119,6 +126,22 @@ describe('flow panel names', () => {
     });
     expect(answer(board, 'Full stain Surface cocktail antibodies')).toBe('1.5%');
     expect(answer(board, 'FMO CD3 Surface cocktail antibodies')).toBe('0.5%');
+  });
+
+  it('points its go-to at the panel, whether or not a card shows it', () => {
+    const wells = (cards: ProtocolCard[]) =>
+      calculateBoard(collectBoardNames(protocol({}, [cd3, cd4], cards))).names.get(
+        nameKey('Full stain Surface cocktail wells')
+      );
+    const shown = { type: 'flowCytometryPanel', shows: 'panel' };
+    for (const cards of [[panelCard], []]) {
+      expect(wells(cards)).toMatchObject({
+        id: 'panel:surface|cd3|cd4:wells',
+        count: 2,
+        origin: shown,
+        workedOut: { settings: shown },
+      });
+    }
   });
 
   it('leaves a name that is already the scientist’s own to them', () => {

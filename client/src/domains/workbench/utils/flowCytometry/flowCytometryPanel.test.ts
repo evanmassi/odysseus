@@ -11,9 +11,10 @@ import {
   panelLayout,
   markerCandidates,
   panelStainings,
+  removeFlowCytometryPanel,
 } from './flowCytometryPanel';
 
-import type { FlowCytometryPanelCard, MaterialItem } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanel, MaterialItem, PlateMap } from '@odysseus/shared-schemas';
 
 const material = (type: string, name: string, values: Record<string, string> = {}) => {
   const item = materialFromGuess(
@@ -30,16 +31,9 @@ const NOTHING_KNOWN = { knownTypes: new Map(), fluors: [] };
 const panel = (
   rows: Array<[MaterialItem, string, string?]>,
   cytometer = IQUE
-): FlowCytometryPanelCard => ({
+): FlowCytometryPanel => ({
   id: 'panel',
-  type: 'flowCytometryPanel',
   title: 'Flow panel',
-  page: 'page',
-  x: 0,
-  y: 0,
-  w: 12,
-  h: 10,
-  isCollapsed: false,
   cytometer: cytometer,
   markers: rows.map(([item, detectorId, stain = 'Surface'], index) => ({
     id: `row${index}`,
@@ -152,9 +146,9 @@ describe('firstOpenDetector', () => {
 });
 
 describe('panelDetectorLabels', () => {
-  it('names each material’s detectors across panel cards', () => {
+  it('names each material’s detectors across panels', () => {
     const uses = panelDetectorLabels({
-      cards: [
+      flowCytometryPanels: [
         panel([
           [cd4, 'VL1'],
           [cd8, 'VL2'],
@@ -179,5 +173,33 @@ describe('newMarkerMaterial', () => {
       group: 'ab',
       type: 'Antibody',
     });
+  });
+});
+
+describe('removeFlowCytometryPanel', () => {
+  it('removes the panel, closes its cards and takes its stains off the plates', () => {
+    const stained = {
+      ...panel([]),
+      stains: [{ id: 'full', name: 'Full', markerIds: [], plus: [] }],
+    };
+    const other = {
+      ...panel([]),
+      id: 'other',
+      stains: [{ id: 'fmo', name: 'FMO', markerIds: [], plus: [] }],
+    };
+    const frame = { page: 'page', x: 0, y: 0, w: 12, h: 10, isCollapsed: false };
+    const plateMap = { stain: { 'p:A1': 'full', 'p:A2': 'fmo' } } as unknown as PlateMap;
+    const draft = {
+      flowCytometryPanels: [stained, other],
+      plateMaps: [plateMap],
+      cards: [
+        { ...frame, id: 'a', type: 'flowCytometryPanel' as const, shows: 'panel' },
+        { ...frame, id: 'b', type: 'flowCytometryPanel' as const, shows: 'other' },
+      ],
+    };
+    removeFlowCytometryPanel(draft, 'panel');
+    expect(draft.flowCytometryPanels).toEqual([other]);
+    expect(draft.cards.map(card => card.id)).toEqual(['b']);
+    expect(plateMap.stain).toEqual({ 'p:A2': 'fmo' });
   });
 });

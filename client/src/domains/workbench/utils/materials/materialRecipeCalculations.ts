@@ -1,4 +1,3 @@
-import { firstCardIdOf } from '../cards/createCard';
 import { STOCK_FIELD } from '../dilutions/dilutionStock';
 import {
   calculationAnswerText,
@@ -97,7 +96,6 @@ function stockName(mix: MaterialItem) {
 
 function mixNames(
   mix: MaterialItem,
-  materialsCardId: string | undefined,
   materials: ReadonlyMap<string, MaterialItem>,
   names: ReadonlyMap<string, BoardName>,
   assaySetupTitle: string
@@ -118,7 +116,7 @@ function mixNames(
     key: `recipe:${mix.id}`,
     subject: mixName,
     title: FINAL_CONCENTRATION.word,
-    settingsCardId: materialsCardId,
+    settings: { type: 'materials' },
   };
   const inputs: BoardName[] = [];
   const finals: CalculationName[] = [];
@@ -177,7 +175,7 @@ function mixNames(
       value: entry.amount,
       unit: entry.unit,
       workedOut: group,
-      originCardId: materialsCardId,
+      origin: { type: 'materials' },
     });
     for (const { idEnd, nameEnd, scaling, missing } of placements) {
       final(
@@ -207,11 +205,8 @@ export function recipeCalculationNames(
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
   const { items } = protocol.materials;
   const byId = new Map(items.map(item => [item.id, item] as const));
-  const materialsCardId = firstCardIdOf(protocol, 'materials');
   const assaySetupTitle = assaySetupTitleOf(protocol);
-  return items
-    .filter(isMix)
-    .flatMap(mix => mixNames(mix, materialsCardId, byId, names, assaySetupTitle));
+  return items.filter(isMix).flatMap(mix => mixNames(mix, byId, names, assaySetupTitle));
 }
 
 const AGREEMENT = 0.01;

@@ -8,7 +8,7 @@ import { PanelEmptyState } from '@shared/ui';
 import { useFluorCatalog } from '../../../../hooks/useFluorCatalog';
 import { useStableActions } from '../../../../hooks/useStableActions';
 import { useUpdateCard } from '../../../../hooks/useUpdateCard';
-import { useCardsOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
+import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { diluentUses } from '../../../../utils/dilutions/dilutionDiluents';
@@ -124,7 +124,7 @@ const NAME_CELL = 'name';
 export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) {
   const materials = useWorkbenchStore(state => state.protocol.materials);
   const plateMaps = useWorkbenchStore(state => state.protocol.plateMaps);
-  const flowCytometryPanelCards = useCardsOf('flowCytometryPanel');
+  const flowCytometryPanels = useWorkbenchStore(state => state.protocol.flowCytometryPanels);
   const materialsOnly = useMemo(() => ({ materials }), [materials]);
   const takenNameIdList = useWorkbenchData(state => [...state.board.takenNameIds]);
   const takenNameIds = useMemo(() => new Set(takenNameIdList), [takenNameIdList]);
@@ -200,8 +200,8 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
     return new Map([...counts].map(([material, count]) => [material.id, count]));
   }, [plateMaps, allMaterials]);
   const panelDetectors = useMemo(
-    () => panelDetectorLabels({ cards: flowCytometryPanelCards }),
-    [flowCytometryPanelCards]
+    () => panelDetectorLabels({ flowCytometryPanels }),
+    [flowCytometryPanels]
   );
   const plateOffers = useWorkbenchData(state => plateNameOffers(state.protocol));
   const donorTargets = useMemo(() => donorTargetsOf(materialsOnly), [materialsOnly]);

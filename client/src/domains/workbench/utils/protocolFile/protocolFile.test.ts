@@ -109,7 +109,11 @@ function savedFacts(protocol: Protocol) {
   );
   const plateCard = plateCards.find(card => card.id === plateMap.id);
   if (!plateCard) throw new Error('no card for the plate map');
-  const flowCytometryPanel = cardOf(protocol, 'flowCytometryPanel');
+  const panelCard = cardOf(protocol, 'flowCytometryPanel');
+  const flowCytometryPanel = protocol.flowCytometryPanels.find(
+    panel => panel.id === panelCard.shows
+  );
+  if (!flowCytometryPanel) throw new Error('no panel for the Flow card');
   const stainName = (id: string | undefined) =>
     flowCytometryPanel.stains.find(stain => stain.id === id)?.name;
   const factorSeries = plateMap.series['series-factor'];

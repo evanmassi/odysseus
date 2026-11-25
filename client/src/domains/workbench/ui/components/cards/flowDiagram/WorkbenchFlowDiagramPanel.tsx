@@ -6,7 +6,7 @@ import { PanelEmptyState } from '@shared/ui';
 
 import { useContentHeights } from '../../../../hooks/useContentHeights';
 import { useElementWidth } from '../../../../hooks/useElementWidth';
-import { useShowCard } from '../../../../hooks/useShowCard';
+import { useShowTarget } from '../../../../hooks/useShowTarget';
 import { useFlowDiagramPlaceStore } from '../../../../stores/flowDiagramPlaceStore';
 import { useStepEditingStore } from '../../../../stores/stepEditingStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
@@ -40,14 +40,8 @@ export function WorkbenchFlowDiagramPanel({ card }: WorkbenchFlowDiagramPanelPro
     state => state.protocol.pages.find(page => page.id === card.page)?.steps ?? NO_STEPS
   );
   const board = useWorkbenchStore(state => state.board);
-  const procedureCardId = useWorkbenchStore(
-    state =>
-      state.protocol.cards.find(
-        candidate => candidate.type === 'procedure' && candidate.page === card.page
-      )?.id
-  );
   const editStep = useStepEditingStore(state => state.editStep);
-  const showCard = useShowCard();
+  const showTarget = useShowTarget();
   const stageRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(stageRef);
 
@@ -108,12 +102,10 @@ export function WorkbenchFlowDiagramPanel({ card }: WorkbenchFlowDiagramPanelPro
     setPlace(card.id, model.stepOrder[clamped]);
   };
 
-  const openStep = procedureCardId
-    ? (stepId: string) => {
-        editStep(stepId);
-        showCard(procedureCardId);
-      }
-    : undefined;
+  const openStep = (stepId: string) => {
+    editStep(stepId);
+    showTarget({ type: 'procedure' });
+  };
   const plainMarker = `flow-diagram-plain-${card.id}`;
   const waitMarker = `flow-diagram-wait-${card.id}`;
   const total = [

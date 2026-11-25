@@ -1,7 +1,7 @@
 import { normalizePlateMap } from '@odysseus/shared-schemas';
 
 import { BOARD_COLUMNS } from '../cards/boardGeometry';
-import { cardsShowing } from '../cards/createCard';
+import { cardsShowing, closeCardsShowing } from '../cards/createCard';
 import { createId } from '../ids/createId';
 
 import { labwareOf, type LabwareType } from './labwareCatalog';
@@ -26,6 +26,14 @@ export const newPlateMap = (): PlateMap => ({
   stain: {},
   stainedIn: {},
 });
+export function removePlateMap(
+  draft: Pick<Protocol, 'plateMaps' | 'cards'>,
+  plateMapId: string
+): void {
+  draft.plateMaps = draft.plateMaps.filter(plateMap => plateMap.id !== plateMapId);
+  closeCardsShowing(draft, plateMapId);
+}
+
 type PlateFormat = PlateMap['plates'][number]['labware'];
 
 const MOST_OF_A_KIND = 48;

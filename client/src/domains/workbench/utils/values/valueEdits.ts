@@ -1,5 +1,4 @@
-import { CARD_TYPES } from '../cards/cardTypes';
-import { createCard } from '../cards/createCard';
+import { cardShowing, openCard } from '../cards/createCard';
 import { nameWithin } from '../formulas/formulaScopes';
 import { createId } from '../ids/createId';
 import {
@@ -171,13 +170,8 @@ export function materialRowId(draft: Protocol, materialId: string): string {
 }
 
 function showValuesOnPage(draft: Protocol, pageId: string): void {
-  if (draft.cards.some(card => card.type === 'values')) return;
-  const [w, h] = CARD_TYPES.values.size;
-  const bottom = Math.max(
-    0,
-    ...draft.cards.filter(card => card.page === pageId).map(card => card.y + card.h)
-  );
-  draft.cards.push(createCard('values', { page: pageId, x: 0, y: bottom, w, h }));
+  const values = { type: 'values' } as const;
+  if (!cardShowing(draft, values, pageId)) openCard(draft, values, pageId);
 }
 
 export function addNamedValue(

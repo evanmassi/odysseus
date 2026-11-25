@@ -65,6 +65,7 @@ function protocolWith(
         stainedIn: {},
       },
     ],
+    flowCytometryPanels: [],
     cards: [
       {
         id: 'materials',

@@ -17,7 +17,7 @@ const prepGroup = (subject: string): WorkedOutGroup => ({
   key: `prep:${subject}`,
   subject,
   title: 'Dilution prep for Plate 1',
-  settingsCardId: 'dilutions',
+  settings: { type: 'dilutions' },
 });
 
 const names: BoardName[] = [

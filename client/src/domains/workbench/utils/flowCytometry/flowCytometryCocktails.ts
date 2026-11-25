@@ -3,9 +3,9 @@ import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 import { COCKTAIL } from '../terms/termList';
 import { lowerLead } from '../values/valueNames';
 
-import type { FlowCytometryPanelCard, Stain } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanel, Stain } from '@odysseus/shared-schemas';
 
-type PanelRow = FlowCytometryPanelCard['markers'][number];
+type PanelRow = FlowCytometryPanel['markers'][number];
 type StainPlus = Stain['plus'][number];
 
 export interface Cocktail {
@@ -27,11 +27,11 @@ export interface PanelCocktails {
   rowsWithoutStaining: PanelRow[];
 }
 
-function usedStainings(card: FlowCytometryPanelCard): string[] {
+function usedStainings(panel: FlowCytometryPanel): string[] {
   const byKey = new Map<string, string>();
   const stainings = [
-    ...card.markers.map(row => row.staining),
-    ...card.stains.flatMap(stain => stain.plus.map(plus => plus.staining)),
+    ...panel.markers.map(row => row.staining),
+    ...panel.stains.flatMap(stain => stain.plus.map(plus => plus.staining)),
   ];
   for (const staining of stainings) {
     const key = normalizeMaterialKey(staining);
@@ -40,13 +40,13 @@ function usedStainings(card: FlowCytometryPanelCard): string[] {
   return [...byKey.values()];
 }
 
-function stainingCocktails(card: FlowCytometryPanelCard, staining: string): StainingCocktails {
+function stainingCocktails(panel: FlowCytometryPanel, staining: string): StainingCocktails {
   const stainingKey = normalizeMaterialKey(staining);
   const isInStaining = (staining: string) => normalizeMaterialKey(staining) === stainingKey;
   const cocktails = new Map<string, Cocktail>();
   const stainsWithout: Stain[] = [];
-  for (const stain of card.stains) {
-    const rows = card.markers.filter(
+  for (const stain of panel.stains) {
+    const rows = panel.markers.filter(
       row => stain.markerIds.includes(row.id) && isInStaining(row.staining)
     );
     const plus = stain.plus.filter(entry => isInStaining(entry.staining));
@@ -73,7 +73,7 @@ function stainingCocktails(card: FlowCytometryPanelCard, staining: string): Stai
   return { staining, cocktails: [...cocktails.values()], stainsWithout };
 }
 
-export const panelCocktails = (card: FlowCytometryPanelCard): PanelCocktails => ({
-  stainings: usedStainings(card).map(staining => stainingCocktails(card, staining)),
-  rowsWithoutStaining: card.markers.filter(row => !row.staining.trim()),
+export const panelCocktails = (panel: FlowCytometryPanel): PanelCocktails => ({
+  stainings: usedStainings(panel).map(staining => stainingCocktails(panel, staining)),
+  rowsWithoutStaining: panel.markers.filter(row => !row.staining.trim()),
 });
