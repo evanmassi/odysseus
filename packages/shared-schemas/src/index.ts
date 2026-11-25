@@ -662,8 +662,7 @@ export {
 export {
   PROTOCOL_FILE_FORMAT,
   PROTOCOL_FILE_VERSION,
-  protocolFileInputSchema,
-  renamedFieldKey,
+  protocolFileSchema,
   indicatorColorOf,
   colorLineOf,
   isFilledEntry,
@@ -696,6 +695,4 @@ export {
   type PlateLine,
   type PlateSeries,
   type ProtocolFile,
-  type MovedPrepValue,
-  type MovedMarkerDilution,
 } from './workbench';

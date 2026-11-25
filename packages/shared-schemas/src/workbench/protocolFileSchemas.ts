@@ -46,15 +46,15 @@ const cardBase = {
   y: z.number().int().min(0),
   w: z.number().int().min(1),
   h: z.number().int().min(1),
-  isCollapsed: z.boolean().default(false),
+  isCollapsed: z.boolean(),
   expandedHeight: z.number().int().min(1).optional(),
 };
 
 const experimentDonorsSchema = z.object({
   label: z.string(),
   shownFields: z.array(z.string()),
-  customFields: z.array(fieldDefinitionSchema).default([]),
-  rows: z.array(z.object({ id, name: z.string(), values: textMap, units: textMap.default({}) })),
+  customFields: z.array(fieldDefinitionSchema),
+  rows: z.array(z.object({ id, name: z.string(), values: textMap, units: textMap })),
 });
 
 const materialItemSchema = z.object({
@@ -66,11 +66,9 @@ const materialItemSchema = z.object({
   values: textMap,
   units: textMap,
   customFields: z.array(fieldDefinitionSchema),
-  fieldLabels: textMap.default({}),
-  isSetAside: z.boolean().default(false),
-  recipe: z
-    .array(z.object({ id, materialId: z.string(), amount: z.string(), unit: z.string() }))
-    .default([]),
+  fieldLabels: textMap,
+  isSetAside: z.boolean(),
+  recipe: z.array(z.object({ id, materialId: z.string(), amount: z.string(), unit: z.string() })),
   donors: experimentDonorsSchema.optional(),
 });
 
@@ -79,7 +77,7 @@ const materialsCardSchema = z.object({
   type: z.literal('materials'),
   foldedGroups: z.array(z.string()),
   customGroups: z.array(z.string()),
-  isSetAsideOpen: z.boolean().default(false),
+  isSetAsideOpen: z.boolean(),
   items: z.array(materialItemSchema),
 });
 
@@ -98,7 +96,7 @@ const tableCardSchema = z.object({
   type: z.literal('table'),
   isNamed: z.boolean(),
   columns: z.array(tableColumnSchema).min(1),
-  items: z.array(z.object({ id, cells: textMap, units: textMap.default({}) })),
+  items: z.array(z.object({ id, cells: textMap, units: textMap })),
 });
 
 const valueItemSchema = z.union([
@@ -121,7 +119,7 @@ const valuesCardSchema = z.object({
   ...cardBase,
   type: z.literal('values'),
   items: z.array(valueItemSchema),
-  rows: z.array(valueRowSchema).default([]),
+  rows: z.array(valueRowSchema),
   assaySetupTitle: z.string().optional(),
 });
 
@@ -129,7 +127,7 @@ const calculationsCardSchema = z.object({
   ...cardBase,
   type: z.literal('calculations'),
   items: z.array(z.object({ id, name: z.string(), formula: z.string(), unit: z.string() })),
-  materialSections: z.array(z.string()).default([]),
+  materialSections: z.array(z.string()),
 });
 
 export const SERIES_DIRECTIONS = ['right', 'down', 'left', 'up'] as const;
@@ -149,7 +147,7 @@ const seriesSchema = z.union([
     top: z.string(),
     unit: z.string(),
     dilutionFactor: z.string(),
-    direction: z.enum(SERIES_DIRECTIONS).default('right'),
+    direction: z.enum(SERIES_DIRECTIONS),
     prep: seriesPrepSchema.optional(),
   }),
 ]);
@@ -169,7 +167,7 @@ const plateLineSchema = z.object({
   id,
   name: z.string(),
   values: z.array(z.object({ id, text: z.string(), color: z.string().optional() })),
-  role: z.enum(LINE_ROLES).default('auto'),
+  role: z.enum(LINE_ROLES),
   hiddenIndicators: z.array(z.enum(LINE_MARKS)).optional(),
   ratioTo: z.string().optional(),
 });
@@ -200,21 +198,21 @@ export const plateMapCardSchema = z.object({
   samples: z.record(z.string(), z.record(z.string(), sampleEntrySchema)),
   series: z.record(z.string(), seriesSchema),
   otherLabwareTabName: z.string().optional(),
-  showsReplicatesAsOne: z.boolean().default(true),
-  counts: textMap.default({}),
-  amountNames: textMap.default({}),
-  side: z.enum(PLATE_MAP_SIDES).default('assay'),
-  stain: textMap.default({}),
-  stainedIn: textMap.default({}),
+  showsReplicatesAsOne: z.boolean(),
+  counts: textMap,
+  amountNames: textMap,
+  side: z.enum(PLATE_MAP_SIDES),
+  stain: textMap,
+  stainedIn: textMap,
 });
 
 const linkedPlateMapCardSchema = z.object({
   ...cardBase,
   type: z.literal('linkedPlateMap'),
   shows: id,
-  side: z.enum(PLATE_MAP_SIDES).default('assay'),
-  activeTab: z.number().int().min(0).default(0),
-  showsReplicatesAsOne: z.boolean().default(true),
+  side: z.enum(PLATE_MAP_SIDES),
+  activeTab: z.number().int().min(0),
+  showsReplicatesAsOne: z.boolean(),
 });
 
 const sketchStrokeSchema = z.discriminatedUnion('kind', [
@@ -243,7 +241,7 @@ const cytometerSchema = z.object({
       z.object({
         name: z.string(),
         nm: z.number().positive(),
-        detectors: z.array(z.object({ id, filter: z.string(), usual: z.string().default('') })),
+        detectors: z.array(z.object({ id, filter: z.string(), usual: z.string() })),
       })
     )
     .min(1),
@@ -261,17 +259,15 @@ const flowCytometryPanelCardSchema = z.object({
       staining: z.string(),
     })
   ),
-  stains: z
-    .array(
-      z.object({
-        id,
-        name: z.string(),
-        color: z.string().optional(),
-        markerIds: z.array(z.string()),
-        plus: z.array(z.object({ id, materialId: z.string(), staining: z.string() })),
-      })
-    )
-    .default([]),
+  stains: z.array(
+    z.object({
+      id,
+      name: z.string(),
+      color: z.string().optional(),
+      markerIds: z.array(z.string()),
+      plus: z.array(z.object({ id, materialId: z.string(), staining: z.string() })),
+    })
+  ),
 });
 
 const protocolFluorSchema = z.object({
@@ -298,15 +294,15 @@ const protocolCardSchema = z.discriminatedUnion('type', [
 const protocolSchema = z.object({
   title: z.string(),
   descriptor: z.string(),
-  purpose: z.string().default(''),
+  purpose: z.string(),
   runNumber: z.string(),
   runOn: z.object({ from: z.string(), to: z.string() }),
   pages: z.array(pageSchema).min(1),
   cards: z.array(protocolCardSchema),
   lotMemory: z.record(z.string(), z.record(z.string(), textMap)),
   keptBoth: z.array(z.string()),
-  ignoredSuggestions: z.array(z.string()).default([]),
-  fluors: z.array(protocolFluorSchema).default([]),
+  ignoredSuggestions: z.array(z.string()),
+  fluors: z.array(protocolFluorSchema),
   diluent: z.string(),
 });
 

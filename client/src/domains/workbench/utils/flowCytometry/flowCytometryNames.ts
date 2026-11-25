@@ -176,7 +176,6 @@ function cardNames(
           kind: 'calculation',
           id: stainAmountId(row.id, noun),
           name,
-          ...(noun === 'well' && { formerName: `${materialName} amount per well` }),
           formula: problem ? '' : (dose.perWell ?? ''),
           unit: PIPETTED_UNIT,
           workedOut: {

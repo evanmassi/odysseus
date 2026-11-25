@@ -1,162 +1,171 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 1,
-  "savedAt": "2026-11-08T00:00:00.000Z",
+  "version": 8,
+  "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "IL-6 sandwich ELISA",
-    "lotMemory": {
-      "kavz434": {
-        "B271834": {
-          "concentration": "500"
-        }
-      }
+    "descriptor": "",
+    "purpose": "",
+    "runNumber": "",
+    "runOn": {
+      "from": "",
+      "to": ""
     },
-    "steps": [
+    "pages": [
       {
-        "id": "5g6ltd4",
-        "kind": "section",
-        "text": "Coat"
-      },
-      {
-        "id": "sj8vybv",
-        "kind": "step",
-        "level": 1,
-        "text": "Make the coating mix.",
-        "meanwhile": false
-      },
-      {
-        "id": "wwkhgsb",
-        "kind": "step",
-        "level": 2,
-        "text": "Dilute {Capture Ab} {Capture Ab dilution} in {Coating buffer}: {Capture Ab volume} into {Coating buffer volume}.",
-        "meanwhile": false
-      },
-      {
-        "id": "5cnnfzh",
-        "kind": "step",
-        "level": 2,
-        "text": "Mix by inversion. Keep on ice.",
-        "meanwhile": false
-      },
-      {
-        "id": "z7gl596",
-        "kind": "step",
-        "level": 1,
-        "text": "Add {Vol per well} per well to the {ELISA plate}. Seal and incubate overnight at 4 °C.",
-        "meanwhile": false
-      },
-      {
-        "id": "hdczedw",
-        "kind": "section",
-        "text": "Block"
-      },
-      {
-        "id": "6xa33z4",
-        "kind": "step",
-        "level": 1,
-        "text": "Wash 3× with 300 µL {Wash buffer} per well.",
-        "meanwhile": false
-      },
-      {
-        "id": "anchtd7",
-        "kind": "step",
-        "level": 1,
-        "text": "Add 200 µL {Blocking buffer} per well. Incubate 1 h at room temperature.",
-        "meanwhile": false
-      },
-      {
-        "id": "x75xfnn",
-        "kind": "step",
-        "level": 1,
-        "text": "Prepare the {IL-6 standard}: 2-fold series from {Top std}, {Std transfer} into {Std diluent}.",
-        "meanwhile": true
-      },
-      {
-        "id": "vz9482n",
-        "kind": "section",
-        "text": "Standards and samples"
-      },
-      {
-        "id": "3w7rlio",
-        "kind": "step",
-        "level": 1,
-        "text": "Wash 3× with 300 µL {Wash buffer} per well.",
-        "meanwhile": false
-      },
-      {
-        "id": "5y0cowk",
-        "kind": "step",
-        "level": 1,
-        "text": "Add {Vol per well} of standards and samples per the plate map. Incubate 2 h at room temperature.",
-        "meanwhile": false
-      },
-      {
-        "id": "g2p74bd",
-        "kind": "section",
-        "text": "Detect"
-      },
-      {
-        "id": "zt1fk5j",
-        "kind": "step",
-        "level": 1,
-        "text": "Wash 3×, then add {Detection Ab} at {Detection Ab dilution}. Incubate 1 h at room temperature.",
-        "meanwhile": false
-      },
-      {
-        "id": "g40mt2b",
-        "kind": "step",
-        "level": 1,
-        "text": "Wash 3×, then add {Streptavidin-HRP} at {Streptavidin-HRP dilution}. Incubate 20 min at room temperature, protected from light.",
-        "meanwhile": false
-      },
-      {
-        "id": "vbgdrr7",
-        "kind": "step",
-        "level": 1,
-        "text": "Develop and read.",
-        "meanwhile": false
-      },
-      {
-        "id": "abww967",
-        "kind": "step",
-        "level": 2,
-        "text": "Add 100 µL {TMB substrate} per well. Incubate 20 min, protected from light.",
-        "meanwhile": false
-      },
-      {
-        "id": "8bxdxw7",
-        "kind": "step",
-        "level": 2,
-        "text": "Add 50 µL {Stop solution} per well.",
-        "meanwhile": false
-      },
-      {
-        "id": "16n157d",
-        "kind": "step",
-        "level": 2,
-        "text": "Read at 450 nm on the {Plate reader} within 30 min.",
-        "meanwhile": false
+        "id": "mqd21pe",
+        "name": "Setup",
+        "steps": [
+          {
+            "id": "5g6ltd4",
+            "kind": "section",
+            "text": "Coat"
+          },
+          {
+            "id": "sj8vybv",
+            "kind": "step",
+            "level": 1,
+            "text": "Make the coating mix.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "wwkhgsb",
+            "kind": "step",
+            "level": 2,
+            "text": "Dilute {Capture Ab} {Capture Ab dil.} in {Coating buffer}: {Capture Ab volume} into {Coating buffer volume}.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "5cnnfzh",
+            "kind": "step",
+            "level": 2,
+            "text": "Mix by inversion. Keep on ice.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "z7gl596",
+            "kind": "step",
+            "level": 1,
+            "text": "Add {Vol./well} per well to the {ELISA plate}. Seal and incubate overnight at 4 °C.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "hdczedw",
+            "kind": "section",
+            "text": "Block"
+          },
+          {
+            "id": "6xa33z4",
+            "kind": "step",
+            "level": 1,
+            "text": "Wash 3× with 300 µL {Wash buffer} per well.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "anchtd7",
+            "kind": "step",
+            "level": 1,
+            "text": "Add 200 µL {Blocking buffer} per well. Incubate 1 h at room temperature.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "x75xfnn",
+            "kind": "step",
+            "level": 1,
+            "text": "Prepare the {IL-6 standard}: 2-fold series from {Top std}, {Std transfer} into {Std diluent}.",
+            "isMeanwhile": true
+          },
+          {
+            "id": "vz9482n",
+            "kind": "section",
+            "text": "Standards and samples"
+          },
+          {
+            "id": "3w7rlio",
+            "kind": "step",
+            "level": 1,
+            "text": "Wash 3× with 300 µL {Wash buffer} per well.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "5y0cowk",
+            "kind": "step",
+            "level": 1,
+            "text": "Add {Vol./well} of standards and samples per the plate map. Incubate 2 h at room temperature.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "g2p74bd",
+            "kind": "section",
+            "text": "Detect"
+          },
+          {
+            "id": "zt1fk5j",
+            "kind": "step",
+            "level": 1,
+            "text": "Wash 3×, then add {Detection Ab} at {Detection Ab dil.}. Incubate 1 h at room temperature.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "g40mt2b",
+            "kind": "step",
+            "level": 1,
+            "text": "Wash 3×, then add {Streptavidin-HRP} at {Streptavidin-HRP dil.}. Incubate 20 min at room temperature, protected from light.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "vbgdrr7",
+            "kind": "step",
+            "level": 1,
+            "text": "Develop and read.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "abww967",
+            "kind": "step",
+            "level": 2,
+            "text": "Add 100 µL {TMB substrate} per well. Incubate 20 min, protected from light.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "8bxdxw7",
+            "kind": "step",
+            "level": 2,
+            "text": "Add 50 µL {Stop solution} per well.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "16n157d",
+            "kind": "step",
+            "level": 2,
+            "text": "Read at 450 nm on the {Plate reader} within 30 min.",
+            "isMeanwhile": false
+          }
+        ]
       }
     ],
-    "blocks": [
+    "cards": [
       {
         "id": "c4wnnas",
-        "type": "materials",
         "title": "Materials",
+        "page": "mqd21pe",
         "x": 0,
         "y": 0,
         "w": 12,
         "h": 13,
-        "folded": [],
+        "isCollapsed": false,
+        "type": "materials",
+        "foldedGroups": [],
         "customGroups": [],
+        "isSetAsideOpen": false,
         "items": [
           {
             "id": "kavz434",
             "group": "ab",
             "type": "Antibody",
             "name": "Capture Ab",
-            "on": [
-              "vendor",
+            "shownFields": [
+              "source",
               "catalog",
               "lot",
               "storage",
@@ -166,24 +175,27 @@
             ],
             "values": {
               "storage": "4 °C",
-              "vendor": "BioLegend",
+              "source": "BioLegend",
               "target": "human IL-6",
               "amount": "200"
             },
             "units": {
               "amount": "1:N"
             },
-            "custom": []
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
           },
           {
             "id": "8ah0oau",
             "group": "ab",
             "type": "Antibody",
             "name": "Detection Ab",
-            "on": ["vendor", "catalog", "lot", "storage", "target", "conjugate", "amount"],
+            "shownFields": ["source", "catalog", "lot", "storage", "target", "conjugate", "amount"],
             "values": {
               "storage": "4 °C",
-              "vendor": "BioLegend",
+              "source": "BioLegend",
               "target": "human IL-6",
               "conjugate": "Biotin",
               "amount": "200"
@@ -191,142 +203,174 @@
             "units": {
               "amount": "1:N"
             },
-            "custom": []
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
           },
           {
             "id": "a8ipuce",
             "group": "ab",
             "type": "Secondary reagent",
             "name": "Streptavidin-HRP",
-            "on": ["vendor", "catalog", "lot", "storage", "conjugate", "dilution"],
+            "shownFields": ["source", "catalog", "lot", "storage", "conjugate", "amount"],
             "values": {
               "storage": "4 °C",
-              "vendor": "BioLegend",
+              "source": "BioLegend",
               "conjugate": "HRP",
-              "dilution": "1000"
+              "amount": "1000"
             },
             "units": {},
-            "custom": []
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
           },
           {
             "id": "3w7le63",
             "group": "chem",
             "type": "Standard",
             "name": "IL-6 standard",
-            "on": ["vendor", "catalog", "lot", "storage"],
+            "shownFields": ["source", "catalog", "lot", "storage"],
             "values": {
               "storage": "−80 °C",
-              "vendor": "BioLegend"
+              "source": "BioLegend"
             },
             "units": {},
-            "custom": []
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
           },
           {
             "id": "s65fo7l",
             "group": "chem",
             "type": "Detection reagent",
             "name": "TMB substrate",
-            "on": ["vendor", "catalog", "lot", "storage", "detection", "read-wavelength"],
+            "shownFields": ["source", "catalog", "lot", "storage", "detection", "read-wavelength"],
             "values": {
               "storage": "4 °C",
-              "vendor": "Thermo Fisher",
+              "source": "Thermo Fisher",
               "detection": "Colorimetric",
               "read-wavelength": "450 nm"
             },
             "units": {},
-            "custom": []
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
           },
           {
             "id": "web1ydc",
             "group": "media",
             "type": "Buffer",
             "name": "Coating buffer",
-            "on": ["vendor", "catalog", "lot", "storage", "recipe", "ph", "made-on"],
+            "shownFields": ["source", "catalog", "lot", "storage", "recipe-note", "ph", "made-on"],
             "values": {
               "storage": "RT",
-              "recipe": "carbonate-bicarbonate",
+              "recipe-note": "carbonate-bicarbonate",
               "ph": "9.5"
             },
             "units": {},
-            "custom": []
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
           },
           {
             "id": "1fbhk03",
             "group": "media",
             "type": "Buffer",
             "name": "Wash buffer",
-            "on": ["vendor", "catalog", "lot", "storage", "recipe", "made-on"],
+            "shownFields": ["source", "catalog", "lot", "storage", "recipe-note", "made-on"],
             "values": {
               "storage": "RT",
-              "recipe": "PBS + 0.05% Tween-20"
+              "recipe-note": "PBS + 0.05% Tween-20"
             },
             "units": {},
-            "custom": []
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
           },
           {
             "id": "f6b9fmv",
             "group": "media",
             "type": "Buffer",
             "name": "Blocking buffer",
-            "on": ["vendor", "catalog", "lot", "storage", "recipe", "made-on"],
+            "shownFields": ["source", "catalog", "lot", "storage", "recipe-note", "made-on"],
             "values": {
               "storage": "4 °C",
-              "recipe": "1% BSA in PBS"
+              "recipe-note": "1% BSA in PBS"
             },
             "units": {},
-            "custom": []
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
           },
           {
             "id": "2ykvvxv",
             "group": "media",
             "type": "Buffer",
             "name": "Stop solution",
-            "on": ["vendor", "catalog", "lot", "storage", "recipe", "made-on"],
+            "shownFields": ["source", "catalog", "lot", "storage", "recipe-note", "made-on"],
             "values": {
               "storage": "RT",
-              "recipe": "2 N sulfuric acid"
+              "recipe-note": "2 N sulfuric acid"
             },
             "units": {},
-            "custom": []
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
           },
           {
             "id": "md02vz0",
             "group": "supplies",
             "type": "Plate",
             "name": "ELISA plate",
-            "on": ["vendor", "catalog", "lot", "storage", "format", "surface", "color"],
+            "shownFields": ["source", "catalog", "lot", "storage", "format", "surface", "color"],
             "values": {
               "storage": "Shelf",
-              "vendor": "Corning",
+              "source": "Corning",
               "format": "96-well",
               "surface": "High-binding",
               "color": "Clear"
             },
             "units": {},
-            "custom": []
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
           },
           {
             "id": "1udeltb",
             "group": "equip",
             "type": "Instrument",
             "name": "Plate reader",
-            "on": ["model", "settings"],
+            "shownFields": ["model", "settings"],
             "values": {
               "settings": "absorbance 450 nm, reference 570 nm"
             },
             "units": {},
-            "custom": []
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
           }
         ]
       },
       {
         "id": "cj5twwa",
-        "type": "values",
         "title": "Values",
+        "page": "mqd21pe",
         "x": 0,
-        "y": 13,
+        "y": 33,
         "w": 4,
-        "h": 9,
+        "h": 20,
+        "isCollapsed": false,
+        "type": "values",
         "items": [
           {
             "id": "nlg73cs",
@@ -354,13 +398,13 @@
           },
           {
             "id": "in9kwwl",
-            "name": "Overage",
+            "name": "Extra (dead vol.)",
             "value": "10",
             "unit": "%"
           },
           {
             "id": "4z3ai8z",
-            "name": "Vol per well",
+            "name": "Vol./well",
             "value": "100",
             "unit": "µL"
           },
@@ -380,171 +424,465 @@
             "id": "jvips96",
             "name": "Fold",
             "value": "2",
-            "unit": "x"
+            "unit": "X"
           }
-        ]
+        ],
+        "rows": []
       },
       {
         "id": "kokto6p",
-        "type": "plate",
         "title": "Vessel map",
+        "page": "mqd21pe",
         "x": 4,
-        "y": 13,
+        "y": 33,
         "w": 4,
-        "h": 9,
-        "vessel": "96",
-        "count": 1,
-        "active": 0,
-        "groups": [
+        "h": 13,
+        "isCollapsed": false,
+        "type": "plateMap",
+        "plates": [
           {
-            "id": "cwqcxqi",
-            "label": "Standard",
-            "color": "#f0b35b"
-          },
-          {
-            "id": "a5izkbq",
-            "label": "Sample",
-            "color": "#8fd3e8"
-          },
-          {
-            "id": "srutxri",
-            "label": "Blank",
-            "color": "#6fbf73"
+            "id": "6ub86x9",
+            "labware": "96",
+            "name": ""
           }
         ],
-        "wells": {
-          "0:A1": "cwqcxqi",
-          "0:A2": "cwqcxqi",
-          "0:B1": "cwqcxqi",
-          "0:B2": "cwqcxqi",
-          "0:C1": "cwqcxqi",
-          "0:C2": "cwqcxqi",
-          "0:D1": "cwqcxqi",
-          "0:D2": "cwqcxqi",
-          "0:E1": "cwqcxqi",
-          "0:E2": "cwqcxqi",
-          "0:F1": "cwqcxqi",
-          "0:F2": "cwqcxqi",
-          "0:G1": "cwqcxqi",
-          "0:G2": "cwqcxqi",
-          "0:H1": "cwqcxqi",
-          "0:H2": "cwqcxqi",
-          "0:A3": "srutxri",
-          "0:B3": "srutxri",
-          "0:C3": "a5izkbq",
-          "0:D3": "a5izkbq",
-          "0:E3": "a5izkbq",
-          "0:F3": "a5izkbq",
-          "0:G3": "a5izkbq",
-          "0:H3": "a5izkbq",
-          "0:A4": "a5izkbq",
-          "0:B4": "a5izkbq",
-          "0:C4": "a5izkbq",
-          "0:D4": "a5izkbq",
-          "0:E4": "a5izkbq",
-          "0:F4": "a5izkbq",
-          "0:G4": "a5izkbq",
-          "0:H4": "a5izkbq",
-          "0:A5": "a5izkbq",
-          "0:B5": "a5izkbq",
-          "0:C5": "a5izkbq",
-          "0:D5": "a5izkbq",
-          "0:E5": "a5izkbq",
-          "0:F5": "a5izkbq",
-          "0:G5": "a5izkbq",
-          "0:H5": "a5izkbq",
-          "0:A6": "a5izkbq",
-          "0:B6": "a5izkbq",
-          "0:C6": "a5izkbq",
-          "0:D6": "a5izkbq",
-          "0:E6": "a5izkbq",
-          "0:F6": "a5izkbq",
-          "0:G6": "a5izkbq",
-          "0:H6": "a5izkbq",
-          "0:A7": "a5izkbq",
-          "0:B7": "a5izkbq",
-          "0:C7": "a5izkbq",
-          "0:D7": "a5izkbq",
-          "0:E7": "a5izkbq",
-          "0:F7": "a5izkbq",
-          "0:G7": "a5izkbq",
-          "0:H7": "a5izkbq",
-          "0:A8": "a5izkbq",
-          "0:B8": "a5izkbq",
-          "0:C8": "a5izkbq",
-          "0:D8": "a5izkbq",
-          "0:E8": "a5izkbq",
-          "0:F8": "a5izkbq",
-          "0:G8": "a5izkbq",
-          "0:H8": "a5izkbq",
-          "0:A9": "a5izkbq",
-          "0:B9": "a5izkbq"
-        }
+        "otherLabware": [],
+        "activeTab": 0,
+        "lines": [
+          {
+            "id": "44b1a535",
+            "name": "",
+            "values": [
+              {
+                "id": "d513a080",
+                "text": "Standard",
+                "color": "#f0b35b"
+              },
+              {
+                "id": "4f91eb0d",
+                "text": "Sample",
+                "color": "#8fd3e8"
+              },
+              {
+                "id": "6cb2665a",
+                "text": "Blank",
+                "color": "#6fbf73"
+              }
+            ],
+            "role": "fill"
+          }
+        ],
+        "samples": {
+          "6ub86x9:A1": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:A2": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:B1": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:B2": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:C1": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:C2": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:D1": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:D2": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:E1": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:E2": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:F1": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:F2": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:G1": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:G2": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:H1": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:H2": {
+            "44b1a535": {
+              "valueId": "d513a080"
+            }
+          },
+          "6ub86x9:C3": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:D3": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:E3": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:F3": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:G3": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:H3": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:A4": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:B4": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:C4": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:D4": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:E4": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:F4": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:G4": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:H4": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:A5": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:B5": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:C5": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:D5": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:E5": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:F5": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:G5": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:H5": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:A6": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:B6": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:C6": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:D6": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:E6": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:F6": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:G6": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:H6": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:A7": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:B7": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:C7": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:D7": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:E7": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:F7": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:G7": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:H7": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:A8": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:B8": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:C8": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:D8": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:E8": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:F8": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:G8": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:H8": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:A9": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:B9": {
+            "44b1a535": {
+              "valueId": "4f91eb0d"
+            }
+          },
+          "6ub86x9:A3": {
+            "44b1a535": {
+              "valueId": "6cb2665a"
+            }
+          },
+          "6ub86x9:B3": {
+            "44b1a535": {
+              "valueId": "6cb2665a"
+            }
+          }
+        },
+        "series": {},
+        "showsReplicatesAsOne": true,
+        "counts": {},
+        "amountNames": {},
+        "side": "assay",
+        "stain": {},
+        "stainedIn": {}
       },
       {
         "id": "pf5sqja",
-        "type": "formula",
         "title": "Calculations",
+        "page": "mqd21pe",
         "x": 8,
-        "y": 13,
+        "y": 33,
         "w": 4,
-        "h": 12,
+        "h": 20,
+        "isCollapsed": false,
+        "type": "calculations",
         "items": [
           {
             "id": "yf21f8w",
             "name": "Wells",
-            "expr": "Samples × Replicates + Std points × 2 + Blanks",
+            "formula": "Samples × Replicates + Std points × 2 + Blanks",
             "unit": "auto"
           },
           {
             "id": "6hlizim",
             "name": "Coating mix",
-            "expr": "Wells × Vol per well × (1 + Overage)",
+            "formula": "Wells × Vol./well × (1 + Extra (dead vol.))",
             "unit": "mL"
           },
           {
             "id": "e8pm2mt",
             "name": "Capture Ab volume",
-            "expr": "Coating mix × Capture Ab dilution",
+            "formula": "Coating mix × Capture Ab dil.",
             "unit": "µL"
           },
           {
             "id": "d5d3ncl",
             "name": "Coating buffer volume",
-            "expr": "Coating mix − Capture Ab volume",
+            "formula": "Coating mix − Capture Ab volume",
             "unit": "mL"
           },
           {
             "id": "lyc2o84",
             "name": "Std transfer",
-            "expr": "Std diluent ÷ (Fold − 1)",
+            "formula": "Std diluent ÷ (Fold − 1)",
             "unit": "µL"
           },
           {
             "id": "u41kack",
             "name": "Unplaced wells",
-            "expr": "Wells − Wells used",
+            "formula": "Wells − Wells used",
             "unit": "auto"
           }
-        ]
+        ],
+        "materialSections": []
       },
       {
         "id": "uec3wqr",
-        "type": "steps",
         "title": "Steps",
+        "page": "mqd21pe",
         "x": 0,
         "y": 22,
         "w": 5,
-        "h": 13
+        "h": 13,
+        "isCollapsed": false,
+        "type": "procedure"
       },
       {
         "id": "gg706j5",
-        "type": "sketch",
         "title": "Sketch",
+        "page": "mqd21pe",
         "x": 5,
         "y": 22,
         "w": 3,
         "h": 13,
+        "isCollapsed": false,
+        "type": "sketch",
         "strokes": [
           {
             "kind": "text",
@@ -557,7 +895,7 @@
           {
             "kind": "line",
             "color": "#e3dccb",
-            "pts": [
+            "points": [
               [50, 300],
               [50, 480],
               [57, 505],
@@ -578,7 +916,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [83, 285],
               [93.4, 259.8],
               [103.8, 240.2],
@@ -595,7 +933,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [169, 262],
               [187, 285],
               [163, 284]
@@ -604,7 +942,7 @@
           {
             "kind": "line",
             "color": "#e3dccb",
-            "pts": [
+            "points": [
               [170, 300],
               [170, 480],
               [177, 505],
@@ -625,7 +963,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [203, 285],
               [213.4, 259.8],
               [223.8, 240.2],
@@ -642,7 +980,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [289, 262],
               [307, 285],
               [283, 284]
@@ -651,7 +989,7 @@
           {
             "kind": "line",
             "color": "#e3dccb",
-            "pts": [
+            "points": [
               [290, 300],
               [290, 480],
               [297, 505],
@@ -672,7 +1010,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [323, 285],
               [333.4, 259.8],
               [343.8, 240.2],
@@ -689,7 +1027,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [409, 262],
               [427, 285],
               [403, 284]
@@ -698,7 +1036,7 @@
           {
             "kind": "line",
             "color": "#e3dccb",
-            "pts": [
+            "points": [
               [410, 300],
               [410, 480],
               [417, 505],
@@ -719,7 +1057,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [443, 285],
               [453.4, 259.8],
               [463.8, 240.2],
@@ -736,7 +1074,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [529, 262],
               [547, 285],
               [523, 284]
@@ -745,7 +1083,7 @@
           {
             "kind": "line",
             "color": "#e3dccb",
-            "pts": [
+            "points": [
               [530, 300],
               [530, 480],
               [537, 505],
@@ -766,7 +1104,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [563, 285],
               [573.4, 259.8],
               [583.8, 240.2],
@@ -783,7 +1121,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [649, 262],
               [667, 285],
               [643, 284]
@@ -792,7 +1130,7 @@
           {
             "kind": "line",
             "color": "#e3dccb",
-            "pts": [
+            "points": [
               [650, 300],
               [650, 480],
               [657, 505],
@@ -813,7 +1151,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [683, 285],
               [693.4, 259.8],
               [703.8, 240.2],
@@ -830,7 +1168,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [769, 262],
               [787, 285],
               [763, 284]
@@ -839,7 +1177,7 @@
           {
             "kind": "line",
             "color": "#e3dccb",
-            "pts": [
+            "points": [
               [770, 300],
               [770, 480],
               [777, 505],
@@ -860,7 +1198,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [803, 285],
               [813.4, 259.8],
               [823.8, 240.2],
@@ -877,7 +1215,7 @@
           {
             "kind": "line",
             "color": "#8fd3e8",
-            "pts": [
+            "points": [
               [889, 262],
               [907, 285],
               [883, 284]
@@ -886,7 +1224,7 @@
           {
             "kind": "line",
             "color": "#e3dccb",
-            "pts": [
+            "points": [
               [890, 300],
               [890, 480],
               [897, 505],
@@ -907,7 +1245,7 @@
           {
             "kind": "line",
             "color": "#d97a7a",
-            "pts": [
+            "points": [
               [977, 450],
               [975.7641278261569, 484.7671328891357],
               [972.1057816281789, 518.1482099040138],
@@ -972,13 +1310,15 @@
       },
       {
         "id": "zuykfvr",
-        "type": "list",
         "title": "Standard curve",
+        "page": "mqd21pe",
         "x": 8,
         "y": 25,
         "w": 4,
         "h": 10,
-        "named": false,
+        "isCollapsed": false,
+        "type": "table",
+        "isNamed": false,
         "columns": [
           {
             "id": "lnox9b3",
@@ -986,8 +1326,8 @@
             "kind": "text",
             "unit": "",
             "options": [],
-            "hidden": false,
-            "warnPast": false
+            "isHidden": false,
+            "warnsWhenPast": false
           },
           {
             "id": "k8lj63i",
@@ -995,8 +1335,8 @@
             "kind": "number",
             "unit": "pg/mL",
             "options": [],
-            "hidden": false,
-            "warnPast": false
+            "isHidden": false,
+            "warnsWhenPast": false
           },
           {
             "id": "192pn7z",
@@ -1004,8 +1344,8 @@
             "kind": "text",
             "unit": "",
             "options": [],
-            "hidden": false,
-            "warnPast": false
+            "isHidden": false,
+            "warnsWhenPast": false
           },
           {
             "id": "m9n0pof",
@@ -1013,8 +1353,8 @@
             "kind": "text",
             "unit": "",
             "options": [],
-            "hidden": false,
-            "warnPast": false
+            "isHidden": false,
+            "warnsWhenPast": false
           }
         ],
         "items": [
@@ -1100,13 +1440,26 @@
       },
       {
         "id": "7w7pao1",
-        "type": "flow",
         "title": "Flow diagram",
+        "page": "mqd21pe",
         "x": 0,
         "y": 35,
         "w": 12,
-        "h": 7
+        "h": 7,
+        "isCollapsed": false,
+        "type": "flowDiagram"
       }
-    ]
+    ],
+    "lotMemory": {
+      "kavz434": {
+        "B271834": {
+          "stock-concentration": "500"
+        }
+      }
+    },
+    "keptBoth": [],
+    "ignoredSuggestions": [],
+    "fluors": [],
+    "diluent": ""
   }
 }

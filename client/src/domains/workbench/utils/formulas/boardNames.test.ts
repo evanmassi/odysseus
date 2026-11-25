@@ -1,18 +1,18 @@
 import cellsAnswers from '../protocolFile/fixtures/cells.answers.json';
-import cellsMockup from '../protocolFile/fixtures/cells.mockup.json';
+import cellsSample from '../protocolFile/fixtures/cells.json';
 import cytotoxAnswers from '../protocolFile/fixtures/cytotox.answers.json';
-import cytotoxMockup from '../protocolFile/fixtures/cytotox.mockup.json';
+import cytotoxSample from '../protocolFile/fixtures/cytotox.json';
 import elisaAnswers from '../protocolFile/fixtures/elisa.answers.json';
-import elisaMockup from '../protocolFile/fixtures/elisa.mockup.json';
+import elisaSample from '../protocolFile/fixtures/elisa.json';
 import { readProtocolFile } from '../protocolFile/protocolFile';
 
 import { calculateBoard, calculationAnswerText, type CalculationResult } from './boardCalculation';
 import { collectBoardNames } from './boardNames';
 
 const EXAMPLES = {
-  cells: [cellsMockup, cellsAnswers],
-  cytotox: [cytotoxMockup, cytotoxAnswers],
-  elisa: [elisaMockup, elisaAnswers],
+  cells: [cellsSample, cellsAnswers],
+  cytotox: [cytotoxSample, cytotoxAnswers],
+  elisa: [elisaSample, elisaAnswers],
 } as const;
 
 const answerText = (result: CalculationResult | undefined) => {

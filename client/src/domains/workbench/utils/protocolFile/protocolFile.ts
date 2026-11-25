@@ -1,27 +1,20 @@
 import {
+  normalizePlateMap,
   PROTOCOL_FILE_FORMAT,
   PROTOCOL_FILE_VERSION,
-  protocolFileInputSchema,
-  type MovedMarkerDilution,
-  type MovedPrepValue,
+  protocolFileSchema,
   type Protocol,
   type ProtocolFile,
 } from '@odysseus/shared-schemas';
 
-import { withMovedPrepValues } from '../dilutions/movedPrepValues';
-import { withMovedMarkerDilutions } from '../flowCytometry/movedMarkerDilutions';
-import { withSettledWords } from '../terms/termUpgrade';
-import { withWellVolumeInAssaySetup } from '../values/wellVolumeInAssaySetup';
-
 export class ProtocolFileError extends Error {}
 
 const NOT_A_PROTOCOL = "This isn't a workbench protocol file.";
+const OTHER_VERSION =
+  "This protocol was saved by a different version of the workbench and can't be opened.";
 
-const hasProtocolFormat = (data: unknown) =>
-  typeof data === 'object' &&
-  data !== null &&
-  'format' in data &&
-  data.format === PROTOCOL_FILE_FORMAT;
+const isRecord = (data: unknown): data is Record<string, unknown> =>
+  typeof data === 'object' && data !== null;
 
 export function readProtocolFile(text: string): Protocol {
   let data: unknown;
@@ -30,33 +23,20 @@ export function readProtocolFile(text: string): Protocol {
   } catch {
     throw new ProtocolFileError(NOT_A_PROTOCOL);
   }
-  if (!hasProtocolFormat(data)) throw new ProtocolFileError(NOT_A_PROTOCOL);
-  const { protocol, movedPrepValues, movedMarkerDilutions } = parsedFile(data);
-  const moved = withMovedMarkerDilutions(
-    withMovedPrepValues(protocol, movedPrepValues),
-    movedMarkerDilutions
-  );
-  return withWellVolumeInAssaySetup(withSettledWords(moved));
-}
-
-interface ParsedFile {
-  protocol: Protocol;
-  movedPrepValues: MovedPrepValue[];
-  movedMarkerDilutions: MovedMarkerDilution[];
-}
-
-function parsedFile(data: unknown): ParsedFile {
-  try {
-    const result = protocolFileInputSchema.safeParse(data);
-    if (result.success) return result.data;
+  if (!isRecord(data) || data['format'] !== PROTOCOL_FILE_FORMAT) {
+    throw new ProtocolFileError(NOT_A_PROTOCOL);
+  }
+  if (data['version'] !== PROTOCOL_FILE_VERSION) throw new ProtocolFileError(OTHER_VERSION);
+  const result = protocolFileSchema.safeParse(data);
+  if (!result.success) {
     const issue = result.error.issues[0];
     throw new ProtocolFileError(
       `This protocol file is damaged at ${issue.path.join('.')}: ${issue.message}`
     );
-  } catch (error) {
-    if (error instanceof ProtocolFileError) throw error;
-    throw new ProtocolFileError(`This protocol file is damaged: ${(error as Error).message}`);
   }
+  const { protocol } = result.data;
+  for (const card of protocol.cards) if (card.type === 'plateMap') normalizePlateMap(card);
+  return protocol;
 }
 
 export function writeProtocolFile(protocol: Protocol): string {

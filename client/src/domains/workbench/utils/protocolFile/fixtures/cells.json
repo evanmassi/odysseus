@@ -1,0 +1,993 @@
+{
+  "format": "odysseus-workbench-protocol",
+  "version": 8,
+  "savedAt": "2026-11-24T00:00:00.000Z",
+  "protocol": {
+    "title": "Cell viability dose response",
+    "descriptor": "",
+    "purpose": "",
+    "runNumber": "",
+    "runOn": {
+      "from": "",
+      "to": ""
+    },
+    "pages": [
+      {
+        "id": "v2i5v7f",
+        "name": "Setup",
+        "steps": [
+          {
+            "id": "5fz1mwf",
+            "kind": "section",
+            "text": "Prepare cells"
+          },
+          {
+            "id": "vmxtj81",
+            "kind": "step",
+            "level": 1,
+            "text": "Warm {Complete DMEM} and {Trypsin-EDTA} to 37 °C for 15 min.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "lw8cvkg",
+            "kind": "step",
+            "level": 1,
+            "text": "Detach {HeLa}: rinse with {PBS}, add 2 mL {Trypsin-EDTA}, and incubate 3–5 min at 37 °C.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "f93klwz",
+            "kind": "step",
+            "level": 2,
+            "text": "Neutralize with 8 mL {Complete DMEM} and spin in the {Centrifuge}.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "azg0ynh",
+            "kind": "step",
+            "level": 2,
+            "text": "Resuspend and count. Live cells: {Live cell conc}.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "i9v3m93",
+            "kind": "section",
+            "text": "Seed"
+          },
+          {
+            "id": "k1yhcpf",
+            "kind": "step",
+            "level": 1,
+            "text": "Mix {Cell suspension} of cells into {Media to add} {Complete DMEM}.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "1rdyiis",
+            "kind": "step",
+            "level": 1,
+            "text": "Seed {Vol./well} per well of the {Assay plate}: {Cells/well} per well.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "rb01q8d",
+            "kind": "step",
+            "level": 2,
+            "text": "Fill the outer wells with {Vol./well} {PBS}.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "v9igc97",
+            "kind": "step",
+            "level": 1,
+            "text": "Incubate overnight at 37 °C, 5% CO₂.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "de3ye6p",
+            "kind": "section",
+            "text": "Treat"
+          },
+          {
+            "id": "9sprfzj",
+            "kind": "step",
+            "level": 1,
+            "text": "Make a 3-fold series of {Compound X} from {Top conc.}.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "hmcc830",
+            "kind": "step",
+            "level": 1,
+            "text": "Add compound per the plate map, vehicle to control wells. Incubate 72 h at 37 °C.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "xthzyeb",
+            "kind": "section",
+            "text": "Read"
+          },
+          {
+            "id": "e1tqrj5",
+            "kind": "step",
+            "level": 1,
+            "text": "Bring the plate and {CellTiter-Glo} to room temperature for 30 min.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "y0zwtv0",
+            "kind": "step",
+            "level": 1,
+            "text": "Add 100 µL {CellTiter-Glo} per well, shake 2 min, then incubate 10 min at room temperature.",
+            "isMeanwhile": false
+          },
+          {
+            "id": "pmp9w3p",
+            "kind": "step",
+            "level": 1,
+            "text": "Read luminescence on the {Plate reader}.",
+            "isMeanwhile": false
+          }
+        ]
+      }
+    ],
+    "cards": [
+      {
+        "id": "bw90g70",
+        "title": "Materials",
+        "page": "v2i5v7f",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 13,
+        "isCollapsed": false,
+        "type": "materials",
+        "foldedGroups": [],
+        "customGroups": [],
+        "isSetAsideOpen": false,
+        "items": [
+          {
+            "id": "2c17wpm",
+            "group": "bio",
+            "type": "Cell line",
+            "name": "HeLa",
+            "shownFields": [
+              "source",
+              "catalog",
+              "lot",
+              "storage",
+              "total-cell-conc",
+              "viability",
+              "passage",
+              "mycoplasma-test-date"
+            ],
+            "values": {
+              "storage": "37 °C incubator",
+              "source": "ATCC",
+              "catalog": "CCL-2",
+              "total-cell-conc": "1e6",
+              "viability": "95"
+            },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
+          },
+          {
+            "id": "kxevs55",
+            "group": "media",
+            "type": "Medium",
+            "name": "Complete DMEM",
+            "shownFields": ["source", "catalog", "lot", "storage", "recipe-note", "made-on"],
+            "values": {
+              "storage": "4 °C",
+              "recipe-note": "DMEM + 10% FBS + 1% pen/strep"
+            },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
+          },
+          {
+            "id": "dwun4dt",
+            "group": "media",
+            "type": "Buffer",
+            "name": "PBS",
+            "shownFields": [
+              "source",
+              "catalog",
+              "lot",
+              "storage",
+              "strength",
+              "calcium-and-magnesium"
+            ],
+            "values": {
+              "storage": "RT",
+              "strength": "1×",
+              "calcium-and-magnesium": "Without"
+            },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
+          },
+          {
+            "id": "aaw10cx",
+            "group": "chem",
+            "type": "Enzyme",
+            "name": "Trypsin-EDTA",
+            "shownFields": ["source", "catalog", "lot", "storage", "notes"],
+            "values": {
+              "storage": "−20 °C",
+              "notes": "0.25%"
+            },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
+          },
+          {
+            "id": "ytkblu3",
+            "group": "chem",
+            "type": "Drug or inhibitor",
+            "name": "Compound X",
+            "shownFields": [
+              "source",
+              "catalog",
+              "lot",
+              "storage",
+              "stock-concentration",
+              "vehicle"
+            ],
+            "values": {
+              "storage": "−20 °C",
+              "stock-concentration": "10",
+              "vehicle": "DMSO"
+            },
+            "units": {
+              "stock-concentration": "mM"
+            },
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
+          },
+          {
+            "id": "ihm3znb",
+            "group": "kits",
+            "type": "Kit",
+            "name": "CellTiter-Glo",
+            "shownFields": ["source", "catalog", "lot", "storage"],
+            "values": {
+              "storage": "−20 °C",
+              "source": "Promega"
+            },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
+          },
+          {
+            "id": "bzdkqm5",
+            "group": "supplies",
+            "type": "Plate",
+            "name": "Assay plate",
+            "shownFields": ["source", "catalog", "lot", "storage", "format", "surface", "color"],
+            "values": {
+              "storage": "Shelf",
+              "source": "Corning",
+              "format": "96-well",
+              "surface": "TC-treated",
+              "color": "White"
+            },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
+          },
+          {
+            "id": "5qem2k3",
+            "group": "equip",
+            "type": "Instrument",
+            "name": "Centrifuge",
+            "shownFields": ["model", "settings"],
+            "values": {
+              "settings": "300 × g, 5 min, RT"
+            },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
+          },
+          {
+            "id": "6kb5rka",
+            "group": "equip",
+            "type": "Instrument",
+            "name": "Plate reader",
+            "shownFields": ["model", "settings"],
+            "values": {
+              "settings": "luminescence, 1 s integration"
+            },
+            "units": {},
+            "customFields": [],
+            "fieldLabels": {},
+            "isSetAside": false,
+            "recipe": []
+          }
+        ]
+      },
+      {
+        "id": "vd9y6g4",
+        "title": "Values",
+        "page": "v2i5v7f",
+        "x": 0,
+        "y": 50,
+        "w": 4,
+        "h": 16,
+        "isCollapsed": false,
+        "type": "values",
+        "items": [
+          {
+            "id": "gx8xelk",
+            "name": "Cells/well",
+            "value": "5000",
+            "unit": "cells"
+          },
+          {
+            "id": "6e8nyrc",
+            "name": "Vol./well",
+            "value": "100",
+            "unit": "µL"
+          },
+          {
+            "id": "gefx27z",
+            "name": "Extra (dead vol.)",
+            "value": "10",
+            "unit": "%"
+          },
+          {
+            "id": "d05kn7e",
+            "name": "Top conc.",
+            "value": "10",
+            "unit": "µM"
+          },
+          {
+            "id": "w8gptu3",
+            "name": "Fold",
+            "value": "3",
+            "unit": "X"
+          }
+        ],
+        "rows": []
+      },
+      {
+        "id": "vp955u6",
+        "title": "Vessel map",
+        "page": "v2i5v7f",
+        "x": 4,
+        "y": 13,
+        "w": 4,
+        "h": 13,
+        "isCollapsed": false,
+        "type": "plateMap",
+        "plates": [
+          {
+            "id": "f70z5q2",
+            "labware": "96",
+            "name": ""
+          }
+        ],
+        "otherLabware": [],
+        "activeTab": 0,
+        "lines": [
+          {
+            "id": "586e6b95",
+            "name": "",
+            "values": [
+              {
+                "id": "3361bdbd",
+                "text": "Sample",
+                "color": "#f0b35b"
+              },
+              {
+                "id": "1406bc48",
+                "text": "Control",
+                "color": "#8fd3e8"
+              },
+              {
+                "id": "f96d0a63",
+                "text": "Edge",
+                "color": "#6fbf73"
+              }
+            ],
+            "role": "fill"
+          }
+        ],
+        "samples": {
+          "f70z5q2:B2": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:B3": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:B4": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:B5": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:B6": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:B7": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:B8": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:B9": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:B10": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:C2": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:C3": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:C4": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:C5": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:C6": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:C7": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:C8": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:C9": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:C10": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:D2": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:D3": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:D4": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:D5": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:D6": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:D7": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:D8": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:D9": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:D10": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:E2": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:E3": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:E4": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:E5": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:E6": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:E7": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:E8": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:E9": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:E10": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:F2": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:F3": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:F4": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:F5": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:F6": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:F7": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:F8": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:F9": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:F10": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:G2": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:G3": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:G4": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:G5": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:G6": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:G7": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:G8": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:G9": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:G10": {
+            "586e6b95": {
+              "valueId": "3361bdbd"
+            }
+          },
+          "f70z5q2:B11": {
+            "586e6b95": {
+              "valueId": "1406bc48"
+            }
+          },
+          "f70z5q2:C11": {
+            "586e6b95": {
+              "valueId": "1406bc48"
+            }
+          },
+          "f70z5q2:D11": {
+            "586e6b95": {
+              "valueId": "1406bc48"
+            }
+          },
+          "f70z5q2:E11": {
+            "586e6b95": {
+              "valueId": "1406bc48"
+            }
+          },
+          "f70z5q2:F11": {
+            "586e6b95": {
+              "valueId": "1406bc48"
+            }
+          },
+          "f70z5q2:G11": {
+            "586e6b95": {
+              "valueId": "1406bc48"
+            }
+          },
+          "f70z5q2:A1": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:A2": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:A3": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:A4": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:A5": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:A6": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:A7": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:A8": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:A9": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:A10": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:A11": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:A12": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:B1": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:B12": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:C1": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:C12": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:D1": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:D12": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:E1": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:E12": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:F1": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:F12": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:G1": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:G12": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H1": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H2": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H3": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H4": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H5": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H6": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H7": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H8": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H9": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H10": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H11": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          },
+          "f70z5q2:H12": {
+            "586e6b95": {
+              "valueId": "f96d0a63"
+            }
+          }
+        },
+        "series": {},
+        "showsReplicatesAsOne": true,
+        "counts": {},
+        "amountNames": {},
+        "side": "assay",
+        "stain": {},
+        "stainedIn": {}
+      },
+      {
+        "id": "qlt5lkt",
+        "title": "Calculations",
+        "page": "v2i5v7f",
+        "x": 8,
+        "y": 13,
+        "w": 4,
+        "h": 15,
+        "isCollapsed": false,
+        "type": "calculations",
+        "items": [
+          {
+            "id": "mw4s4i2",
+            "name": "Cell wells",
+            "formula": "Sample wells + Control wells",
+            "unit": "auto"
+          },
+          {
+            "id": "g64zzfl",
+            "name": "Cells needed",
+            "formula": "Cells/well × Cell wells × (1 + Extra (dead vol.))",
+            "unit": "auto"
+          },
+          {
+            "id": "mc4gorp",
+            "name": "Live cell conc",
+            "formula": "HeLa total cell conc. × HeLa viability",
+            "unit": "auto"
+          },
+          {
+            "id": "y4o0rlx",
+            "name": "Cell suspension",
+            "formula": "Cells needed ÷ Live cell conc",
+            "unit": "mL"
+          },
+          {
+            "id": "poq6m7o",
+            "name": "Seeding volume",
+            "formula": "Cell wells × Vol./well × (1 + Extra (dead vol.))",
+            "unit": "mL"
+          },
+          {
+            "id": "7kuyix2",
+            "name": "Media to add",
+            "formula": "Seeding volume − Cell suspension",
+            "unit": "mL"
+          }
+        ],
+        "materialSections": []
+      },
+      {
+        "id": "31np0ed",
+        "title": "Steps",
+        "page": "v2i5v7f",
+        "x": 0,
+        "y": 26,
+        "w": 7,
+        "h": 14,
+        "isCollapsed": false,
+        "type": "procedure"
+      },
+      {
+        "id": "ikj1u8c",
+        "title": "Sketch",
+        "page": "v2i5v7f",
+        "x": 7,
+        "y": 28,
+        "w": 5,
+        "h": 14,
+        "isCollapsed": false,
+        "type": "sketch",
+        "strokes": []
+      },
+      {
+        "id": "snkgxdt",
+        "title": "Flow diagram",
+        "page": "v2i5v7f",
+        "x": 0,
+        "y": 42,
+        "w": 12,
+        "h": 8,
+        "isCollapsed": false,
+        "type": "flowDiagram"
+      }
+    ],
+    "lotMemory": {},
+    "keptBoth": [],
+    "ignoredSuggestions": [],
+    "fluors": [],
+    "diluent": ""
+  }
+}

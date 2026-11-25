@@ -1,4 +1,4 @@
-import { normalizeMaterialKey, renamedFieldKey } from '@odysseus/shared-schemas';
+import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { DONOR_ID_FIELD, STARTING_DONOR_FIELDS } from './materialDonors';
 import { type MaterialKnowledge, type RememberedMaterialType } from './materialGuesser';
@@ -48,71 +48,6 @@ export const EMPTY_LAB_MEMORY: LabMemory = {
   donorFields: [],
   startingDonorFields: {},
 };
-
-type SavedRecord = Record<string, unknown>;
-
-const recordOf = (value: unknown): SavedRecord =>
-  typeof value === 'object' && value !== null && !Array.isArray(value)
-    ? (value as SavedRecord)
-    : {};
-
-const mapValues = (value: unknown, upgrade: (entry: unknown) => unknown) =>
-  Object.fromEntries(Object.entries(recordOf(value)).map(([key, entry]) => [key, upgrade(entry)]));
-
-const withFieldKeys = (value: unknown, materialType = '') =>
-  Object.fromEntries(
-    Object.entries(recordOf(value)).map(([key, entry]) => [
-      renamedFieldKey(key, materialType),
-      entry,
-    ])
-  );
-
-const fieldKeyList = (value: unknown, materialType = '') =>
-  Array.isArray(value)
-    ? value.map(key => (typeof key === 'string' ? renamedFieldKey(key, materialType) : key))
-    : [];
-
-const definitionsWithFieldKeys = (value: unknown) =>
-  Array.isArray(value)
-    ? value.map(definition => {
-        const saved = recordOf(definition);
-        return typeof saved['key'] === 'string'
-          ? { ...saved, key: renamedFieldKey(saved['key'], '') }
-          : saved;
-      })
-    : [];
-
-export function upgradeLabMemory(saved: unknown): LabMemory {
-  const memory = recordOf(saved);
-  return {
-    ...EMPTY_LAB_MEMORY,
-    knownTypes: recordOf(memory['kinds']),
-    materials: mapValues(memory['materials'], entry => {
-      const material = recordOf(entry);
-      const type = typeof material['type'] === 'string' ? material['type'] : '';
-      return {
-        ...material,
-        values: withFieldKeys(material['values'], type),
-        units: withFieldKeys(material['units'], type),
-        shownFields: fieldKeyList(material['shownFields'], type),
-        customFields: definitionsWithFieldKeys(material['customFields']),
-      };
-    }),
-    fields: mapValues(memory['fields'], definitionsWithFieldKeys),
-    startingFields: mapValues(memory['startingFields'], keys => fieldKeyList(keys)),
-    fluors: recordOf(memory['dyes']),
-    donors: mapValues(memory['sources'], entry => {
-      const donor = recordOf(entry);
-      return {
-        ...donor,
-        values: withFieldKeys(donor['values']),
-        units: withFieldKeys(donor['units']),
-      };
-    }),
-    donorFields: definitionsWithFieldKeys(memory['sourceFields']),
-    startingDonorFields: mapValues(memory['startingSourceFields'], keys => fieldKeyList(keys)),
-  } as LabMemory;
-}
 
 const kindKey = (group: string, type: string) => `${group}|${type}`;
 

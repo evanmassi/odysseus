@@ -57,7 +57,6 @@ export type BoardName = NameOrigin &
         problem?: string;
         need?: string;
         isIntermediate?: boolean;
-        formerName?: string;
       }
   );
 

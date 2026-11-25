@@ -1,6 +1,5 @@
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
-import { withSettledWords } from '../terms/termUpgrade';
 
 import { diluentUses, runDiluents } from './dilutionDiluents';
 import { recordOnMaterial, setPrepSetting, setSharedPrepValue } from './dilutionEdits';
@@ -283,16 +282,6 @@ describe('diluents', () => {
     const result = need && board.results.get(need.id);
     expect(result?.status === 'ok' && result.output).toEqual({ text: '346 µL' });
     expect(diluentUses(protocol, board)).toEqual([{ materialId: 'RPMI', need: '346 µL' }]);
-  });
-
-  it('points an old "needed for dilutions" reference at the total needed', () => {
-    const protocol = protocolWith(withDiluent('RPMI'), [drugStock, medium]);
-    const step = { id: 's1', kind: 'step', level: 1, text: 'Warm {RPMI needed for dilutions}.' };
-    const opened = withSettledWords({
-      ...protocol,
-      pages: [{ ...protocol.pages[0], steps: [step] }],
-    } as Protocol);
-    expect(opened.pages[0].steps[0]).toMatchObject({ text: 'Warm {Total RPMI needed}.' });
   });
 
   it("totals the protocol's diluent for a series that has none of its own", () => {

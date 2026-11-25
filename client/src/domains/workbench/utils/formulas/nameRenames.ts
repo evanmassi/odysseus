@@ -1,7 +1,4 @@
-import { current } from 'immer';
-
-import { calculateBoard, nameKey, type SolvedBoard } from './boardCalculation';
-import { collectBoardNames } from './boardNames';
+import { nameKey, type SolvedBoard } from './boardCalculation';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -64,22 +61,6 @@ export function applyRenames(
   knownNames: ReadonlyMap<string, string>,
   renames: NameRenames
 ): void {
-  const renamed = (text: string) => renames.byOldName.get(nameKey(text));
-  for (const card of draft.cards) {
-    if (card.type !== 'plateMap') continue;
-    for (const line of card.lines) {
-      line.name = renamed(line.name) ?? line.name;
-      for (const value of line.values) value.text = renamed(value.text) ?? value.text;
-    }
-  }
-  applyReferenceRenames(draft, knownNames, renames);
-}
-
-export function applyReferenceRenames(
-  draft: Protocol,
-  knownNames: ReadonlyMap<string, string>,
-  renames: NameRenames
-): void {
   const previousNames = [...new Set(knownNames.values())].sort((a, b) => b.length - a.length);
   const renamed = (text: string) => renames.byOldName.get(nameKey(text));
   for (const card of draft.cards) {
@@ -94,6 +75,10 @@ export function applyReferenceRenames(
       }
     }
     if (card.type === 'plateMap') {
+      for (const line of card.lines) {
+        line.name = renamed(line.name) ?? line.name;
+        for (const value of line.values) value.text = renamed(value.text) ?? value.text;
+      }
       for (const series of Object.values(card.series)) {
         if (!('top' in series)) continue;
         series.top = renamed(series.top) ?? series.top;
@@ -109,14 +94,4 @@ export function applyReferenceRenames(
       });
     }
   }
-}
-
-export function followOldNames(draft: Protocol, byOldName: ReadonlyMap<string, string>): void {
-  if (!byOldName.size) return;
-  const board = calculateBoard(collectBoardNames(current(draft)));
-  const known = [...byOldName.keys(), ...[...board.names.values()].map(entry => entry.name)];
-  applyReferenceRenames(draft, new Map(known.map(name => [name, name])), {
-    byOldName,
-    byItemPrefix: new Map(),
-  });
 }

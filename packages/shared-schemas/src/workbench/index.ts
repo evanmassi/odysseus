@@ -1,6 +1,7 @@
 export {
   PROTOCOL_FILE_FORMAT,
   PROTOCOL_FILE_VERSION,
+  protocolFileSchema,
   type FieldDefinition,
   type MaterialItem,
   type ExperimentDonor,
@@ -38,7 +39,3 @@ export {
 
 export { withGreekLetters } from './greekLetters';
 export { normalizeMaterialKey } from './materialKey';
-export { protocolFileInputSchema } from './legacyProtocolSchemas';
-export { renamedFieldKey } from './savedWordsUpgrade';
-export type { MovedMarkerDilution } from './markerDilutionUpgrade';
-export type { MovedPrepValue } from './seriesPrepUpgrade';

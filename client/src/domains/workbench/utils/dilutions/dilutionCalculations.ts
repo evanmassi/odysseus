@@ -287,7 +287,6 @@ function diluentNeedNames(
       kind: 'calculation',
       id: diluentNeedId(name),
       name: needName,
-      formerName: `${shownName} needed for dilutions`,
       formula: totals.join(' + '),
       unit: '',
       workedOut: {

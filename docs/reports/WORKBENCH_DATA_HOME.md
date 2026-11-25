@@ -96,12 +96,15 @@ today. Their saved shape stays as it is; each gets its home in the protocol when
    redesign removes that bug by its nature.
 6. **Decided 2026-11-24: one version of the file, no upgrade code.** Evan: "I'd really like to not
    have 'new' and 'legacy' versions of things... just the versions that will be the thing." He
-   only cares about the protocols in `Documents/Professional/Workbench`, and only that their
-   information carries into the new shape; new protocols are easy to make.
-   - The app opens only the current file shape. Any other version gets a plain message that it
-     was saved by an older workbench and can't be opened. The `version` field stays as that guard.
+   only cares about two protocols in `Documents/Professional/Workbench` (the recall assay and the
+   PBMC stimulation assay), and only that their information carries into the new shape; new
+   protocols are easy to make.
+   - The app opens only the current file shape. Any other version gets "This protocol was saved by
+     a different version of the workbench and can't be opened." The `version` field stays as that
+     guard ("different", since a laptop on older code can meet a newer file).
    - Evan's files are converted once per format change by a throwaway script kept outside the repo
-     (`%TEMP%`), never committed. Originals are copied to `%TEMP%` first.
+     (`%TEMP%/data-home`), never committed. The originals before each conversion go to the
+     `Old versions` subfolder beside them, under their own names.
    - Existing upgrade code is deleted in step 0.
 
 ## Follows from the decisions (stated, not asked)
@@ -128,31 +131,40 @@ Six steps, each built, checked and committed on its own, each leaving the app fu
 **Every step's check:**
 
 - Typecheck, lint and client tests green.
-- Evan's five local files give the same 232 answers before and after, compared by name (the W116
-  harness in `%TEMP%/w116`, rebuilt if cleared; the files are never copied into the repo). Nothing
-  in the math changes in any step, so a different answer is a bug in the step.
+- Evan's two protocols give the same 122 answers before and after, compared by name
+  (`%TEMP%/data-home/answers.tmp.test.ts`, copied into `utils/protocolFile/` only to run and
+  removed after; the files are never copied into the repo). Nothing in the math changes in any
+  step, so a different answer is a bug in the step.
 - **A step that changes the file shape** changes the schema in place, bumps
   `PROTOCOL_FILE_VERSION`, and updates the one sample, `everyCard.json`. Evan's files are
   converted by that step's throwaway script: "before" answers come from the old app on the old
   files, "after" from the new app on the converted files.
 - Evan checks it in the app before the commit.
 
-### Step 0: one version only (file stays at today's shape)
+### Step 0: one version only (built 2026-11-24)
 
-- **Convert:** the five files (versions 1, 3, 4, 4 and 7 today) are opened through today's chain
-  and saved at today's version, originals copied to `%TEMP%` first.
-- **Delete:** `legacyProtocolSchemas.ts` and the upgrade files beside it (`assaySetupTitleUpgrade`,
-  `markerDilutionUpgrade`, `paintedGroupUpgrade`, `savedWordsUpgrade`, `seriesDiluentUpgrade`,
-  `seriesPrepUpgrade`, `stainSideUpgrade`) and their exports; the open-time fix-ups in
-  `protocolFile.ts` (`withMovedPrepValues`, `withMovedMarkerDilutions`, `withSettledWords`,
-  `withWellVolumeInAssaySetup`) with their files and tests; the samples for versions 4 to 7 and
-  the mockup and legacy samples; whatever only they used (grepped, e.g. `followOldNames`).
-  `everyCard.v8.json` becomes `everyCard.json`.
-- **Lab memory** reads old field keys through `renamedFieldKey` (`materialMemory.ts`). Check
-  whether reading lab memory saves it back in today's keys; if so, open the app once on each
-  browser before the renamer goes; if not, Evan's remembered lots under old keys stop matching.
-- **Open:** a file in any other version gets the plain message (decision 6).
-- About 1,400 lines plus the samples go. Evan confirms the delete list before anything is removed.
+- **Converted:** the two protocols (versions 4 and 7) were saved at today's version 8, originals
+  first copied to `Workbench/Old versions`; the three math samples (cells, cytotox, elisa) were
+  saved at version 8 as `cells.json`, `cytotox.json` and `elisa.json`, so their expected-answer
+  check (`boardNames.test.ts`) stays. `everyCard.v8.json` became `everyCard.json`, and
+  `labMemory.v1.json` became `labMemory.json`.
+- **Deleted:** `legacyProtocolSchemas.ts` and the seven upgrade files beside it, with their
+  exports; `protocolIds.ts` and `fixtures/sampleEdits.ts`, used only by them; the 26 `.default(…)`
+  fill-ins in `protocolFileSchemas.ts`; the open-time fix-ups (`movedPrepValues`,
+  `movedMarkerDilutions`, `termUpgrade`, `wellVolumeInAssaySetup`) with their tests;
+  `followOldNames`; `formerName` on two generated names; lab memory's version-0 key upgrade
+  (`upgradeLabMemory`, the store's `migrate`, `labMemory.saved.json`); the samples for versions 4
+  to 7 and the mockup and legacy samples; the version-chain tests. `applyReferenceRenames` folded
+  into `applyRenames`, its one caller.
+- **Opening** parses `protocolFileSchema` directly; the plate tidy-up (`normalizePlateMap`) still
+  runs on open, since it is not old-version code (the app runs it after every plate edit).
+- **Kept on purpose:** `formerly` on the word list. It is not old-file code: typing reads it
+  (`isSpellingOf`, `isAssaySetting`), so "PBMC Count 1e6" still files into Total cell conc. The
+  lab memory `merge` (fills fields added to lab memory later) stays too.
+- **Lab memory:** Zustand writes migrated memory back, so a browser that opened the app since
+  2026-11-22 already holds today's keys. The laptop should open the app once before pulling this.
+- **Checked:** typecheck and lint clean; 841 client tests (900 before, the version-chain tests
+  gone); the two protocols' 122 answers identical before and after.
 
 ### Step 1: every number gets an id that never changes (file change: amount names)
 
