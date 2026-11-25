@@ -1,7 +1,6 @@
 import {
   type MaterialItem,
   type Protocol,
-  type ValuesCard,
   type ValueRow,
   type PlateMapCard,
   normalizeMaterialKey,
@@ -433,20 +432,10 @@ function groupLabel(key: string): string {
 }
 
 export function buildValueTable(
-  protocol: Pick<Protocol, 'cards'>,
-  card: ValuesCard,
+  protocol: Pick<Protocol, 'cards' | 'materials' | 'values'>,
   { materials, board, needs, unsortedNames }: ValueTableSources
 ): ValueTableGroup[] {
-  const valuesCards = protocol.cards.filter(
-    (candidate): candidate is ValuesCard => candidate.type === 'values'
-  );
-  const isFirstCard = valuesCards[0]?.id === card.id;
-  const materialsWithRowElsewhere = new Set(
-    valuesCards
-      .filter(values => values.id !== card.id)
-      .flatMap(values => values.rows)
-      .flatMap(valueRow => ('materialId' in valueRow ? [valueRow.materialId] : []))
-  );
+  const { values } = protocol;
   const plates = protocol.cards.filter(isPlateMap);
   const matches = donorsIn(protocol);
   const subjects = countSubjects(protocol);
@@ -481,7 +470,7 @@ export function buildValueTable(
     return row;
   };
 
-  for (const valueRow of card.rows) {
+  for (const valueRow of values.rows) {
     const material = 'materialId' in valueRow ? materials.get(valueRow.materialId) : undefined;
     const status: ValueRowStatus = !('materialId' in valueRow)
       ? 'current'
@@ -499,10 +488,9 @@ export function buildValueTable(
     if (material) rowByMaterial.set(material.id, row);
   }
 
-  const rowForMaterial = (material: MaterialItem): RowDraft | undefined => {
+  const rowForMaterial = (material: MaterialItem): RowDraft => {
     const existing = rowByMaterial.get(material.id);
     if (existing) return existing;
-    if (!isFirstCard || materialsWithRowElsewhere.has(material.id)) return undefined;
     const row = draftRow(`material:${material.id}`, material.name.trim(), material.group, {
       valueRow: undefined,
       material,
@@ -514,10 +502,10 @@ export function buildValueTable(
 
   const tableRowsById = new Map(rows.map(row => [row.id, row]));
   const mixRows = rows.filter(row => row.valueRow && 'mixName' in row.valueRow);
-  for (const item of card.items) {
+  for (const item of values.items) {
     const row = item.row ? tableRowsById.get(item.row) : undefined;
     if (!row) continue;
-    const linked = linkedValueOf(card, item, materials);
+    const linked = linkedValueOf(values, item, materials);
     if ('materialField' in item) {
       if (
         !linked ||
@@ -555,7 +543,7 @@ export function buildValueTable(
       isEditable: true,
       canRemove: true,
       note: isSpellingOf(item.name, TOTAL_WELL_VOLUME.word)
-        ? wellVolumeOnARow(assaySetupTitleOf(protocol.cards))
+        ? wellVolumeOnARow(assaySetupTitleOf(protocol))
         : '',
       neededFor: NOT_NEEDED,
       origin: 'typed',
@@ -595,7 +583,6 @@ export function buildValueTable(
 
   for (const subject of subjects) {
     const owner = rowForMaterial(subject.material);
-    if (!owner) continue;
     const row = subject.donor ? subRowOf(owner, subject.donor.name.trim()) : owner;
     const taken = new Set(row.cells.map(cell => cell.columnKey));
     const cells = [
@@ -609,13 +596,11 @@ export function buildValueTable(
     const plateMaterial = plateMaterialFor(plateMap, plates, allMaterials);
     const plateRow = plateMaterial
       ? rowForMaterial(plateMaterial)
-      : isFirstCard
-        ? draftRow(`plate:${plateMap.id}`, labwareTitle(plateMap), PLATE_GROUP_KEY, {
-            valueRow: undefined,
-            material: undefined,
-            status: 'current',
-          })
-        : undefined;
+      : draftRow(`plate:${plateMap.id}`, labwareTitle(plateMap), PLATE_GROUP_KEY, {
+          valueRow: undefined,
+          material: undefined,
+          status: 'current',
+        });
     for (const row of plateRows) {
       const { subject, variant, label } = plateSubject(row);
       if (unsorted.has(normalizeMaterialKey(subject))) continue;
@@ -635,7 +620,7 @@ export function buildValueTable(
       if (material !== undefined || owner !== undefined) {
         target = owner && tags.length ? subRowOf(owner, tags.join(' · ')) : owner;
         if (found && target && !target.swatch) target.swatch = swatchOf(subject);
-      } else if (plateRow) {
+      } else {
         target = subject ? subRowOf(plateRow, [subject, ...tags].join(' · ')) : plateRow;
         if (subject && !target.swatch) target.swatch = swatchOf(subject);
       }

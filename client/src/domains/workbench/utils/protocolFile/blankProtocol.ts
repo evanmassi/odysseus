@@ -12,6 +12,9 @@ export function blankProtocol(): Protocol {
     runNumber: '',
     runOn: { from: '', to: '' },
     pages: [page],
+    materials: { items: [], customGroups: [] },
+    values: { items: [], rows: [] },
+    calculations: { items: [], materialSections: [] },
     cards: [
       createCard('materials', { page: page.id, x: 0, y: 0, w: 12, h: 8 }),
       createCard('procedure', { page: page.id, x: 0, y: 8, w: 12, h: 10 }),

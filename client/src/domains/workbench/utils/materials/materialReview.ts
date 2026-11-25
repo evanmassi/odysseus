@@ -2,6 +2,7 @@ import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { guessMaterial, splitPastedMaterials, type MaterialKnowledge } from './materialGuesser';
 import { findAlreadyListed, materialFromGuess, mergeMaterialInto } from './materialItems';
+import { unfoldGroup } from './materialLookup';
 
 import type { LabMemory } from './materialMemory';
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
@@ -54,25 +55,20 @@ export function reviewActionLabel(rows: readonly MaterialReviewRow[]): string {
   return `${action.charAt(0).toUpperCase()}${action.slice(1)}`;
 }
 
-export function commitReviewRows(
-  protocol: Protocol,
-  cardId: string,
-  rows: readonly MaterialReviewRow[]
-): string[] {
-  const card = protocol.cards.find(candidate => candidate.id === cardId);
-  if (card?.type !== 'materials') return [];
+export function commitReviewRows(protocol: Protocol, rows: readonly MaterialReviewRow[]): string[] {
+  const { items } = protocol.materials;
   const freshIds = new Set<string>();
   for (const { item, alreadyListedId, isKeptBoth } of rows) {
-    const alreadyListed = card.items.find(candidate => candidate.id === alreadyListedId);
+    const alreadyListed = items.find(candidate => candidate.id === alreadyListedId);
     if (alreadyListed && !isKeptBoth) {
       mergeMaterialInto(alreadyListed, item);
       freshIds.add(alreadyListed.id);
       continue;
     }
     if (alreadyListed) protocol.keptBoth.push(normalizeMaterialKey(item.name));
-    card.items.push(item);
+    items.push(item);
     freshIds.add(item.id);
-    card.foldedGroups = card.foldedGroups.filter(group => group !== item.group);
+    unfoldGroup(protocol, item.group);
   }
   return [...freshIds];
 }

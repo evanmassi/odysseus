@@ -64,16 +64,7 @@ import {
 } from './WorkbenchCalculationWorkedOutGroup';
 
 import type { CalculationTableRowView } from './WorkbenchCalculationTable';
-import type {
-  CalculationsCard,
-  MaterialItem,
-  Protocol,
-  ProtocolCard,
-} from '@odysseus/shared-schemas';
-
-interface WorkbenchCalculationsPanelProps {
-  card: CalculationsCard;
-}
+import type { MaterialItem, Protocol, ProtocolCard } from '@odysseus/shared-schemas';
 
 interface GroupView {
   settings: WorkedOutSettings | undefined;
@@ -120,7 +111,10 @@ function linksOf(
   );
 }
 
-function prepWarnings(protocol: Pick<Protocol, 'cards'>, board: SolvedBoard) {
+function prepWarnings(
+  protocol: Pick<Protocol, 'cards' | 'materials' | 'values'>,
+  board: SolvedBoard
+) {
   const byLine = new Map<string, string[]>();
   for (const run of dilutionRuns(protocol)) {
     const prep = dilutionPrep(run, protocol, board, '');
@@ -133,8 +127,8 @@ function prepWarnings(protocol: Pick<Protocol, 'cards'>, board: SolvedBoard) {
   return byLine;
 }
 
-export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelProps) {
-  const protocol = useProtocolWith('materials', 'plateMap', 'calculations', 'dilutions');
+export function WorkbenchCalculationsPanel() {
+  const protocol = useProtocolWith('plateMap', 'dilutions');
   const board = useWorkbenchStore(state => state.board);
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
@@ -151,30 +145,23 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
   );
 
   const materials = useMemo(
-    () =>
-      protocol.cards
-        .flatMap(candidate => (candidate.type === 'materials' ? candidate.items : []))
-        .filter(item => item.name.trim()),
+    () => protocol.materials.items.filter(item => item.name.trim()),
     [protocol]
   );
   const swatchOf = usePlateSwatches();
-  const assaySetupTitle = assaySetupTitleOf(protocol.cards);
-  const showsWorkedOut =
-    protocol.cards.find(candidate => candidate.type === 'calculations')?.id === card.id;
+  const assaySetupTitle = assaySetupTitleOf(protocol);
   const sections = useMemo(
-    () => calculationSections(card, materials, board, showsWorkedOut, assaySetupTitle),
-    [card, materials, board, showsWorkedOut, assaySetupTitle]
+    () => calculationSections(protocol.calculations, materials, board, assaySetupTitle),
+    [protocol.calculations, materials, board, assaySetupTitle]
   );
   const warnings = useMemo(
     () =>
-      showsWorkedOut
-        ? new Map([
-            ...prepWarnings(protocol, board),
-            ...recipeWarnings(protocol, board),
-            ...cellWarnings(board),
-          ])
-        : new Map<string, string[]>(),
-    [protocol, board, showsWorkedOut]
+      new Map([
+        ...prepWarnings(protocol, board),
+        ...recipeWarnings(protocol, board),
+        ...cellWarnings(board),
+      ]),
+    [protocol, board]
   );
   const results = useStructuralSharing(
     useMemo(
@@ -183,8 +170,8 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
     )
   );
   const layout = useMemo(
-    () => calculationLayout(sections, board, card.materialSections),
-    [sections, board, card.materialSections]
+    () => calculationLayout(sections, board, protocol.calculations.materialSections),
+    [sections, board, protocol.calculations.materialSections]
   );
   const workedOut = useStructuralSharing(
     useMemo(() => {
@@ -246,7 +233,6 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
     edit(draft => {
       added = insertCalculation(
         draft,
-        card.id,
         { name, formula: expr },
         item => sectionOf(item.name),
         material?.id ?? GENERAL
@@ -277,7 +263,6 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
     edit(draft => {
       added = insertCalculation(
         draft,
-        card.id,
         { name: savedName, formula: expr },
         item => sectionOf(item.name),
         material?.id ?? GENERAL
@@ -291,7 +276,6 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
     edit(draft => {
       insertCalculation(
         draft,
-        card.id,
         { name: suggestion.name, formula: suggestion.formula },
         item => sectionOf(item.name),
         material?.id ?? GENERAL
@@ -348,7 +332,7 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
         onSuggest={suggestion => addSuggestion(material, suggestion)}
         onRemoveSection={
           material && !items.length && !groups.length
-            ? () => edit(draft => setCalculationSection(draft, card.id, material.id, false))
+            ? () => edit(draft => setCalculationSection(draft, material.id, false))
             : undefined
         }
       >
@@ -461,16 +445,14 @@ export function WorkbenchCalculationsPanel({ card }: WorkbenchCalculationsPanelP
           material={open.material}
           board={board}
           anchorOf={openRowBox}
-          onChange={change =>
-            edit(draft => updateCalculation(draft, card.id, open.calculation.id, change))
-          }
+          onChange={change => edit(draft => updateCalculation(draft, open.calculation.id, change))}
           onAddMissing={name =>
             edit(draft =>
               addNamedValue(draft, { name, value: '', unit: '' }, open.material, activePageId)
             )
           }
           onRemove={() => {
-            edit(draft => removeCalculation(draft, card.id, open.calculation.id));
+            edit(draft => removeCalculation(draft, open.calculation.id));
             setOpenId(undefined);
           }}
           onClose={() => setOpenId(undefined)}

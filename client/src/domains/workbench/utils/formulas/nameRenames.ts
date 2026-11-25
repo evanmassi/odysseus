@@ -63,17 +63,14 @@ export function applyRenames(
 ): void {
   const previousNames = [...new Set(knownNames.values())].sort((a, b) => b.length - a.length);
   const renamed = (text: string) => renames.byOldName.get(nameKey(text));
+  for (const item of draft.calculations.items) {
+    item.formula = rewriteExpression(item.formula, previousNames, renames);
+    const owner = [...renames.byItemPrefix.keys()].find(prefix =>
+      item.name.toLowerCase().startsWith(prefix)
+    );
+    if (owner) item.name = `${renames.byItemPrefix.get(owner)} ${item.name.slice(owner.length)}`;
+  }
   for (const card of draft.cards) {
-    if (card.type === 'calculations') {
-      for (const item of card.items) {
-        item.formula = rewriteExpression(item.formula, previousNames, renames);
-        const owner = [...renames.byItemPrefix.keys()].find(prefix =>
-          item.name.toLowerCase().startsWith(prefix)
-        );
-        if (owner)
-          item.name = `${renames.byItemPrefix.get(owner)} ${item.name.slice(owner.length)}`;
-      }
-    }
     if (card.type === 'plateMap') {
       for (const line of card.lines) {
         line.name = renamed(line.name) ?? line.name;

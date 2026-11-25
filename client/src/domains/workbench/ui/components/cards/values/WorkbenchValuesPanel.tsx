@@ -87,11 +87,7 @@ import type { ValueCellView } from './WorkbenchValueCell';
 import type { ValueColumnActions } from './WorkbenchValueHeaderRow';
 import type { FillOffer, ValueRowActions } from './WorkbenchValueTableRow';
 import type { ValueSuggestion } from '../../../../utils/values/valueSuggestions';
-import type { Protocol, ValuesCard } from '@odysseus/shared-schemas';
-
-interface WorkbenchValuesPanelProps {
-  card: ValuesCard;
-}
+import type { Protocol } from '@odysseus/shared-schemas';
 
 interface GeneralEdit {
   itemId: string;
@@ -191,8 +187,8 @@ const columnSuggestion = (group: ValueTableGroup, column: ValueTableColumn): Val
   label: column.label,
 });
 
-export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
-  const protocol = useProtocolWith('values', 'plateMap', 'materials');
+export function WorkbenchValuesPanel() {
+  const protocol = useProtocolWith('plateMap');
   const board = useWorkbenchStore(state => state.board);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
@@ -212,33 +208,27 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
     return () => clearTimeout(timer);
   }, [removed]);
 
-  const isFirstValuesCard =
-    protocol.cards.find(candidate => candidate.type === 'values')?.id === card.id;
   const materials = useMemo(() => materialsById(protocol), [protocol]);
-  const plateOffers = useWorkbenchData(state =>
-    isFirstValuesCard ? plateNameOffers(state.protocol) : []
-  );
-  const needs = useMemo(() => valueNeeds(protocol, card, board), [protocol, card, board]);
+  const plateOffers = useWorkbenchData(state => plateNameOffers(state.protocol));
+  const needs = useMemo(() => valueNeeds(protocol, board), [protocol, board]);
   const groups = useStructuralSharing(
     useMemo(
       () =>
-        buildValueTable(protocol, card, {
+        buildValueTable(protocol, {
           materials,
           board,
           needs,
           unsortedNames: plateOffers.map(offer => offer.name),
         }),
-      [protocol, card, materials, board, needs, plateOffers]
+      [protocol, materials, board, needs, plateOffers]
     )
   );
   const generalNeeds = useMemo(
     () =>
-      isFirstValuesCard
-        ? needs.flatMap(need =>
-            need.kind === 'absent' && need.routed.destination.kind === 'general' ? [need] : []
-          )
-        : [],
-    [needs, isFirstValuesCard]
+      needs.flatMap(need =>
+        need.kind === 'absent' && need.routed.destination.kind === 'general' ? [need] : []
+      ),
+    [needs]
   );
   const blankNeeds = useMemo(
     () =>
@@ -248,8 +238,11 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
     [needs]
   );
   const generalItems = useMemo(
-    () => valuesInRow(card, GENERAL).flatMap(item => ('materialField' in item ? [] : [item])),
-    [card]
+    () =>
+      valuesInRow(protocol.values, GENERAL).flatMap(item =>
+        'materialField' in item ? [] : [item]
+      ),
+    [protocol.values]
   );
   const usageIds = useMemo(
     () => [
@@ -264,12 +257,10 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
   const usage = useMemo(() => new Map(usageEntries), [usageEntries]);
   const fileFluors = useWorkbenchStore(state => state.protocol.fluors);
   const known = useMemo(
-    () => materialKnowledge(memory, { cards: protocol.cards, fluors: fileFluors }),
+    () => materialKnowledge(memory, { materials: protocol.materials, fluors: fileFluors }),
     [memory, protocol, fileFluors]
   );
-  const readings = useWorkbenchData(state =>
-    isFirstValuesCard ? readStepReadings(state.protocol, state.board).values : []
-  );
+  const readings = useWorkbenchData(state => readStepReadings(state.protocol, state.board).values);
   const takenNames = useMemo(() => new Set(board.names.keys()), [board]);
   const namedIds = useMemo(
     () => new Set([...board.names.values()].map(entry => entry.id)),
@@ -378,8 +369,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
 
   const setGeneralTitle = (title: string) =>
     edit(draft => {
-      const target = draft.cards.find(candidate => candidate.id === card.id);
-      if (target?.type === 'values') target.assaySetupTitle = title;
+      draft.values.assaySetupTitle = title;
     });
 
   const remove = (mutate: (draft: Protocol) => RemovedValues | undefined) => {
@@ -395,7 +385,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
   const undo = () => {
     if (!removed) return;
     const entry = removed;
-    edit(draft => restoreValues(draft, card.id, entry));
+    edit(draft => restoreValues(draft, entry));
     setRemoved(undefined);
   };
 
@@ -407,8 +397,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
     let added: string | undefined;
     edit(draft => {
       valueRowId =
-        row.valueRow?.id ??
-        (row.material ? addValueRow(draft, card.id, row.material.id) : undefined);
+        row.valueRow?.id ?? (row.material ? addValueRow(draft, row.material.id) : undefined);
       if (valueRowId) added = change(draft, valueRowId);
     });
     return { valueRowId, added };
@@ -420,7 +409,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
       .filter(column => column.origin === 'typed' && !onRow.has(column.key))
       .map(column => columnSuggestion(group, column));
     const valueRow = row.valueRow ?? (row.material && { id: row.id, materialId: row.material.id });
-    const usual = valueRow ? valueSuggestions(protocol, card, valueRow, row.material) : [];
+    const usual = valueRow ? valueSuggestions(protocol, valueRow, row.material) : [];
     const seen = new Set(fromColumns.map(suggestion => normalizeMaterialKey(suggestion.label)));
     return [
       ...fromColumns,
@@ -436,7 +425,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
     onEditName: setEditingNameRowId,
     onRename: (row, name) => {
       const { valueRow } = row;
-      if (valueRow) edit(draft => renameValueRow(draft, card.id, valueRow.id, name));
+      if (valueRow) edit(draft => renameValueRow(draft, valueRow.id, name));
     },
     onToggleAdd: rowId => setAddingRowId(current => (current === rowId ? undefined : rowId)),
     onFillColumn: (row, column) => {
@@ -444,7 +433,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
       if (!group) return;
       let added: string | undefined;
       edit(draft => {
-        added = addRoutedValue(draft, card.id, slotRoute(group, row, column));
+        added = addRoutedValue(draft, slotRoute(group, row, column));
       });
       setEditingCellId(added);
     },
@@ -455,22 +444,22 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
       const unit = columnUnit(group, cell.columnKey);
       let added: string | undefined;
       edit(draft => {
-        added = addRoutedValue(draft, card.id, { ...routed, line: { ...routed.line, unit } });
+        added = addRoutedValue(draft, { ...routed, line: { ...routed.line, unit } });
       });
       setEditingCellId(added);
     },
     onFillOthers: () => {
       if (!fillOffer) return;
       const { cell, targets } = fillOffer;
-      edit(draft => fillBlanks(draft, card.id, targets, cell.value, cell.unit));
+      edit(draft => fillBlanks(draft, targets, cell.value, cell.unit));
       setFillOfferCellId(undefined);
     },
-    onValueChange: (cell, value) => edit(draft => writeCellValue(draft, card.id, cell, value)),
-    onUnitChange: (cell, unit) => edit(draft => writeCellUnit(draft, card.id, cell, unit)),
+    onValueChange: (cell, value) => edit(draft => writeCellValue(draft, cell, value)),
+    onUnitChange: (cell, unit) => edit(draft => writeCellUnit(draft, cell, unit)),
     onRemoveCell: cell => {
       const { linkedTo: source } = cell;
       if (source.kind === 'item') {
-        remove(draft => removeValue(draft, card.id, source.itemId));
+        remove(draft => removeValue(draft, source.itemId));
       } else if (source.kind === 'plate') {
         setEditingCellId(undefined);
         setRemovingPlateRow(source.row);
@@ -478,7 +467,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
     },
     onRemoveRow: row => {
       const { valueRow } = row;
-      if (valueRow) remove(draft => removeValueRow(draft, card.id, valueRow.id));
+      if (valueRow) remove(draft => removeValueRow(draft, valueRow.id));
     },
   });
 
@@ -496,7 +485,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
     onRenameColumn: name => {
       const itemIds = columnEdit?.itemIds ?? [];
       edit(draft => {
-        for (const itemId of itemIds) renameValue(draft, card.id, itemId, name);
+        for (const itemId of itemIds) renameValue(draft, itemId, name);
       });
     },
     onStartFill: (groupKey, column) => setColumnFill(column && { groupKey, columnKey: column.key }),
@@ -504,7 +493,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
       const group = groups.find(candidate => candidate.key === groupKey);
       setColumnFill(undefined);
       if (!group) return;
-      edit(draft => fillBlanks(draft, card.id, fillTargets(group, column.key), value, unit));
+      edit(draft => fillBlanks(draft, fillTargets(group, column.key), value, unit));
     },
   });
 
@@ -515,15 +504,13 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
       suggestions={rowSuggestions(group, row)}
       isFocusedOnMount
       onAddLines={lines => {
-        const { valueRowId, added } = addToRow(row, (draft, id) =>
-          addValueLines(draft, card.id, lines, id)
-        );
+        const { valueRowId, added } = addToRow(row, (draft, id) => addValueLines(draft, lines, id));
         setAddingRowId(valueRowId);
         if (added) setEditingCellId(added);
       }}
       onSuggest={suggestion => {
         const { added } = addToRow(row, (draft, valueRowId) =>
-          addSuggestedValue(draft, card.id, valueRowId, suggestion)
+          addSuggestedValue(draft, valueRowId, suggestion)
         );
         setAddingRowId(undefined);
         setEditingCellId(added);
@@ -555,12 +542,12 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
       const target = moveTargetsByKey.get(targetKey);
       if (!target) return;
       setGeneralEdit(undefined);
-      edit(draft => moveValueToRow(draft, card.id, itemId, target));
+      edit(draft => moveValueToRow(draft, itemId, target));
     },
-    onRename: (itemId, name) => edit(draft => renameValue(draft, card.id, itemId, name)),
-    onValueChange: (itemId, value) => edit(draft => setValueAmount(draft, card.id, itemId, value)),
-    onUnitChange: (itemId, unit) => edit(draft => setValueUnit(draft, card.id, itemId, unit)),
-    onRemove: itemId => remove(draft => removeValue(draft, card.id, itemId)),
+    onRename: (itemId, name) => edit(draft => renameValue(draft, itemId, name)),
+    onValueChange: (itemId, value) => edit(draft => setValueAmount(draft, itemId, value)),
+    onUnitChange: (itemId, unit) => edit(draft => setValueUnit(draft, itemId, unit)),
+    onRemove: itemId => remove(draft => removeValue(draft, itemId)),
   });
 
   const hasUnsortedGroup = groups.some(group => group.key === UNSORTED_GROUP);
@@ -580,14 +567,14 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
           variant="bar"
           placeholder={`e.g. ${TOTAL_WELL_VOLUME.word} 80 µL, or paste a list`}
           guessFor={text => {
-            const routed = routeValueLine(protocol, card, text);
+            const routed = routeValueLine(protocol, text);
             return routed && routedValueGuess(routed, takenNames);
           }}
           onAddLines={lines => {
-            const routed = lines.flatMap(line => routeValueLine(protocol, card, line) ?? []);
+            const routed = lines.flatMap(line => routeValueLine(protocol, line) ?? []);
             let added: string | undefined;
             edit(draft => {
-              for (const value of routed) added = addRoutedValue(draft, card.id, value);
+              for (const value of routed) added = addRoutedValue(draft, value);
             });
             const [only] = routed;
             if (routed.length !== 1 || only.line.value || !added) return;
@@ -607,7 +594,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
           groups.length > 0 || unsortedRows.length > 0 ? (
             <span className="inline-edit">
               <input
-                value={card.assaySetupTitle ?? ASSAY_SETUP_TITLE}
+                value={protocol.values.assaySetupTitle ?? ASSAY_SETUP_TITLE}
                 placeholder="Name this row"
                 aria-label="Row name"
                 spellCheck={false}
@@ -640,7 +627,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
             onAdd={() => {
               let added: string | undefined;
               edit(draft => {
-                added = addRoutedValue(draft, card.id, need.routed);
+                added = addRoutedValue(draft, need.routed);
               });
               if (added) setGeneralEdit({ itemId: added, cell: 'value' });
             }}
@@ -720,7 +707,7 @@ export function WorkbenchValuesPanel({ card }: WorkbenchValuesPanelProps) {
           onClick={() => {
             let added: string | undefined;
             edit(draft => {
-              added = addValueRow(draft, card.id, undefined);
+              added = addValueRow(draft, undefined);
             });
             setEditingNameRowId(added);
           }}

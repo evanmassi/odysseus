@@ -31,9 +31,9 @@ import { WorkbenchFormulaCompletionList } from './WorkbenchFormulaCompletionList
 
 import type { SolvedBoard } from '../../../../utils/formulas/boardCalculation';
 import type { TrayInsertion } from '../../tray/insertTrayStore';
-import type { CalculationsCard, MaterialItem } from '@odysseus/shared-schemas';
+import type { MaterialItem, ProtocolCalculations } from '@odysseus/shared-schemas';
 
-type CalculationItem = CalculationsCard['items'][number];
+type CalculationItem = ProtocolCalculations['items'][number];
 
 interface WorkbenchCalculationEditorProps {
   calculation: CalculationItem;

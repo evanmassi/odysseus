@@ -53,8 +53,7 @@ describe('learnFromMaterials', () => {
 describe('rememberedKinds', () => {
   const protocolWith = (items: MaterialItem[]): Protocol => {
     const protocol = blankProtocol();
-    const card = protocol.cards.find(candidate => candidate.type === 'materials');
-    if (card?.type === 'materials') card.items = items;
+    protocol.materials.items = items;
     return protocol;
   };
 

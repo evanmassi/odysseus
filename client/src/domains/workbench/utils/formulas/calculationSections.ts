@@ -6,7 +6,7 @@ import { GENERAL } from '../values/valueNames';
 import { type CalculationName, type SolvedBoard, type WorkedOutGroup } from './boardCalculation';
 import { calculationMaterial, nameWithinOwner } from './formulaScopes';
 
-import type { CalculationsCard, MaterialItem } from '@odysseus/shared-schemas';
+import type { MaterialItem, ProtocolCalculations } from '@odysseus/shared-schemas';
 
 export interface WorkedOutView {
   group: WorkedOutGroup;
@@ -18,7 +18,7 @@ export interface CalculationSection {
   material: MaterialItem | undefined;
   owner: string;
   title: string;
-  items: CalculationsCard['items'];
+  items: ProtocolCalculations['items'];
   groups: WorkedOutView[];
 }
 
@@ -35,10 +35,9 @@ export function sectionKeyOf(
 }
 
 export function calculationSections(
-  card: CalculationsCard,
+  calculations: ProtocolCalculations,
   materials: readonly MaterialItem[],
   board: SolvedBoard,
-  showsWorkedOut: boolean,
   assaySetupTitle: string
 ): CalculationSection[] {
   const sections = new Map<string, CalculationSection>([
@@ -65,15 +64,13 @@ export function calculationSections(
       },
     ]),
   ]);
-  for (const item of card.items) {
+  for (const item of calculations.items) {
     sections.get(sectionKeyOf(item.name, undefined, materials))?.items.push(item);
   }
-  const worked = showsWorkedOut
-    ? [...board.names.values()].filter(
-        (entry): entry is CalculationName & { workedOut: WorkedOutGroup } =>
-          entry.kind === 'calculation' && !!entry.workedOut
-      )
-    : [];
+  const worked = [...board.names.values()].filter(
+    (entry): entry is CalculationName & { workedOut: WorkedOutGroup } =>
+      entry.kind === 'calculation' && !!entry.workedOut
+  );
   for (const line of worked) {
     const key = sectionKeyOf(line.name, line.workedOut, materials);
     const section = sections.get(key) ?? {
@@ -94,7 +91,7 @@ export function calculationSections(
       section.key === GENERAL ||
       section.items.length ||
       section.groups.length ||
-      (section.material && card.materialSections.includes(section.material.id))
+      (section.material && calculations.materialSections.includes(section.material.id))
   );
 }
 

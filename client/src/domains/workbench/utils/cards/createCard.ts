@@ -29,6 +29,11 @@ export function createCard<Type extends ProtocolCardType>(
 
 const NEW_CARD_WIDTH = 12;
 
+export const firstCardIdOf = (
+  protocol: Pick<Protocol, 'cards'>,
+  type: ProtocolCardType
+): string | undefined => protocol.cards.find(card => card.type === type)?.id;
+
 export function firstCardOrNew<Type extends ProtocolCardType>(
   draft: Protocol,
   type: Type

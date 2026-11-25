@@ -31,30 +31,25 @@ const cocktail = material('mix', 'Th17 cocktail', {
 function protocolWith(mixValues: Array<[name: string, value: string, unit: string]>): Protocol {
   return {
     pages: [{ id: 'page', name: 'Setup', steps: [] }],
+    materials: { items: [cocktail, material('il6', 'IL-6')], customGroups: [] },
+    values: {
+      rows: [{ id: 'th17', materialId: 'mix' }],
+      items: [
+        { id: 'well', name: 'Well volume', value: '80', unit: 'µL' },
+        { id: 'per-well', name: 'Volume per well', value: '20', unit: 'µL', row: 'th17' },
+        ...mixValues.map(([name, value, unit]) => ({
+          id: name,
+          name,
+          value,
+          unit,
+          row: 'th17',
+        })),
+      ],
+    },
+    calculations: { items: [], materialSections: [] },
     cards: [
-      {
-        id: 'materials',
-        type: 'materials',
-        page: 'page',
-        items: [cocktail, material('il6', 'IL-6')],
-      },
-      {
-        id: 'values',
-        type: 'values',
-        page: 'page',
-        rows: [{ id: 'th17', materialId: 'mix' }],
-        items: [
-          { id: 'well', name: 'Well volume', value: '80', unit: 'µL' },
-          { id: 'per-well', name: 'Volume per well', value: '20', unit: 'µL', row: 'th17' },
-          ...mixValues.map(([name, value, unit]) => ({
-            id: name,
-            name,
-            value,
-            unit,
-            row: 'th17',
-          })),
-        ],
-      },
+      { id: 'materials', type: 'materials', page: 'page' },
+      { id: 'values', type: 'values', page: 'page' },
     ],
   } as unknown as Protocol;
 }
@@ -82,9 +77,7 @@ describe('recipe finals in the well', () => {
       ['Working dilution', '2000', '1:N'],
       ['Vol./tube', '250', 'µL'],
     ]);
-    const values = protocol.cards.find(card => card.type === 'values');
-    if (values?.type !== 'values') throw new Error('no values block');
-    values.items.push({ id: 'tube', name: 'Total tube vol.', value: '500', unit: 'µL' });
+    protocol.values.items.push({ id: 'tube', name: 'Total tube vol.', value: '500', unit: 'µL' });
     const mix = { valueId: 'th17' };
     protocol.cards.push({
       id: 'plate',
@@ -110,8 +103,7 @@ describe('recipe finals in the well', () => {
 
   it('reads the well total and the mix’s per-well volume under their other spellings', () => {
     const protocol = protocolWith([['Working dilution', '2000', '1:N']]);
-    const values = protocol.cards.find(card => card.type === 'values');
-    if (values?.type !== 'values') throw new Error('no values block');
+    const { values } = protocol;
     values.items = values.items.map(item =>
       'name' in item && item.name === 'Well volume'
         ? { ...item, name: 'Total well vol.' }

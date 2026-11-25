@@ -7,7 +7,7 @@ import { materialsById } from './valueEdits';
 import { fillBlanks, fillTargets } from './valueFill';
 import { buildValueTable } from './valueTable';
 
-import type { Protocol, ValuesCard } from '@odysseus/shared-schemas';
+import type { Protocol } from '@odysseus/shared-schemas';
 
 const sampleEntry = (id: string, name: string) => ({
   id,
@@ -25,37 +25,34 @@ const sampleEntry = (id: string, name: string) => ({
 
 const protocol = {
   cards: [
-    {
-      id: 'materials',
-      type: 'materials',
-      items: [
-        sampleEntry('raji', 'Raji'),
-        sampleEntry('jurkat', 'Jurkat'),
-        sampleEntry('k562', 'K562'),
-      ],
-    },
-    {
-      id: 'values',
-      type: 'values',
-      rows: [
-        { id: 'sec-raji', materialId: 'raji' },
-        { id: 'sec-jurkat', materialId: 'jurkat' },
-        { id: 'sec-k562', materialId: 'k562' },
-      ],
-      items: [
-        { id: 'raji-per', row: 'sec-raji', name: 'Per well', value: '1e4', unit: 'cells' },
-        { id: 'jurkat-per', row: 'sec-jurkat', name: 'Per well', value: '', unit: '' },
-        { id: 'k562-vol', row: 'sec-k562', name: 'Volume per well', value: '50', unit: 'µL' },
-      ],
-    },
+    { id: 'materials', type: 'materials' },
+    { id: 'values', type: 'values' },
   ],
+  materials: {
+    items: [
+      sampleEntry('raji', 'Raji'),
+      sampleEntry('jurkat', 'Jurkat'),
+      sampleEntry('k562', 'K562'),
+    ],
+    customGroups: [],
+  },
+  values: {
+    rows: [
+      { id: 'sec-raji', materialId: 'raji' },
+      { id: 'sec-jurkat', materialId: 'jurkat' },
+      { id: 'sec-k562', materialId: 'k562' },
+    ],
+    items: [
+      { id: 'raji-per', row: 'sec-raji', name: 'Per well', value: '1e4', unit: 'cells' },
+      { id: 'jurkat-per', row: 'sec-jurkat', name: 'Per well', value: '', unit: '' },
+      { id: 'k562-vol', row: 'sec-k562', name: 'Volume per well', value: '50', unit: 'µL' },
+    ],
+  },
+  calculations: { items: [], materialSections: [] },
 } as unknown as Protocol;
 
-const valuesOf = (current: Protocol) =>
-  current.cards.find((card): card is ValuesCard => card.type === 'values')!;
-
 function bioGroup(current: Protocol) {
-  const [group] = buildValueTable(current, valuesOf(current), {
+  const [group] = buildValueTable(current, {
     materials: materialsById(current),
     board: calculateBoard(collectBoardNames(current)),
     needs: [],
@@ -65,8 +62,8 @@ function bioGroup(current: Protocol) {
 }
 
 const perWell = (current: Protocol) =>
-  valuesOf(current)
-    .items.filter(item => 'name' in item && item.name === 'Per well')
+  current.values.items
+    .filter(item => 'name' in item && item.name === 'Per well')
     .map(item => ('value' in item ? [item.row, item.value, item.unit] : []));
 
 describe('filling blanks in a column', () => {
@@ -78,7 +75,7 @@ describe('filling blanks in a column', () => {
   it('fills every blank with one value and unit in a single change, leaving filled ones alone', () => {
     const group = bioGroup(protocol);
     const filled = produce(protocol, draft =>
-      fillBlanks(draft, 'values', fillTargets(group, 'per well'), '2e4', 'cells')
+      fillBlanks(draft, fillTargets(group, 'per well'), '2e4', 'cells')
     );
     expect(perWell(filled)).toEqual([
       ['sec-raji', '1e4', 'cells'],

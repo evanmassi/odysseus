@@ -40,13 +40,11 @@ export const findMaterial = (
   findNamed(materials, name, item => item.name) ??
   findNamed(materials.filter(shortNameOf), name, shortNameOf);
 
-export const listedMaterials = (protocol: Pick<Protocol, 'cards'>): MaterialItem[] =>
-  protocol.cards
-    .flatMap(card => (card.type === 'materials' ? card.items : []))
-    .filter(item => !item.isSetAside && item.name.trim());
+export const listedMaterials = (protocol: Pick<Protocol, 'materials'>): MaterialItem[] =>
+  protocol.materials.items.filter(item => !item.isSetAside && item.name.trim());
 
 export const materialNamed = (
-  protocol: Pick<Protocol, 'cards'>,
+  protocol: Pick<Protocol, 'materials'>,
   name: string
 ): MaterialItem | undefined => findMaterial(listedMaterials(protocol), name);
 
@@ -57,9 +55,17 @@ export function ensureMaterial(
 ): MaterialItem {
   const existing = materialNamed(draft, name);
   if (existing) return existing;
-  const card = firstCardOrNew(draft, 'materials');
   const created = createMaterial(name);
-  card.items.push(created);
-  card.foldedGroups = card.foldedGroups.filter(group => group !== created.group);
+  draft.materials.items.push(created);
+  firstCardOrNew(draft, 'materials');
+  unfoldGroup(draft, created.group);
   return created;
+}
+
+export function unfoldGroup(draft: Pick<Protocol, 'cards'>, group: string): void {
+  for (const card of draft.cards) {
+    if (card.type === 'materials') {
+      card.foldedGroups = card.foldedGroups.filter(folded => folded !== group);
+    }
+  }
 }

@@ -26,8 +26,8 @@ import type {
 
 const RAIL_GROUPS: ReadonlyArray<[string, ProtocolCardType[]]> = [
   ['Inputs', ['materials', 'flowCytometryPanel']],
-  ['Write', ['text', 'procedure', 'flowDiagram', 'sketch']],
-  ['Numbers', ['values', 'calculations', 'dilutions', 'table']],
+  ['Write', ['procedure', 'flowDiagram']],
+  ['Numbers', ['values', 'calculations', 'dilutions']],
   ['Layout', ['plateMap']],
 ];
 

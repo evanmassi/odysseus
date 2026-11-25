@@ -103,9 +103,7 @@ export function useFlowCytometryActions(card: FlowCytometryPanelCard): FlowCytom
         }),
       writeMaterial: (materialId, key, value) =>
         updateProtocol(draft => {
-          const item = draft.cards
-            .flatMap(candidate => (candidate.type === 'materials' ? candidate.items : []))
-            .find(candidate => candidate.id === materialId);
+          const item = draft.materials.items.find(candidate => candidate.id === materialId);
           if (item) writeMaterialField(item, fieldFor(item, key), value);
         }),
       addStains: stains =>

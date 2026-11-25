@@ -34,21 +34,7 @@ const listOf = (item: MaterialItem): ExperimentDonors => {
 
 const withMaterials = (...items: MaterialItem[]): Protocol => {
   const protocol = blankProtocol();
-  protocol.cards.push({
-    id: 'm',
-    type: 'materials',
-    title: 'Materials',
-    page: protocol.pages[0].id,
-    x: 0,
-    y: 0,
-    w: 6,
-    h: 6,
-    isCollapsed: false,
-    foldedGroups: [],
-    customGroups: [],
-    isSetAsideOpen: false,
-    items,
-  });
+  protocol.materials.items = items;
   return protocol;
 };
 
@@ -185,8 +171,6 @@ describe('making a material a donor', () => {
       },
     });
     expect(donorsIn(protocol)).toHaveLength(1);
-    expect(protocol.cards.flatMap(card => (card.type === 'materials' ? card.items : []))).toEqual([
-      host,
-    ]);
+    expect(protocol.materials.items).toEqual([host]);
   });
 });

@@ -24,7 +24,6 @@ import { INSERT_TRAY_ATTRIBUTE, isInInsertTray } from './trayFocus';
 import { PICK_NAME_ATTRIBUTE, PICK_OPERATOR_ATTRIBUTE, useTrayPickDrag } from './useTrayPickDrag';
 
 const FORMULA_OPERATORS = ['+', '−', '×', '÷', '(', ')', ','] as const;
-const NO_CUSTOM_GROUPS: readonly string[] = [];
 const TRAY_GAP_PX = 6;
 const VIEWPORT_MARGIN_PX = 8;
 const MIN_WIDTH_PX = 320;
@@ -67,9 +66,8 @@ export function WorkbenchNameTray() {
 
   const mode = target?.mode;
   const materials = useMemo(() => listedMaterials(protocol), [protocol]);
-  const assaySetupTitle = assaySetupTitleOf(protocol.cards);
-  const customGroups =
-    protocol.cards.find(card => card.type === 'materials')?.customGroups ?? NO_CUSTOM_GROUPS;
+  const assaySetupTitle = assaySetupTitleOf(protocol);
+  const { customGroups } = protocol.materials;
   const allGroups = useMemo(
     () =>
       mode

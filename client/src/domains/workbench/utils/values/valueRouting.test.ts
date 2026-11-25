@@ -1,7 +1,7 @@
 import { addRoutedValue } from './valueEdits';
 import { routedValueGuess, routeValueLine, rowValueGuess } from './valueRouting';
 
-import type { MaterialItem, Protocol, ValuesCard } from '@odysseus/shared-schemas';
+import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
 const material = (
   id: string,
@@ -23,38 +23,30 @@ const material = (
   recipe: [],
 });
 
-function protocolWith(): { protocol: Protocol; card: ValuesCard } {
-  const card = {
-    id: 'values',
-    type: 'values',
-    items: [],
-    rows: [{ id: 'mix', mixName: 'Th17 cocktail' }],
-  } as unknown as ValuesCard;
-  const protocol = {
+function protocolWith(): Protocol {
+  return {
     cards: [
-      {
-        id: 'materials',
-        type: 'materials',
-        items: [
-          material('raji', 'Raji', 'bio', 'Cell line'),
-          material('luc', 'Raji Luc', 'bio', 'Cell line'),
-          material('medium', 'ImmunoCult™-XF T Cell Expansion Medium', 'media', 'Medium', {
-            'short-name': 'ImmunoCult XF',
-          }),
-          material('spinner', 'Centrifuge', 'equip', 'Instrument'),
-        ],
-      },
-      card,
+      { id: 'materials', type: 'materials' },
+      { id: 'values', type: 'values' },
     ],
+    materials: {
+      items: [
+        material('raji', 'Raji', 'bio', 'Cell line'),
+        material('luc', 'Raji Luc', 'bio', 'Cell line'),
+        material('medium', 'ImmunoCult™-XF T Cell Expansion Medium', 'media', 'Medium', {
+          'short-name': 'ImmunoCult XF',
+        }),
+        material('spinner', 'Centrifuge', 'equip', 'Instrument'),
+      ],
+      customGroups: [],
+    },
+    values: { items: [], rows: [{ id: 'mix', mixName: 'Th17 cocktail' }] },
+    calculations: { items: [], materialSections: [] },
     diluent: '',
   } as unknown as Protocol;
-  return { protocol, card };
 }
 
-const routed = (text: string) => {
-  const { protocol, card } = protocolWith();
-  return routeValueLine(protocol, card, text);
-};
+const routed = (text: string) => routeValueLine(protocolWith(), text);
 
 describe('routing a typed value', () => {
   it('keeps a line that starts with no material or mix for Assay setup or Unsorted', () => {
@@ -122,31 +114,30 @@ describe('routing a typed value', () => {
 
 describe('adding routed values', () => {
   it('makes one row for a material however many of its values arrive together', () => {
-    const { protocol, card } = protocolWith();
+    const protocol = protocolWith();
     for (const text of ['Raji per well 10000 cells', 'Raji volume per well 50 µL']) {
-      const value = routeValueLine(protocol, card, text);
-      if (value) addRoutedValue(protocol, 'values', value);
+      const value = routeValueLine(protocol, text);
+      if (value) addRoutedValue(protocol, value);
     }
-    const rajiRows = card.rows.filter(
+    const rajiRows = protocol.values.rows.filter(
       valueRow => 'materialId' in valueRow && valueRow.materialId === 'raji'
     );
     expect(rajiRows).toHaveLength(1);
-    expect(card.items.map(item => ('name' in item ? item.name : ''))).toEqual([
+    expect(protocol.values.items.map(item => ('name' in item ? item.name : ''))).toEqual([
       'Cells/well',
       'Vol./well',
     ]);
   });
 
   it('writes a field on the material and links it on the row once', () => {
-    const { protocol, card } = protocolWith();
+    const protocol = protocolWith();
     for (const text of ['Raji count 1e6 cells/mL', 'Raji count 2e6 cells/mL']) {
-      const value = routeValueLine(protocol, card, text);
-      if (value) addRoutedValue(protocol, 'values', value);
+      const value = routeValueLine(protocol, text);
+      if (value) addRoutedValue(protocol, value);
     }
-    const [materials] = protocol.cards;
-    const raji = materials.type === 'materials' ? materials.items[0] : undefined;
-    expect(raji?.values['total-cell-conc']).toBe('2e6');
-    expect(raji?.shownFields).toContain('total-cell-conc');
-    expect(card.items.filter(item => 'materialField' in item)).toHaveLength(1);
+    const [raji] = protocol.materials.items;
+    expect(raji.values['total-cell-conc']).toBe('2e6');
+    expect(raji.shownFields).toContain('total-cell-conc');
+    expect(protocol.values.items.filter(item => 'materialField' in item)).toHaveLength(1);
   });
 });

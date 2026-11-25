@@ -30,7 +30,7 @@ export interface PlatedCells {
   placements: CellPlacement[];
 }
 
-export function platedCells(protocol: Pick<Protocol, 'cards'>): PlatedCells[] {
+export function platedCells(protocol: Pick<Protocol, 'cards' | 'materials'>): PlatedCells[] {
   const materials = listedMaterials(protocol).filter(item => !item.isSetAside);
   const matches = donorsIn(protocol);
   const plated = new Map<string, PlatedCells>();

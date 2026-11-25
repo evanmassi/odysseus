@@ -3,7 +3,7 @@ import { collectBoardNames } from '../formulas/boardNames';
 
 import { valueNeeds } from './valueNeeds';
 
-import type { Protocol, ValuesCard } from '@odysseus/shared-schemas';
+import type { Protocol, ProtocolValues } from '@odysseus/shared-schemas';
 
 const item = (id: string, name: string, group: string, recipe: unknown[] = []) => ({
   id,
@@ -19,24 +19,23 @@ const item = (id: string, name: string, group: string, recipe: unknown[] = []) =
   recipe,
 });
 
-function needsFor(items: ValuesCard['items']) {
-  const values = { id: 'values', type: 'values', rows: [], items } as unknown as ValuesCard;
+function needsFor(items: ProtocolValues['items']) {
   const protocol = {
     cards: [
-      {
-        id: 'materials',
-        type: 'materials',
-        items: [
-          item('mix', 'Stain mix', 'ab', [
-            { id: 'r1', materialId: 'cd3', amount: '2', unit: 'µL' },
-          ]),
-          item('cd3', 'CD3', 'ab'),
-        ],
-      },
-      values,
+      { id: 'materials', type: 'materials' },
+      { id: 'values', type: 'values' },
     ],
+    materials: {
+      items: [
+        item('mix', 'Stain mix', 'ab', [{ id: 'r1', materialId: 'cd3', amount: '2', unit: 'µL' }]),
+        item('cd3', 'CD3', 'ab'),
+      ],
+      customGroups: [],
+    },
+    values: { rows: [], items },
+    calculations: { items: [], materialSections: [] },
   } as unknown as Protocol;
-  return valueNeeds(protocol, values, calculateBoard(collectBoardNames(protocol)));
+  return valueNeeds(protocol, calculateBoard(collectBoardNames(protocol)));
 }
 
 describe('valueNeeds', () => {

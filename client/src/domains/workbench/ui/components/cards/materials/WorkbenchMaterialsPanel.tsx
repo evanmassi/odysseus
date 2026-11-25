@@ -122,10 +122,10 @@ const FIXED_CELLS = ['name', 'type'];
 const NAME_CELL = 'name';
 
 export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) {
-  const materialCards = useCardsOf('materials');
+  const materials = useWorkbenchStore(state => state.protocol.materials);
   const plateCards = useCardsOf('plateMap');
   const flowCytometryPanelCards = useCardsOf('flowCytometryPanel');
-  const materialsOnly = useMemo(() => ({ cards: materialCards }), [materialCards]);
+  const materialsOnly = useMemo(() => ({ materials }), [materials]);
   const takenNameIdList = useWorkbenchData(state => [...state.board.takenNameIds]);
   const takenNameIds = useMemo(() => new Set(takenNameIdList), [takenNameIdList]);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
@@ -147,18 +147,20 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
   );
   const fileFluors = useWorkbenchStore(state => state.protocol.fluors);
   const known = useMemo(
-    () => materialKnowledge(memory, { cards: materialCards, fluors: fileFluors }),
-    [memory, materialCards, fileFluors]
+    () => materialKnowledge(memory, { materials, fluors: fileFluors }),
+    [memory, materials, fileFluors]
   );
-  const adding = useMaterialAdding(card, known, markFresh);
-  const removal = useMaterialRemoval(card, id => markFresh([id]));
+  const adding = useMaterialAdding(known, markFresh);
+  const removal = useMaterialRemoval(id => markFresh([id]));
   const { removed } = removal;
 
   const sections = useMemo(
     () =>
-      materialGroupsOf(card.customGroups)
+      materialGroupsOf(materials.customGroups)
         .map(group => {
-          const items = card.items.filter(item => item.group === group.key && !item.isSetAside);
+          const items = materials.items.filter(
+            item => item.group === group.key && !item.isSetAside
+          );
           return {
             group,
             items,
@@ -175,10 +177,10 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
         .sort(
           (x, y) => Number(y.group.key === UNSORTED_GROUP) - Number(x.group.key === UNSORTED_GROUP)
         ),
-    [card.items, card.customGroups, card.foldedGroups, removed]
+    [materials, card.foldedGroups, removed]
   );
-  const setAsideItems = card.items.filter(item => item.isSetAside);
-  const itemIds = useMemo(() => card.items.map(item => item.id), [card.items]);
+  const setAsideItems = materials.items.filter(item => item.isSetAside);
+  const itemIds = useMemo(() => materials.items.map(item => item.id), [materials.items]);
   const usageEntries = useWorkbenchData(state => [
     ...nameUsage(state.protocol, state.board, itemIds),
   ]);
@@ -188,9 +190,8 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
     () => new Map(diluentUseList.map(use => [use.materialId, use])),
     [diluentUseList]
   );
-  const isFirstMaterialsCard = materialCards[0]?.id === card.id;
-  const readings = useWorkbenchData(state =>
-    isFirstMaterialsCard ? readStepReadings(state.protocol, state.board).materials : []
+  const readings = useWorkbenchData(
+    state => readStepReadings(state.protocol, state.board).materials
   );
   const allMaterials = useMemo(() => materialsById(materialsOnly), [materialsOnly]);
   const recipeUsers = useMemo(() => recipesUsing([...allMaterials.values()]), [allMaterials]);
@@ -202,9 +203,7 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
     () => panelDetectorLabels({ cards: flowCytometryPanelCards }),
     [flowCytometryPanelCards]
   );
-  const plateOffers = useWorkbenchData(state =>
-    isFirstMaterialsCard ? plateNameOffers(state.protocol) : []
-  );
+  const plateOffers = useWorkbenchData(state => plateNameOffers(state.protocol));
   const donorTargets = useMemo(() => donorTargetsOf(materialsOnly), [materialsOnly]);
   const cellOrder = useMemo(
     () =>
@@ -224,12 +223,10 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
   const updateItem = useCallback(
     (itemId: string, recipe: (item: MaterialItem, draft: Protocol) => void) =>
       updateProtocol(draft => {
-        const target = draft.cards.find(candidate => candidate.id === card.id);
-        const item =
-          target?.type === 'materials' ? target.items.find(i => i.id === itemId) : undefined;
+        const item = draft.materials.items.find(candidate => candidate.id === itemId);
         if (item) recipe(item, draft);
       }),
-    [card.id, updateProtocol]
+    [updateProtocol]
   );
 
   const nameAtStart = useRef<{ itemId: string; name: string }>();
@@ -272,12 +269,12 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
 
   useEffect(() => {
     if (isEditingCell) return;
-    const timer = setTimeout(() => learnFromMaterials(card.items), LEARN_DELAY_MS);
+    const timer = setTimeout(() => learnFromMaterials(materials.items), LEARN_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [card.items, isEditingCell, learnFromMaterials]);
+  }, [materials.items, isEditingCell, learnFromMaterials]);
 
   const setItemKind = (itemId: string, { group, type }: MaterialTypeSelection) => {
-    const name = card.items.find(item => item.id === itemId)?.name ?? '';
+    const name = materials.items.find(item => item.id === itemId)?.name ?? '';
     updateItem(itemId, item => applyMaterialType(item, group, type, memory));
     rememberKind(name, group, type);
     editing.stop();
@@ -409,7 +406,7 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
   const plateNames = useMemo(() => plateOffers.map(offer => offer.name), [plateOffers]);
 
   const updateGroupItems = (group: string, recipe: (items: MaterialItem[]) => void) =>
-    updateCard(draft => recipe(draft.items.filter(item => item.group === group)));
+    updateProtocol(draft => recipe(draft.materials.items.filter(item => item.group === group)));
 
   const sectionActions = useStableActions<MaterialSectionActions>({
     hideColumn: (group, fieldKey) =>
@@ -439,12 +436,12 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
     if (!target || !trimmed) return;
     const sameLabel = (candidate: { label: string }) =>
       candidate.label.toLowerCase() === trimmed.toLowerCase();
-    if (!materialGroupsOf(card.customGroups).some(sameLabel)) {
-      updateCard(draft => {
-        draft.customGroups.push(trimmed);
+    if (!materialGroupsOf(materials.customGroups).some(sameLabel)) {
+      updateProtocol(draft => {
+        draft.materials.customGroups.push(trimmed);
       });
     }
-    const group = materialGroupsOf([...card.customGroups, trimmed]).find(sameLabel);
+    const group = materialGroupsOf([...materials.customGroups, trimmed]).find(sameLabel);
     if (!group) return;
     const kind = { group: group.key, type: OTHER_TYPE };
     if (target.place === 'guess') adding.chooseKind(kind);
@@ -456,8 +453,8 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
     <div className="px-4 py-3">
       <WorkbenchMaterialAddBar
         adding={adding}
-        items={card.items}
-        customGroups={card.customGroups}
+        items={materials.items}
+        customGroups={materials.customGroups}
         onNewGroup={setGroupDialogTarget}
       />
       <div className="space-y-7">
@@ -479,7 +476,7 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
                   items={section.items}
                   columns={section.columns}
                   conflicts={section.conflicts}
-                  customGroups={card.customGroups}
+                  customGroups={materials.customGroups}
                   usage={usage}
                   recipeOf={item => recipeLines(item, allMaterials)}
                   recipeUsers={recipeUsers}

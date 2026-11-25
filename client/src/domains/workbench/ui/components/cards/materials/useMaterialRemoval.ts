@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { useUpdateCard } from '../../../../hooks/useUpdateCard';
+import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 
-import type { MaterialItem, MaterialsCard } from '@odysseus/shared-schemas';
+import type { MaterialItem, ProtocolMaterials } from '@odysseus/shared-schemas';
 
 export interface RemovedMaterial {
   item: MaterialItem;
@@ -17,8 +17,11 @@ const UNDO_WINDOW_MS = 8000;
 const groupPeers = (items: readonly MaterialItem[], item: MaterialItem) =>
   items.filter(other => other.group === item.group && !other.isSetAside);
 
-export function useMaterialRemoval(card: MaterialsCard, onRestored: (id: string) => void) {
-  const updateCard = useUpdateCard(card);
+export function useMaterialRemoval(onRestored: (id: string) => void) {
+  const items = useWorkbenchStore(state => state.protocol.materials.items);
+  const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
+  const updateMaterials = (recipe: (materials: ProtocolMaterials) => void) =>
+    updateProtocol(draft => recipe(draft.materials));
   const [removed, setRemoved] = useState<RemovedMaterial>();
   const timer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -35,10 +38,10 @@ export function useMaterialRemoval(card: MaterialsCard, onRestored: (id: string)
       item,
       isFromSetAside: false,
       verb: 'Set aside',
-      placeIndex: groupPeers(card.items, item).indexOf(item),
-      index: card.items.indexOf(item),
+      placeIndex: groupPeers(items, item).indexOf(item),
+      index: items.indexOf(item),
     });
-    updateCard(draft => {
+    updateMaterials(draft => {
       const target = draft.items.find(candidate => candidate.id === item.id);
       if (target) target.isSetAside = true;
     });
@@ -46,22 +49,22 @@ export function useMaterialRemoval(card: MaterialsCard, onRestored: (id: string)
 
   const remove = (item: MaterialItem) => {
     const peers = item.isSetAside
-      ? card.items.filter(other => other.isSetAside)
-      : groupPeers(card.items, item);
+      ? items.filter(other => other.isSetAside)
+      : groupPeers(items, item);
     leaveUndo({
       item,
       isFromSetAside: item.isSetAside,
       verb: 'Removed',
       placeIndex: peers.indexOf(item),
-      index: card.items.indexOf(item),
+      index: items.indexOf(item),
     });
-    updateCard(draft => {
+    updateMaterials(draft => {
       draft.items = draft.items.filter(candidate => candidate.id !== item.id);
     });
   };
 
   const restoreSetAside = (item: MaterialItem) => {
-    updateCard(draft => {
+    updateMaterials(draft => {
       const target = draft.items.find(candidate => candidate.id === item.id);
       if (target) target.isSetAside = false;
     });
@@ -72,7 +75,7 @@ export function useMaterialRemoval(card: MaterialsCard, onRestored: (id: string)
     if (!removed) return;
     clearTimeout(timer.current);
     setRemoved(undefined);
-    updateCard(draft => {
+    updateMaterials(draft => {
       if (removed.verb === 'Set aside') {
         const target = draft.items.find(candidate => candidate.id === removed.item.id);
         if (target) target.isSetAside = false;

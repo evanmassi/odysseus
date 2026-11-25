@@ -14,39 +14,31 @@ function boardWith(): Protocol {
   setup.steps = [
     { id: 's1', kind: 'step', level: 1, text: 'Add {Per well} to each well', isMeanwhile: false },
   ];
-  for (const card of protocol.cards) {
-    if (card.type === 'values')
-      card.items = [{ id: 'v1', name: 'Per well', value: '100', unit: 'µL' }];
-    if (card.type === 'calculations')
-      card.items = [{ id: 'f1', name: 'Total', formula: 'Per well * 96', unit: 'auto' }];
-    if (card.type === 'materials') {
-      card.items = [
-        {
-          id: 'm1',
-          group: 'chem',
-          type: 'Drug or inhibitor',
-          name: 'Drug',
-          shownFields: ['stock-concentration'],
-          values: { 'stock-concentration': '10' },
-          units: { 'stock-concentration': 'mM' },
-          customFields: [],
-          fieldLabels: {},
-          isSetAside: false,
-          recipe: [],
-        },
-      ];
-    }
-  }
+  protocol.values.items = [{ id: 'v1', name: 'Per well', value: '100', unit: 'µL' }];
+  protocol.calculations.items = [
+    { id: 'f1', name: 'Total', formula: 'Per well * 96', unit: 'auto' },
+  ];
+  protocol.materials.items = [
+    {
+      id: 'm1',
+      group: 'chem',
+      type: 'Drug or inhibitor',
+      name: 'Drug',
+      shownFields: ['stock-concentration'],
+      values: { 'stock-concentration': '10' },
+      units: { 'stock-concentration': 'mM' },
+      customFields: [],
+      fieldLabels: {},
+      isSetAside: false,
+      recipe: [],
+    },
+  ];
   return protocol;
 }
 
 const { getState } = useWorkbenchStore;
 
-const cardOf = <Type extends Protocol['cards'][number]['type']>(type: Type) => {
-  const card = getState().protocol.cards.find(candidate => candidate.type === type);
-  if (card?.type !== type) throw new Error(`no ${type}`);
-  return card as Extract<Protocol['cards'][number], { type: Type }>;
-};
+const calculationItems = () => getState().protocol.calculations.items;
 
 beforeEach(() => getState().openProtocol(boardWith(), 'test.json'));
 
@@ -59,44 +51,37 @@ describe('workbenchStore', () => {
 
   it('carries a value rename into formulas and step references', () => {
     getState().updateProtocol(draft => {
-      const values = draft.cards.find(card => card.type === 'values');
-      if (values?.type === 'values')
-        values.items[0] = { ...values.items[0], name: 'Volume per well' };
+      draft.values.items[0] = { ...draft.values.items[0], name: 'Volume per well' };
     });
-    expect(cardOf('calculations').items[0].formula).toBe('Volume per well * 96');
+    expect(calculationItems()[0].formula).toBe('Volume per well * 96');
     expect(getState().protocol.pages[0].steps[0].text).toBe('Add {Volume per well} to each well');
     expect(getState().board.results.get('f1')).toMatchObject({ status: 'ok' });
     expect(selectIsDirty(getState())).toBe(true);
   });
 
   it('carries a value moved onto a material’s row into formulas and step references', () => {
-    const valuesCardId = cardOf('values').id;
     getState().updateProtocol(draft =>
-      moveValueToRow(draft, valuesCardId, 'v1', { kind: 'material', materialId: 'm1' })
+      moveValueToRow(draft, 'v1', { kind: 'material', materialId: 'm1' })
     );
-    expect(cardOf('values').items).toMatchObject([{ id: 'v1', name: 'Per well' }]);
-    expect(cardOf('calculations').items[0].formula).toBe('Drug per well * 96');
+    expect(getState().protocol.values.items).toMatchObject([{ id: 'v1', name: 'Per well' }]);
+    expect(calculationItems()[0].formula).toBe('Drug per well * 96');
     expect(getState().protocol.pages[0].steps[0].text).toBe('Add {Drug per well} to each well');
     expect(getState().board.results.get('f1')).toMatchObject({ status: 'ok' });
   });
 
   it('carries a material rename into the names built from it', () => {
     getState().updateProtocol(draft => {
-      const calculationsCard = draft.cards.find(card => card.type === 'calculations');
-      if (calculationsCard?.type === 'calculations') {
-        calculationsCard.items.push({
-          id: 'f2',
-          name: 'Drug top',
-          formula: 'Drug stock concentration / 1000',
-          unit: 'auto',
-        });
-      }
+      draft.calculations.items.push({
+        id: 'f2',
+        name: 'Drug top',
+        formula: 'Drug stock concentration / 1000',
+        unit: 'auto',
+      });
     });
     getState().updateProtocol(draft => {
-      const materials = draft.cards.find(card => card.type === 'materials');
-      if (materials?.type === 'materials') materials.items[0].name = 'Compound';
+      draft.materials.items[0].name = 'Compound';
     });
-    expect(cardOf('calculations').items[1]).toMatchObject({
+    expect(calculationItems()[1]).toMatchObject({
       name: 'Compound top',
       formula: 'Compound stock concentration / 1000',
     });
@@ -152,22 +137,18 @@ describe('workbenchStore', () => {
 
     it('removes a typed value once the plate provides the same name', () => {
       getState().updateProtocol(draft => {
-        const values = draft.cards.find(card => card.type === 'values');
-        if (values?.type === 'values')
-          values.items.push({ id: 'v2', name: 'Drug final conc.', value: '5', unit: 'µM' });
+        draft.values.items.push({ id: 'v2', name: 'Drug final conc.', value: '5', unit: 'µM' });
       });
       addPlate({ 'p:A1': { l: { valueId: 'd', amount: '5', unit: 'µM' } } });
-      expect(cardOf('values').items.map(item => item.id)).toEqual(['v1']);
+      expect(getState().protocol.values.items.map(item => item.id)).toEqual(['v1']);
     });
   });
 
   describe('renaming a donor', () => {
     beforeEach(() =>
       getState().updateProtocol(draft => {
-        const materials = draft.cards.find(card => card.type === 'materials');
-        if (materials?.type !== 'materials') return;
         const pbmc = {
-          ...materials.items[0],
+          ...draft.materials.items[0],
           id: 'pbmc',
           group: 'bio',
           type: 'Primary cells',
@@ -183,7 +164,7 @@ describe('workbenchStore', () => {
           values: { 'live-cell-conc': '2000000' },
           units: {},
         });
-        materials.items.push(pbmc);
+        draft.materials.items.push(pbmc);
         const plateMap = createCard('plateMap', {
           page: draft.pages[0].id,
           x: 0,
@@ -204,11 +185,7 @@ describe('workbenchStore', () => {
 
     const renameDonor = (name: string) =>
       getState().updateProtocol(draft => {
-        const materials = draft.cards.find(card => card.type === 'materials');
-        const donor =
-          materials?.type === 'materials'
-            ? materials.items.find(item => item.id === 'pbmc')?.donors?.rows[0]
-            : undefined;
+        const donor = draft.materials.items.find(item => item.id === 'pbmc')?.donors?.rows[0];
         if (!donor) return;
         const from = donor.name;
         donor.name = name;
@@ -217,18 +194,16 @@ describe('workbenchStore', () => {
 
     it('carries the rename into a formula that uses its cell math', () => {
       getState().updateProtocol(draft => {
-        const calculations = draft.cards.find(card => card.type === 'calculations');
-        if (calculations?.type === 'calculations')
-          calculations.items.push({
-            id: 'f2',
-            name: 'Spare cells',
-            formula: 'Donor 1 total needed * 2',
-            unit: 'auto',
-          });
+        draft.calculations.items.push({
+          id: 'f2',
+          name: 'Spare cells',
+          formula: 'Donor 1 total needed * 2',
+          unit: 'auto',
+        });
       });
       expect(getState().board.results.get('f2')).toMatchObject({ status: 'ok' });
       renameDonor('D1');
-      expect(cardOf('calculations').items[1].formula).toBe('D1 total needed * 2');
+      expect(calculationItems()[1].formula).toBe('D1 total needed * 2');
       expect(getState().board.results.get('f2')).toMatchObject({ status: 'ok' });
     });
 

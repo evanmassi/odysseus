@@ -22,22 +22,19 @@ const P2_WELLS = ['p2:A1', 'p2:A2'];
 
 function twoPlateProtocol(materialName = STIM_NAME): Protocol {
   return produce(blankProtocol(), draft => {
-    const materials = draft.cards.find(card => card.type === 'materials');
-    if (materials?.type === 'materials') {
-      materials.items.push({
-        id: 'stim',
-        group: 'bio',
-        type: 'Microbial strain',
-        name: materialName,
-        shownFields: [],
-        values: {},
-        units: {},
-        customFields: [],
-        fieldLabels: {},
-        isSetAside: false,
-        recipe: [],
-      });
-    }
+    draft.materials.items.push({
+      id: 'stim',
+      group: 'bio',
+      type: 'Microbial strain',
+      name: materialName,
+      shownFields: [],
+      values: {},
+      units: {},
+      customFields: [],
+      fieldLabels: {},
+      isSetAside: false,
+      recipe: [],
+    });
     const map = createCard('plateMap', { page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
     if (map.type !== 'plateMap') return;
     map.id = 'map';

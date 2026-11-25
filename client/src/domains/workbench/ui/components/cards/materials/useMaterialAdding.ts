@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from 'react';
 
 import { produce } from 'immer';
 
-import { useUpdateCard } from '../../../../hooks/useUpdateCard';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { keepFluorsUsedBy } from '../../../../utils/fluors/fileFluors';
@@ -25,7 +24,7 @@ import {
 } from '../../../../utils/materials/materialReview';
 
 import type { MaterialTypeSelection } from './materialSelectOptions';
-import type { MaterialItem, MaterialsCard } from '@odysseus/shared-schemas';
+import type { MaterialItem } from '@odysseus/shared-schemas';
 
 export interface PasteReview {
   source: string;
@@ -42,13 +41,12 @@ const PASTE_SOURCE = 'the paste';
 const SET_BY_YOU = 'set by you';
 
 export function useMaterialAdding(
-  card: MaterialsCard,
   known: MaterialKnowledge,
   onAdded: (freshIds: readonly string[]) => void
 ) {
   const keptBoth = useWorkbenchStore(state => state.protocol.keptBoth);
+  const items = useWorkbenchStore(state => state.protocol.materials.items);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
-  const updateCard = useUpdateCard(card);
   const memory = useMaterialMemoryStore(state => state.memory);
   const rememberKind = useMaterialMemoryStore(state => state.rememberKind);
   const [text, setText] = useState('');
@@ -62,8 +60,8 @@ export function useMaterialAdding(
     const guessed = guessMaterial(text, known);
     const guess = chosenKind ? { ...guessed, ...chosenKind, why: SET_BY_YOU } : guessed;
     const item = materialFromGuess(guess, memory);
-    return { guess, item, alreadyListed: findAlreadyListed(card.items, item, keptBoth) };
-  }, [text, chosenKind, known, memory, card.items, keptBoth]);
+    return { guess, item, alreadyListed: findAlreadyListed(items, item, keptBoth) };
+  }, [text, chosenKind, known, memory, items, keptBoth]);
 
   const finishAdding = (freshIds: readonly string[]) => {
     setText('');
@@ -76,7 +74,7 @@ export function useMaterialAdding(
   const commit = (rows: readonly MaterialReviewRow[]) => {
     let freshIds: string[] = [];
     updateProtocol(draft => {
-      freshIds = commitReviewRows(draft, card.id, rows);
+      freshIds = commitReviewRows(draft, rows);
       keepFluorsUsedBy(
         draft,
         rows.map(row => row.item),
@@ -101,12 +99,12 @@ export function useMaterialAdding(
 
   const submit = () => {
     if (!preview) return;
-    const row = reviewRow(card.items, keptBoth, preview.item, '');
+    const row = reviewRow(items, keptBoth, preview.item, '');
     if (chosenKind) rememberKind(row.item.name, row.item.group, row.item.type);
     if (preview.alreadyListed?.isSetAside) {
       const { id } = preview.alreadyListed;
-      updateCard(draft => {
-        const setAsideItem = draft.items.find(item => item.id === id);
+      updateProtocol(draft => {
+        const setAsideItem = draft.materials.items.find(item => item.id === id);
         if (setAsideItem) setAsideItem.isSetAside = false;
       });
       finishAdding([id]);
@@ -122,7 +120,7 @@ export function useMaterialAdding(
 
   const pasteText = (pasted: string): boolean => {
     if (!hasMultipleLines(pasted)) return false;
-    const rows = pastedReviewRows(pasted, card.items, keptBoth, known, memory);
+    const rows = pastedReviewRows(pasted, items, keptBoth, known, memory);
     if (rows.length) setPaste({ source: PASTE_SOURCE, rows });
     return true;
   };

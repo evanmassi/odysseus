@@ -1,4 +1,5 @@
 import { nameKey, type BoardName, type WorkedOutGroup } from '../formulas/boardCalculation';
+import { listedMaterials } from '../materials/materialLookup';
 import { stainedSampleCounts } from '../plateMap/stainSide';
 import {
   COCKTAIL,
@@ -197,12 +198,7 @@ export function flowCytometryCalculationNames(
   protocol: Protocol,
   taken: readonly BoardName[]
 ): BoardName[] {
-  const materials = new Map(
-    protocol.cards
-      .flatMap(card => (card.type === 'materials' ? card.items : []))
-      .filter(item => item.name.trim() && !item.isSetAside)
-      .map(item => [item.id, item])
-  );
+  const materials = new Map(listedMaterials(protocol).map(item => [item.id, item]));
   const samples = stainedSampleCounts(
     protocol.cards.filter((card): card is PlateMapCard => card.type === 'plateMap')
   );

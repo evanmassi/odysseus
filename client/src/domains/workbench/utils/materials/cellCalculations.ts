@@ -1,5 +1,6 @@
 import { UNIT_REGISTRY, type Protocol } from '@odysseus/shared-schemas';
 
+import { firstCardIdOf } from '../cards/createCard';
 import {
   nameKey,
   type SolvedBoard,
@@ -255,7 +256,7 @@ function subjectNames(
 
 export function cellCalculationNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  const materialsCardId = protocol.cards.find(card => card.type === 'materials')?.id;
+  const materialsCardId = firstCardIdOf(protocol, 'materials');
   return platedCells(protocol).flatMap(plated => subjectNames(plated, names, materialsCardId));
 }
 

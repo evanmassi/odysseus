@@ -47,6 +47,9 @@ function protocolWith(
   );
   return {
     pages: [{ id: 'page', name: 'Setup', steps: [] }],
+    materials: { items: materials, customGroups: [] },
+    values: { items: values.map((line, index) => ({ id: `v${index}`, ...line })), rows: [] },
+    calculations: { items: [], materialSections: [] },
     cards: [
       {
         id: 'materials',
@@ -56,7 +59,6 @@ function protocolWith(
         y: 0,
         w: 12,
         h: 4,
-        items: materials,
         foldedGroups: [],
       },
       {
@@ -83,8 +85,6 @@ function protocolWith(
         y: 4,
         w: 6,
         h: 6,
-        items: values.map((line, index) => ({ id: `v${index}`, ...line })),
-        rows: [],
       },
     ],
     diluent: '',
@@ -98,8 +98,7 @@ const doseSeries: PlateSeries = {
   direction: 'right',
 };
 const withDiluent = (diluent: string): PlateSeries => ({ ...doseSeries, prep: { diluent } });
-const valuesOf = (protocol: Protocol) =>
-  protocol.cards.flatMap(card => (card.type === 'values' ? card.items : []));
+const valuesOf = (protocol: Protocol) => protocol.values.items;
 const drugStock = material(
   'Drug X',
   { 'stock-concentration': '10' },
@@ -233,7 +232,7 @@ describe('dilution prep', () => {
       value: '20',
       unit: 'µL',
       isAssaySetup: false,
-      edit: { kind: 'source', source: { kind: 'item', cardId: 'values', itemId: 'v1' } },
+      edit: { kind: 'source', source: { kind: 'item', itemId: 'v1' } },
     });
     expect(own.shared.totalWellVolume).toMatchObject({ value: '80', isAssaySetup: true });
     expect(shared.strength).toBe('4×');
@@ -378,8 +377,7 @@ describe('dilution edits', () => {
     );
     const plateMap = protocol.cards[1];
     expect(plateMap.type === 'plateMap' && plateMap.series['s'].prep).toEqual({ roundTo: '10' });
-    const materials = protocol.cards[0];
-    expect(materials.type === 'materials' && materials.items[0]).toMatchObject({
+    expect(protocol.materials.items[0]).toMatchObject({
       name: 'Drug X',
       values: { 'stock-concentration': '5' },
       units: { 'stock-concentration': 'mM' },
@@ -392,8 +390,7 @@ describe('dilution edits', () => {
     setSharedPrepValue(protocol, 'Drug X', before.shared.totalWellVolume, '100', 'page');
     setSharedPrepValue(protocol, 'Drug X', before.shared.volumePerWell, '25', 'page');
     setSharedPrepValue(protocol, 'Drug X', before.shared.extra, '', 'page');
-    const values = protocol.cards.find(card => card.type === 'values');
-    if (values?.type !== 'values') throw new Error('no Values card');
+    const { values } = protocol;
     expect(values.rows).toEqual([{ id: expect.any(String), materialId: 'Drug X' }]);
     expect(values.items).toEqual([
       { id: 'v0', name: 'Total well vol.', value: '100', unit: 'µL' },

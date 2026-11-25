@@ -147,7 +147,7 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
             color={run.color}
             swatch={indicatorOf(run)}
             prep={prep}
-            assaySetupTitle={assaySetupTitleOf(protocol.cards)}
+            assaySetupTitle={assaySetupTitleOf(protocol)}
             diluent={ownDiluent(run)}
             diluentPlaceholder={protocol.diluent.trim() || DILUENT_HINT}
             diluentChoices={diluentChoices}

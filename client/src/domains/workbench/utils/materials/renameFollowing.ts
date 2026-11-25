@@ -36,7 +36,7 @@ const isNameOnAnyWell = (protocol: Pick<Protocol, 'cards'>, name: string): boole
     );
   });
 
-const isNameListed = (protocol: Pick<Protocol, 'cards'>, name: string): boolean =>
+const isNameListed = (protocol: Pick<Protocol, 'materials'>, name: string): boolean =>
   findMaterial(listedMaterials(protocol), name) !== undefined ||
   findDonor(donorsIn(protocol), name) !== undefined;
 

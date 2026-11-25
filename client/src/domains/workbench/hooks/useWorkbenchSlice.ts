@@ -24,13 +24,21 @@ export const useProtocolOutsidePages = (): ProtocolOutsidePages =>
 export const useWorkbenchData = <Value>(select: (state: WorkbenchState) => Value): Value =>
   useStoreWithEqualityFn(useWorkbenchStore, select, isSameData);
 
-export function useProtocolWith(...types: ProtocolCard['type'][]): Pick<Protocol, 'cards'> {
+type ProtocolData = Pick<Protocol, 'cards' | 'materials' | 'values' | 'calculations'>;
+
+export function useProtocolWith(...types: ProtocolCard['type'][]): ProtocolData {
   const cards = useStoreWithEqualityFn(
     useWorkbenchStore,
     state => state.protocol.cards.filter(card => types.includes(card.type)),
     isSameEntries
   );
-  return useMemo(() => ({ cards: cards }), [cards]);
+  const materials = useWorkbenchStore(state => state.protocol.materials);
+  const values = useWorkbenchStore(state => state.protocol.values);
+  const calculations = useWorkbenchStore(state => state.protocol.calculations);
+  return useMemo(
+    () => ({ cards, materials, values, calculations }),
+    [cards, materials, values, calculations]
+  );
 }
 
 export const useCardsOf = <Type extends ProtocolCard['type']>(

@@ -41,8 +41,14 @@ function protocolWith(
   );
   return {
     pages: [{ id: 'page', name: 'Setup', steps: [] }],
+    materials: { items: [pbmc(live)], customGroups: [] },
+    values: {
+      rows: [],
+      items: values.map(([name, value, unit]) => ({ id: name, name, value, unit })),
+    },
+    calculations: { items: [], materialSections: [] },
     cards: [
-      { id: 'materials', type: 'materials', page: 'page', items: [pbmc(live)] },
+      { id: 'materials', type: 'materials', page: 'page' },
       {
         id: 'plate',
         type: 'plateMap',
@@ -58,13 +64,7 @@ function protocolWith(
         stain: {},
         stainedIn: {},
       },
-      {
-        id: 'values',
-        type: 'values',
-        page: 'page',
-        rows: [],
-        items: values.map(([name, value, unit]) => ({ id: name, name, value, unit })),
-      },
+      { id: 'values', type: 'values', page: 'page' },
     ],
   } as unknown as Protocol;
 }
@@ -162,8 +162,7 @@ describe('cell math for a donor in tubes', () => {
   const inWellsAndTubes = (values: Array<[string, string, string]>): Protocol => {
     const protocol = inTubes([['PBMC volume per well', '100', 'µL'], ...values]);
     const plateMap = protocol.cards.find(card => card.type === 'plateMap');
-    const materials = protocol.cards.find(card => card.type === 'materials');
-    if (plateMap?.type !== 'plateMap' || materials?.type !== 'materials') throw new Error('cards');
+    if (plateMap?.type !== 'plateMap') throw new Error('no plate map');
     const cells = (amount: string) => ({ d: { valueId: 'v1', amount, unit: 'cells' } });
     plateMap.plates = [{ id: 'p', labware: '96', name: '' }];
     plateMap.otherLabware = [{ id: 't', labware: 'facs', count: 2 }];
@@ -171,7 +170,7 @@ describe('cell math for a donor in tubes', () => {
       ...Object.fromEntries(['A1', 'A2', 'A3'].map(well => [`p:${well}`, cells('1e5')])),
       ...Object.fromEntries([1, 2].map(n => [`t#${n}:1`, cells('5e5')])),
     };
-    const [donor] = materials.items[0].donors?.rows ?? [];
+    const [donor] = protocol.materials.items[0].donors?.rows ?? [];
     donor.values = { 'cells-per-vial': '5e6', 'live-cells': '1e7', 'live-cell-conc': '2e6' };
     return protocol;
   };
@@ -235,24 +234,20 @@ describe('cell math for cells diluted from a stock', () => {
     );
     return {
       ...base,
-      cards: base.cards.map(card => {
-        if (card.type === 'materials') return { ...card, items: [hkca] };
-        if (card.type === 'plateMap') {
-          return {
-            ...card,
-            samples: cells,
-            lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'HKCA' }] }],
-          };
-        }
-        if (card.type === 'values') {
-          return {
-            ...card,
-            rows: [{ id: 's', materialId: 'hkca' }],
-            items: [{ id: 'vol', name: 'Volume per well', value: '20', unit: 'µL', row: 's' }],
-          };
-        }
-        return card;
-      }),
+      materials: { items: [hkca], customGroups: [] },
+      values: {
+        rows: [{ id: 's', materialId: 'hkca' }],
+        items: [{ id: 'vol', name: 'Volume per well', value: '20', unit: 'µL', row: 's' }],
+      },
+      cards: base.cards.map(card =>
+        card.type === 'plateMap'
+          ? {
+              ...card,
+              samples: cells,
+              lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'HKCA' }] }],
+            }
+          : card
+      ),
     } as Protocol;
   }
 
@@ -299,27 +294,23 @@ describe('cell math from the counts', () => {
     );
     return {
       ...base,
-      cards: base.cards.map(card => {
-        if (card.type === 'materials') return { ...card, items: [raji(values)] };
-        if (card.type === 'plateMap') {
-          return {
-            ...card,
-            samples: cells,
-            lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'Raji' }] }],
-          };
-        }
-        if (card.type === 'values') {
-          return {
-            ...card,
-            rows: [{ id: 's', materialId: 'raji' }],
-            items: [
-              { id: 'vol', name: 'Vol./well', value: '100', unit: 'µL', row: 's' },
-              { id: 'extra', name: 'Extra (dead vol.)', value: '20', unit: '%' },
-            ],
-          };
-        }
-        return card;
-      }),
+      materials: { items: [raji(values)], customGroups: [] },
+      values: {
+        rows: [{ id: 's', materialId: 'raji' }],
+        items: [
+          { id: 'vol', name: 'Vol./well', value: '100', unit: 'µL', row: 's' },
+          { id: 'extra', name: 'Extra (dead vol.)', value: '20', unit: '%' },
+        ],
+      },
+      cards: base.cards.map(card =>
+        card.type === 'plateMap'
+          ? {
+              ...card,
+              samples: cells,
+              lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'Raji' }] }],
+            }
+          : card
+      ),
     } as Protocol;
   }
 

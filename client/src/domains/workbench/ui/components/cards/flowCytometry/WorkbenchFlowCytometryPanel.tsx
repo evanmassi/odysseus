@@ -3,7 +3,8 @@ import { useMemo } from 'react';
 import { HeaderStrip, PanelEmptyState, Select, Tooltip } from '@shared/ui';
 
 import { useFluorCatalog } from '../../../../hooks/useFluorCatalog';
-import { useCardsOf, useProtocolWith, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
+import { useCardsOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
+import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { BUILT_IN_CYTOMETERS } from '../../../../utils/flowCytometry/cytometerCatalog';
 import {
   stainAmountId,
@@ -58,8 +59,8 @@ const COLUMNS_BESIDE_AMOUNTS = 10;
 
 export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPanelProps) {
   const actions = useFlowCytometryActions(card);
-  const { cards: cards } = useProtocolWith('materials');
-  const materials = useMemo(() => listedMaterials({ cards: cards }), [cards]);
+  const materialList = useWorkbenchStore(state => state.protocol.materials);
+  const materials = useMemo(() => listedMaterials({ materials: materialList }), [materialList]);
   const catalog = useFluorCatalog();
   const layout = useMemo(() => panelLayout(card, materials, catalog), [card, materials, catalog]);
   const stainings = useMemo(() => panelStainings(card), [card]);

@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import { Button, ScrollArea, Select, Tooltip } from '@shared/ui';
 
 import { usePlateSwatches } from '../../../../hooks/usePlateSwatches';
-import { useCardsOf } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { materialGroup } from '../../../../utils/materials/materialCatalog';
@@ -38,16 +37,16 @@ interface WorkbenchMaterialPlateNamesSectionProps {
 export function WorkbenchMaterialPlateNamesSection({
   offers,
 }: WorkbenchMaterialPlateNamesSectionProps) {
-  const materialCards = useCardsOf('materials');
+  const materials = useWorkbenchStore(state => state.protocol.materials);
   const fileFluors = useWorkbenchStore(state => state.protocol.fluors);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
   const swatchOf = usePlateSwatches();
   const known = useMemo(
-    () => materialKnowledge(memory, { cards: materialCards, fluors: fileFluors }),
-    [memory, materialCards, fileFluors]
+    () => materialKnowledge(memory, { materials, fluors: fileFluors }),
+    [memory, materials, fileFluors]
   );
-  const materialsOnly = useMemo(() => ({ cards: materialCards }), [materialCards]);
+  const materialsOnly = useMemo(() => ({ materials }), [materials]);
   const donorTargets = useMemo(() => donorTargetsOf(materialsOnly), [materialsOnly]);
   const materialChoices = useMemo(
     () =>

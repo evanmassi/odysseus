@@ -192,7 +192,7 @@ export function rememberFluors(memory: LabMemory, fluors: readonly ProtocolFluor
 
 export function materialKnowledge(
   memory: LabMemory,
-  protocol: Pick<Protocol, 'cards' | 'fluors'>
+  protocol: Pick<Protocol, 'fluors' | 'materials'>
 ): MaterialKnowledge {
   const fileFluorKeys = new Set(protocol.fluors.map(fluor => normalizeMaterialKey(fluor.name)));
   const rememberedFluors = Object.values(memory.fluors).filter(
@@ -206,7 +206,7 @@ export function materialKnowledge(
 
 function knownTypes(
   memory: LabMemory,
-  protocol: Pick<Protocol, 'cards'>
+  protocol: Pick<Protocol, 'materials'>
 ): Map<string, RememberedMaterialType> {
   const known = new Map<string, RememberedMaterialType>();
   for (const [key, material] of Object.entries(memory.materials)) {
@@ -216,16 +216,13 @@ function knownTypes(
       why: 'from your earlier protocols',
     });
   }
-  for (const card of protocol.cards) {
-    if (card.type !== 'materials') continue;
-    for (const item of card.items) {
-      if (!item.name.trim() || item.group === UNSORTED_GROUP) continue;
-      known.set(normalizeMaterialKey(item.name), {
-        group: item.group,
-        type: item.type,
-        why: 'already in this protocol',
-      });
-    }
+  for (const item of protocol.materials.items) {
+    if (!item.name.trim() || item.group === UNSORTED_GROUP) continue;
+    known.set(normalizeMaterialKey(item.name), {
+      group: item.group,
+      type: item.type,
+      why: 'already in this protocol',
+    });
   }
   for (const [key, kind] of Object.entries(memory.knownTypes)) known.set(key, kind);
   return known;

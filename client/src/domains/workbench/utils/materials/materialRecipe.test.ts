@@ -18,11 +18,11 @@ const material = (id: string, name: string): MaterialItem => ({
 
 const protocolWith = (items: MaterialItem[]) =>
   ({
-    cards: [{ id: 'materials', type: 'materials', items, foldedGroups: [] }],
+    materials: { items, customGroups: [] },
+    cards: [{ id: 'materials', type: 'materials', foldedGroups: [] }],
   }) as unknown as Protocol;
 
-const itemsOf = (protocol: Protocol) =>
-  protocol.cards.flatMap(card => (card.type === 'materials' ? card.items : []));
+const itemsOf = (protocol: Protocol) => protocol.materials.items;
 
 describe('recipes', () => {
   it('adds a typed ingredient, linking a listed material or adding a new one', () => {

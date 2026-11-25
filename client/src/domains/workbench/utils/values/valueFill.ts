@@ -69,14 +69,9 @@ function writeCount(draft: Protocol, { materialId, donorId, count }: CountSource
   if (material.donors && donor) writeDonorField(material.donors, donor, field.key, value);
 }
 
-export function writeCellValue(
-  draft: Protocol,
-  cardId: string,
-  cell: ValueCell,
-  value: string
-): void {
+export function writeCellValue(draft: Protocol, cell: ValueCell, value: string): void {
   const link = cell.linkedTo;
-  if (link.kind === 'item') setValueAmount(draft, cardId, link.itemId, value);
+  if (link.kind === 'item') setValueAmount(draft, link.itemId, value);
   else if (link.kind === 'count') writeCount(draft, link, value);
   else if (link.kind === 'plate') setPlateRowValue(draft, link.row, value);
   else if (link.kind === 'recipe') {
@@ -84,14 +79,9 @@ export function writeCellValue(
   }
 }
 
-export function writeCellUnit(
-  draft: Protocol,
-  cardId: string,
-  cell: ValueCell,
-  unit: string
-): void {
+export function writeCellUnit(draft: Protocol, cell: ValueCell, unit: string): void {
   const link = cell.linkedTo;
-  if (link.kind === 'item') setValueUnit(draft, cardId, link.itemId, unit);
+  if (link.kind === 'item') setValueUnit(draft, link.itemId, unit);
   else if (link.kind === 'plate') setPlateRowUnit(draft, link.row, unit);
   else if (link.kind === 'recipe') {
     editRecipeEntry(draft, link.materialId, link.entryId, { unit });
@@ -100,23 +90,22 @@ export function writeCellUnit(
 
 export function fillBlanks(
   draft: Protocol,
-  cardId: string,
   targets: readonly FillTarget[],
   value: string,
   unit: string
 ): void {
   for (const target of targets) {
     if (target.kind === 'slot') {
-      addRoutedValue(draft, cardId, {
+      addRoutedValue(draft, {
         ...target.routed,
         line: { ...target.routed.line, value, unit },
       });
       continue;
     }
     const { cell } = target;
-    writeCellValue(draft, cardId, cell, value);
+    writeCellValue(draft, cell, value);
     if (cell.units === undefined || cell.units.includes(unit)) {
-      writeCellUnit(draft, cardId, cell, unit);
+      writeCellUnit(draft, cell, unit);
     }
   }
 }

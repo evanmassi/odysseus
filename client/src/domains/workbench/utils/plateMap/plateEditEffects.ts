@@ -22,15 +22,13 @@ export function removeValuesTwinnedByPlate(
   );
   if (!newPlateNames.size) return;
   const materials = materialsById(draft);
-  for (const card of draft.cards) {
-    if (card.type !== 'values') continue;
-    card.items = card.items.filter(item => {
-      if ('materialField' in item) return true;
-      const valueRow = card.rows.find(candidate => candidate.id === item.row);
-      const fullName = valueRow
-        ? joinValueName(valueRowName(valueRow, materials), item.name)
-        : item.name;
-      return !newPlateNames.has(nameKey(fullName));
-    });
-  }
+  const { values } = draft;
+  values.items = values.items.filter(item => {
+    if ('materialField' in item) return true;
+    const valueRow = values.rows.find(candidate => candidate.id === item.row);
+    const fullName = valueRow
+      ? joinValueName(valueRowName(valueRow, materials), item.name)
+      : item.name;
+    return !newPlateNames.has(nameKey(fullName));
+  });
 }

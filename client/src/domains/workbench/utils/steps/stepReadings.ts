@@ -15,7 +15,7 @@ import {
   VOLUME_PER_WELL,
 } from '../terms/termList';
 import { findAmounts } from '../units/textAmounts';
-import { insertAfterPeers } from '../values/valueEdits';
+import { insertAfterPeers, materialRowId } from '../values/valueEdits';
 import { joinValueName } from '../values/valueNames';
 
 import { stepNumbers } from './stepNumbering';
@@ -155,11 +155,6 @@ function phraseAt(text: string, start: number): Phrase | undefined {
 const isNotMaterial = (phrase: Phrase) =>
   NOT_MATERIALS.has(phrase.name.split(' ')[0].toLowerCase());
 
-const boardMaterials = (protocol: Protocol): MaterialItem[] =>
-  protocol.cards
-    .flatMap(card => (card.type === 'materials' ? card.items : []))
-    .filter(item => item.name.trim());
-
 function conditionNoun(textBefore: string): string | undefined {
   const sentence = textBefore.split(SENTENCE_BREAK).pop() ?? '';
   const bases = (sentence.match(WORD) ?? []).map(word => stepVerbBase(word));
@@ -168,7 +163,7 @@ function conditionNoun(textBefore: string): string | undefined {
 }
 
 export function readStepReadings(protocol: Protocol, board: SolvedBoard): StepReadings {
-  const listed = boardMaterials(protocol);
+  const listed = protocol.materials.items.filter(item => item.name.trim());
   const onBoard = new Map([
     ...listed
       .filter(shortNameOf)
@@ -317,16 +312,9 @@ function addValueFor(
   material: MaterialItem | undefined,
   reading: ValueReading
 ): string {
-  const card = firstCardOrNew(draft, 'values');
-  let valueRow = material
-    ? card.rows.find(candidate => 'materialId' in candidate && candidate.materialId === material.id)
-    : undefined;
-  if (material && !valueRow) {
-    valueRow = { id: createId(), materialId: material.id };
-    card.rows.push(valueRow);
-  }
-  const valueRowId = valueRow?.id ?? '';
-  insertAfterPeers(card, valueRowId, [
+  firstCardOrNew(draft, 'values');
+  const valueRowId = material ? materialRowId(draft, material.id) : '';
+  insertAfterPeers(draft.values, valueRowId, [
     {
       id: createId(),
       name: reading.label,

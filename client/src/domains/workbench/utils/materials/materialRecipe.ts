@@ -12,11 +12,8 @@ export interface RecipeLine {
   ingredient: MaterialItem | undefined;
 }
 
-const allMaterials = (protocol: Protocol): MaterialItem[] =>
-  protocol.cards.flatMap(card => (card.type === 'materials' ? card.items : []));
-
 const materialIn = (protocol: Protocol, id: string) =>
-  allMaterials(protocol).find(item => item.id === id);
+  protocol.materials.items.find(item => item.id === id);
 
 export const recipeLines = (
   item: MaterialItem,

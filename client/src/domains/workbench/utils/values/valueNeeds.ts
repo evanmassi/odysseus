@@ -2,7 +2,7 @@ import { nameKey, type CalculationName, type SolvedBoard } from '../formulas/boa
 
 import { routeParsedLine, type RoutedValue } from './valueRouting';
 
-import type { Protocol, ValuesCard } from '@odysseus/shared-schemas';
+import type { Protocol } from '@odysseus/shared-schemas';
 
 export type ValueNeed =
   | { kind: 'blank'; id: string; neededFor: string[] }
@@ -22,8 +22,7 @@ export function neededForText(neededFor: readonly string[]): string {
 }
 
 export function valueNeeds(
-  protocol: Pick<Protocol, 'cards'>,
-  card: ValuesCard,
+  protocol: Pick<Protocol, 'materials' | 'values'>,
   board: SolvedBoard
 ): ValueNeed[] {
   const calculations = new Map(
@@ -57,7 +56,7 @@ export function valueNeeds(
     ...[...absent.values()].map(
       ({ name, neededFor }): ValueNeed => ({
         kind: 'absent',
-        routed: routeParsedLine(protocol, card, { name, value: '', unit: '' }),
+        routed: routeParsedLine(protocol, { name, value: '', unit: '' }),
         neededFor: [...neededFor],
       })
     ),

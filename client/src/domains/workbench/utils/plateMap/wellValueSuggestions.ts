@@ -17,7 +17,7 @@ export interface WellValueSuggestion {
 
 const MOST_SUGGESTIONS = 6;
 
-export function knownNamesIn(protocol: Pick<Protocol, 'cards'>): KnownName[] {
+export function knownNamesIn(protocol: Pick<Protocol, 'cards' | 'materials'>): KnownName[] {
   const materials = listedMaterials(protocol).map(item => {
     const name = nameWithoutNotes(item.name);
     const short = shortNameOf(item);

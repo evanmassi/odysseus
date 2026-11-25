@@ -16,7 +16,7 @@ import { parseValueLine, settledLine, type ParsedValueLine } from './valueLines'
 import { joinValueName, upperLead } from './valueNames';
 import { valueUnitLabel } from './valueUnits';
 
-import type { FieldDefinition, MaterialItem, Protocol, ValuesCard } from '@odysseus/shared-schemas';
+import type { FieldDefinition, MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
 export type ValueDestination =
   | { kind: 'general' }
@@ -54,9 +54,10 @@ const ROWLESS_GROUPS: ReadonlySet<string> = new Set(['equip', 'soft']);
 
 const tidy = (text: string) => text.replace(/\s+/g, ' ').trim();
 
-function valueOwners(protocol: Pick<Protocol, 'cards'>, card: ValuesCard): ValueOwner[] {
+function valueOwners(protocol: Pick<Protocol, 'materials' | 'values'>): ValueOwner[] {
+  const { rows } = protocol.values;
   const valueRowOf = (materialId: string) =>
-    card.rows.find(valueRow => 'materialId' in valueRow && valueRow.materialId === materialId)?.id;
+    rows.find(valueRow => 'materialId' in valueRow && valueRow.materialId === materialId)?.id;
   const materials = listedMaterials(protocol)
     .filter(material => !ROWLESS_GROUPS.has(material.group))
     .map(material => ({
@@ -66,7 +67,7 @@ function valueOwners(protocol: Pick<Protocol, 'cards'>, card: ValuesCard): Value
       material,
       valueRowId: valueRowOf(material.id),
     }));
-  const mixes = card.rows.flatMap(valueRow =>
+  const mixes = rows.flatMap(valueRow =>
     'mixName' in valueRow && valueRow.mixName.trim()
       ? [
           {
@@ -101,21 +102,19 @@ function ownField(material: MaterialItem, label: string) {
 }
 
 export function routeValueLine(
-  protocol: Pick<Protocol, 'cards'>,
-  card: ValuesCard,
+  protocol: Pick<Protocol, 'materials' | 'values'>,
   text: string
 ): RoutedValue | undefined {
   const line = parseValueLine(withGreekLetters(text));
-  return line && routeParsedLine(protocol, card, line);
+  return line && routeParsedLine(protocol, line);
 }
 
 export function routeParsedLine(
-  protocol: Pick<Protocol, 'cards'>,
-  card: ValuesCard,
+  protocol: Pick<Protocol, 'materials' | 'values'>,
   line: ParsedValueLine
 ): RoutedValue {
   const typed = tidy(line.name);
-  const best = valueOwners(protocol, card)
+  const best = valueOwners(protocol)
     .flatMap(owner => {
       const name = leadingName(typed, owner);
       return name ? [{ owner, name }] : [];

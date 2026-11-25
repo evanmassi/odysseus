@@ -25,7 +25,7 @@ function protocolWith(stepTexts: string[], items: MaterialItem[] = []) {
     (candidate): candidate is MaterialsCard => candidate.type === 'materials'
   );
   if (!card) throw new Error('blank protocol has no materials block');
-  card.items = items;
+  protocol.materials.items = items;
   return { protocol, card };
 }
 
@@ -80,7 +80,7 @@ describe('accepting readings', () => {
       'Wash with {PBS}, then add 50 µL of {Bright-Glo}.',
       'Wash again with {PBS}.',
     ]);
-    expect(card.items.map(item => item.name)).toEqual(['PBS', 'Bright-Glo']);
+    expect(protocol.materials.items.map(item => item.name)).toEqual(['PBS', 'Bright-Glo']);
     expect(card.foldedGroups).toEqual([]);
     expect(read(protocol)).toEqual([]);
   });
@@ -100,14 +100,13 @@ describe('accepting readings', () => {
   });
 
   it('adds a read value under its material and rewrites both names as references', () => {
-    const { protocol, card } = protocolWith(['Add 50 µL of Bright-Glo per well.']);
+    const { protocol } = protocolWith(['Add 50 µL of Bright-Glo per well.']);
     acceptStepReadings(protocol, { values: readAll(protocol).values }, name => material(name));
     expect(protocol.pages[0].steps[0].text).toBe(
       'Add {Bright-Glo vol./well} of {Bright-Glo} per well.'
     );
-    expect(card.items.map(item => item.name)).toEqual(['Bright-Glo']);
-    const values = protocol.cards.find(candidate => candidate.type === 'values');
-    expect(values?.type === 'values' && values.items.at(-1)).toMatchObject({
+    expect(protocol.materials.items.map(item => item.name)).toEqual(['Bright-Glo']);
+    expect(protocol.values.items.at(-1)).toMatchObject({
       name: 'Vol./well',
       value: '50',
       unit: 'µL',

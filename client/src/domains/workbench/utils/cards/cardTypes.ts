@@ -34,25 +34,7 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
     },
     size: [12, 10],
     fitsContent: true,
-    createContent: () => ({ foldedGroups: [], customGroups: [], isSetAsideOpen: false, items: [] }),
-  },
-  table: {
-    label: 'Table',
-    hint: 'Your own columns, e.g. a standard curve',
-    size: [12, 6],
-    createContent: () => ({
-      isNamed: false,
-      columns: ['Column 1', 'Column 2', 'Column 3'].map(name => ({
-        id: createId(),
-        name,
-        kind: 'text' as const,
-        unit: '',
-        options: [],
-        isHidden: false,
-        warnsWhenPast: false,
-      })),
-      items: [],
-    }),
+    createContent: () => ({ foldedGroups: [], isSetAsideOpen: false }),
   },
   values: {
     label: 'Values',
@@ -69,7 +51,7 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
     },
     size: [4, 6],
     fitsContent: true,
-    createContent: () => ({ items: [], rows: [] }),
+    createContent: () => ({}),
   },
   calculations: {
     label: 'Calculations',
@@ -85,7 +67,7 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
     },
     size: [4, 6],
     fitsContent: true,
-    createContent: () => ({ items: [], materialSections: [] }),
+    createContent: () => ({}),
   },
   plateMap: {
     label: 'Plate map',
@@ -185,13 +167,6 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
     fitsContent: true,
     createContent: () => ({}),
   },
-  sketch: {
-    label: 'Sketch',
-    hint: 'A freehand whiteboard',
-    size: [3, 6],
-    createContent: () => ({ strokes: [] }),
-  },
-  text: { label: 'Text', hint: 'Free notes', size: [4, 3], createContent: () => ({ html: '' }) },
 };
 
 export const defaultCardTitle = (type: ProtocolCardType): string => CARD_TYPES[type].label;

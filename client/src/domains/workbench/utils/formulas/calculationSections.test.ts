@@ -3,7 +3,7 @@ import { GENERAL } from '../values/valueNames';
 import { calculateBoard, type BoardName, type WorkedOutGroup } from './boardCalculation';
 import { calculationLayout, calculationSections } from './calculationSections';
 
-import type { CalculationsCard, MaterialItem } from '@odysseus/shared-schemas';
+import type { MaterialItem, ProtocolCalculations } from '@odysseus/shared-schemas';
 
 const drug = {
   id: 'm-drug',
@@ -55,18 +55,16 @@ const names: BoardName[] = [
   { kind: 'calculation', id: 'own', name: 'Drug X (Sigma) needed', formula: '2 µL', unit: '' },
 ];
 
-const card = {
-  id: 'calc',
-  type: 'calculations',
+const calculations = {
   items: [{ id: 'own', name: 'Drug X (Sigma) needed', expr: '2 µL', unit: '' }],
   materialSections: [],
-} as unknown as CalculationsCard;
+} as unknown as ProtocolCalculations;
 
 describe('calculation sections', () => {
   const board = calculateBoard(names);
 
   it('puts the app math under its material, or under the treatment when it has no material', () => {
-    const sections = calculationSections(card, [drug], board, true, 'Assay setup');
+    const sections = calculationSections(calculations, [drug], board, 'Assay setup');
     expect(sections.map(section => [section.key, section.owner])).toEqual([
       [GENERAL, ''],
       ['m-drug', 'Drug X (Sigma)'],
@@ -78,17 +76,12 @@ describe('calculation sections', () => {
   });
 
   it('titles the whole-experiment section with the name the Values card gives it', () => {
-    const sections = calculationSections(card, [drug], board, true, 'Bench setup');
+    const sections = calculationSections(calculations, [drug], board, 'Bench setup');
     expect(sections.map(section => section.title)).toEqual([
       'Bench setup',
       'Drug X (Sigma)',
       'Raji',
     ]);
-  });
-
-  it('leaves the app math off a second Calculations card', () => {
-    const sections = calculationSections(card, [drug], board, false, 'Assay setup');
-    expect(sections.flatMap(section => section.groups)).toEqual([]);
   });
 
   it('lays a group repeated across treatments out as one table and gathers what is missing', () => {
@@ -104,7 +97,7 @@ describe('calculation sections', () => {
         workedOut: { ...prepGroup('Raji'), key: 'stain:raji', title: 'Amount per well' },
       },
     ]);
-    const sections = calculationSections(card, [drug], withGaps, true, 'Assay setup');
+    const sections = calculationSections(calculations, [drug], withGaps, 'Assay setup');
     const { parts, missing } = calculationLayout(sections, withGaps, []);
     expect(missing).toEqual([{ message: 'Needs a stain step', subjects: ['Raji'] }]);
     expect(parts.map(part => part.kind)).toEqual(['table', 'section']);

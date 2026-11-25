@@ -19,18 +19,15 @@ const material = (id: string, name: string) => ({
 function protocolWith(names: string[], ignored: string[] = []): Protocol {
   return {
     ignoredSuggestions: ignored,
+    materials: {
+      items: [material('m-raji', 'Raji-Luc'), material('m-stim', 'Stim X description')],
+      customGroups: [],
+    },
+    values: { items: [], rows: [{ id: 'mix', mixName: 'Th17 cocktail' }] },
+    calculations: { items: [], materialSections: [] },
     cards: [
-      {
-        id: 'materials',
-        type: 'materials',
-        items: [material('m-raji', 'Raji-Luc'), material('m-stim', 'Stim X description')],
-      },
-      {
-        id: 'values',
-        type: 'values',
-        items: [],
-        rows: [{ id: 'mix', mixName: 'Th17 cocktail' }],
-      },
+      { id: 'materials', type: 'materials' },
+      { id: 'values', type: 'values' },
       {
         id: 'map',
         type: 'plateMap',

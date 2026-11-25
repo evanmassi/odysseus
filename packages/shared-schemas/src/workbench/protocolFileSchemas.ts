@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 8;
+export const PROTOCOL_FILE_VERSION = 9;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -72,31 +72,16 @@ const materialItemSchema = z.object({
   donors: experimentDonorsSchema.optional(),
 });
 
+const protocolMaterialsSchema = z.object({
+  items: z.array(materialItemSchema),
+  customGroups: z.array(z.string()),
+});
+
 const materialsCardSchema = z.object({
   ...cardBase,
   type: z.literal('materials'),
   foldedGroups: z.array(z.string()),
-  customGroups: z.array(z.string()),
   isSetAsideOpen: z.boolean(),
-  items: z.array(materialItemSchema),
-});
-
-const tableColumnSchema = z.object({
-  id,
-  name: z.string(),
-  kind: z.enum(FIELD_KINDS),
-  unit: z.string(),
-  options: z.array(z.string()),
-  isHidden: z.boolean(),
-  warnsWhenPast: z.boolean(),
-});
-
-const tableCardSchema = z.object({
-  ...cardBase,
-  type: z.literal('table'),
-  isNamed: z.boolean(),
-  columns: z.array(tableColumnSchema).min(1),
-  items: z.array(z.object({ id, cells: textMap, units: textMap })),
 });
 
 const valueItemSchema = z.union([
@@ -115,17 +100,13 @@ const valueRowSchema = z.union([
   z.object({ id, mixName: z.string() }),
 ]);
 
-const valuesCardSchema = z.object({
-  ...cardBase,
-  type: z.literal('values'),
+const protocolValuesSchema = z.object({
   items: z.array(valueItemSchema),
   rows: z.array(valueRowSchema),
   assaySetupTitle: z.string().optional(),
 });
 
-const calculationsCardSchema = z.object({
-  ...cardBase,
-  type: z.literal('calculations'),
+const protocolCalculationsSchema = z.object({
   items: z.array(z.object({ id, name: z.string(), formula: z.string(), unit: z.string() })),
   materialSections: z.array(z.string()),
 });
@@ -215,22 +196,6 @@ const linkedPlateMapCardSchema = z.object({
   showsReplicatesAsOne: z.boolean(),
 });
 
-const sketchStrokeSchema = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('line'),
-    color: z.string(),
-    points: z.array(z.tuple([z.number(), z.number()])),
-  }),
-  z.object({
-    kind: z.literal('text'),
-    color: z.string(),
-    x: z.number(),
-    y: z.number(),
-    text: z.string(),
-    size: z.number(),
-  }),
-]);
-
 export const INSTRUMENT_KINDS = ['conventional', 'spectral'] as const;
 
 const cytometerSchema = z.object({
@@ -278,17 +243,14 @@ const protocolFluorSchema = z.object({
 
 const protocolCardSchema = z.discriminatedUnion('type', [
   materialsCardSchema,
-  tableCardSchema,
-  valuesCardSchema,
-  calculationsCardSchema,
+  z.object({ ...cardBase, type: z.literal('values') }),
+  z.object({ ...cardBase, type: z.literal('calculations') }),
   plateMapCardSchema,
   linkedPlateMapCardSchema,
   flowCytometryPanelCardSchema,
   z.object({ ...cardBase, type: z.literal('procedure') }),
   z.object({ ...cardBase, type: z.literal('dilutions') }),
   z.object({ ...cardBase, type: z.literal('flowDiagram') }),
-  z.object({ ...cardBase, type: z.literal('sketch'), strokes: z.array(sketchStrokeSchema) }),
-  z.object({ ...cardBase, type: z.literal('text'), html: z.string() }),
 ]);
 
 const protocolSchema = z.object({
@@ -298,6 +260,9 @@ const protocolSchema = z.object({
   runNumber: z.string(),
   runOn: z.object({ from: z.string(), to: z.string() }),
   pages: z.array(pageSchema).min(1),
+  materials: protocolMaterialsSchema,
+  values: protocolValuesSchema,
+  calculations: protocolCalculationsSchema,
   cards: z.array(protocolCardSchema),
   lotMemory: z.record(z.string(), z.record(z.string(), textMap)),
   keptBoth: z.array(z.string()),
@@ -322,9 +287,11 @@ export type MaterialItem = z.infer<typeof materialItemSchema>;
 export type ExperimentDonors = z.infer<typeof experimentDonorsSchema>;
 export type ExperimentDonor = ExperimentDonors['rows'][number];
 export type MaterialsCard = z.infer<typeof materialsCardSchema>;
-export type ValuesCard = z.infer<typeof valuesCardSchema>;
-export type ValueRow = ValuesCard['rows'][number];
-export type CalculationsCard = z.infer<typeof calculationsCardSchema>;
+export type ProtocolMaterials = z.infer<typeof protocolMaterialsSchema>;
+export type ProtocolValues = z.infer<typeof protocolValuesSchema>;
+export type ValueItem = ProtocolValues['items'][number];
+export type ValueRow = ProtocolValues['rows'][number];
+export type ProtocolCalculations = z.infer<typeof protocolCalculationsSchema>;
 export type PlateMapCard = z.infer<typeof plateMapCardSchema>;
 export type LinkedPlateMapCard = z.infer<typeof linkedPlateMapCardSchema>;
 export type FlowCytometryPanelCard = z.infer<typeof flowCytometryPanelCardSchema>;

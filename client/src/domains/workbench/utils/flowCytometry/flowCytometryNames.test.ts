@@ -3,7 +3,12 @@ import { collectBoardNames } from '../formulas/boardNames';
 import { materialFromGuess } from '../materials/materialItems';
 import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
 
-import type { FlowCytometryPanelCard, Protocol, ProtocolCard } from '@odysseus/shared-schemas';
+import type {
+  FlowCytometryPanelCard,
+  Protocol,
+  ProtocolCard,
+  ProtocolValues,
+} from '@odysseus/shared-schemas';
 
 const antibody = (name: string, values: Record<string, string>, units: Record<string, string>) => {
   const item = materialFromGuess(
@@ -55,7 +60,10 @@ const plateMap: ProtocolCard = {
   stainedIn: {},
 };
 
-const protocol = (extra: ProtocolCard[] = [], items = [cd3, cd4]): Protocol => ({
+const protocol = (
+  data: Partial<Pick<Protocol, 'values' | 'calculations'>> = {},
+  items = [cd3, cd4]
+): Protocol => ({
   title: 'Panel',
   descriptor: '',
   purpose: '',
@@ -64,6 +72,9 @@ const protocol = (extra: ProtocolCard[] = [], items = [cd3, cd4]): Protocol => (
   pages: [{ id: 'page', name: 'Flow', steps: [] }],
   fluors: [],
   diluent: '',
+  materials: { items, customGroups: [] },
+  values: data.values ?? { items: [], rows: [] },
+  calculations: data.calculations ?? { items: [], materialSections: [] },
   cards: [
     {
       ...placement,
@@ -71,13 +82,10 @@ const protocol = (extra: ProtocolCard[] = [], items = [cd3, cd4]): Protocol => (
       type: 'materials',
       title: 'Materials',
       foldedGroups: [],
-      customGroups: [],
       isSetAsideOpen: false,
-      items,
     },
     panel,
     plateMap,
-    ...extra,
   ],
   lotMemory: {},
   keptBoth: [],
@@ -107,39 +115,34 @@ describe('flow panel names', () => {
   });
 
   it('leaves a name that is already the scientist’s own to them', () => {
-    const own: ProtocolCard = {
-      ...placement,
-      id: 'formulas',
-      type: 'calculations',
-      title: 'Calculations',
+    const calculations = {
       items: [
         { id: 'mine', name: 'Full stain Surface cocktail antibodies', formula: '2', unit: '' },
       ],
       materialSections: [],
     };
-    const board = calculateBoard(collectBoardNames(protocol([own])));
+    const board = calculateBoard(collectBoardNames(protocol({ calculations })));
     expect(board.names.get(nameKey('Full stain Surface cocktail antibodies'))?.id).toBe('mine');
     expect(board.takenNameIds.size).toBe(0);
   });
 
   it('works out each marker’s vol./well from its staining’s cocktail volume', () => {
-    const values: ProtocolCard = {
-      ...placement,
-      id: 'values',
-      type: 'values',
-      title: 'Values',
+    const values: ProtocolValues = {
       items: [{ id: 'volume', name: 'Surface stain volume', value: '50', unit: 'µL' }],
       rows: [],
     };
     expect(
-      answer(calculateBoard(collectBoardNames(protocol([values]))), 'CD3 BV421 vol./well')
+      answer(calculateBoard(collectBoardNames(protocol({ values }))), 'CD3 BV421 vol./well')
     ).toBe('0.5 µL');
-    const cocktailVolume: ProtocolCard = {
+    const cocktailVolume: ProtocolValues = {
       ...values,
       items: [{ id: 'volume', name: 'Surface cocktail vol./well', value: '50', unit: 'µL' }],
     };
     expect(
-      answer(calculateBoard(collectBoardNames(protocol([cocktailVolume]))), 'CD3 BV421 vol./well')
+      answer(
+        calculateBoard(collectBoardNames(protocol({ values: cocktailVolume }))),
+        'CD3 BV421 vol./well'
+      )
     ).toBe('0.5 µL');
     const missing = calculateBoard(collectBoardNames(protocol()));
     const entry = missing.names.get(nameKey('CD3 BV421 vol./well'));
@@ -151,15 +154,7 @@ describe('flow panel names', () => {
 
   it('gives a stain in wells and tubes each container’s vol. from its own cocktail volume', () => {
     const inBoth = (items: Array<{ id: string; name: string; value: string; unit: string }>) => {
-      const values: ProtocolCard = {
-        ...placement,
-        id: 'values',
-        type: 'values',
-        title: 'Values',
-        items,
-        rows: [],
-      };
-      const base = protocol([values]);
+      const base = protocol({ values: { items, rows: [] } });
       return {
         ...base,
         cards: base.cards.map(card =>
@@ -201,19 +196,17 @@ describe('flow panel names', () => {
     });
   });
 
-  const surfaceVolume: ProtocolCard = {
-    ...placement,
-    id: 'values',
-    type: 'values',
-    title: 'Values',
-    items: [{ id: 'volume', name: 'Surface cocktail vol./well', value: '50', unit: 'µL' }],
-    rows: [],
+  const surfaceVolume = {
+    values: {
+      items: [{ id: 'volume', name: 'Surface cocktail vol./well', value: '50', unit: 'µL' }],
+      rows: [],
+    },
   };
 
   it('takes a per-test volume as the vol./well and its share of the cocktail', () => {
     const perTest = antibody('CD4 FITC', { amount: '5' }, { amount: 'µL' });
     perTest.id = cd4.id;
-    const board = calculateBoard(collectBoardNames(protocol([surfaceVolume], [cd3, perTest])));
+    const board = calculateBoard(collectBoardNames(protocol(surfaceVolume, [cd3, perTest])));
     expect(answer(board, 'CD4 FITC vol./well')).toBe('5 µL');
     expect(answer(board, 'Full stain Surface cocktail antibodies')).toBe('11%');
   });
@@ -225,13 +218,13 @@ describe('flow panel names', () => {
       { amount: 'µg/mL', 'stock-concentration': 'µg/mL' }
     );
     atConc.id = cd3.id;
-    const board = calculateBoard(collectBoardNames(protocol([surfaceVolume], [atConc, cd4])));
+    const board = calculateBoard(collectBoardNames(protocol(surfaceVolume, [atConc, cd4])));
     expect(answer(board, 'CD3 BV421 vol./well')).toBe('0.05 µL');
     expect(answer(board, 'FMO CD3 Surface cocktail antibodies')).toBe('0.5%');
     expect(answer(board, 'Full stain Surface cocktail antibodies')).toBe('0.6%');
     const noStock = antibody('CD3 BV421', { amount: '0.5' }, { amount: 'µg/mL' });
     noStock.id = cd3.id;
-    const missing = calculateBoard(collectBoardNames(protocol([surfaceVolume], [noStock, cd4])));
+    const missing = calculateBoard(collectBoardNames(protocol(surfaceVolume, [noStock, cd4])));
     expect(missing.names.get(nameKey('CD3 BV421 vol./well'))).toMatchObject({
       problem: "Needs CD3 BV421's stock conc. in Materials",
     });
@@ -240,7 +233,7 @@ describe('flow panel names', () => {
   it('waits for every antibody before giving a cocktail its share', () => {
     const blank = antibody('CD4 FITC', {}, {});
     blank.id = cd4.id;
-    const board = calculateBoard(collectBoardNames(protocol([surfaceVolume], [cd3, blank])));
+    const board = calculateBoard(collectBoardNames(protocol(surfaceVolume, [cd3, blank])));
     expect(board.names.get(nameKey('Full stain Surface cocktail antibodies'))).toMatchObject({
       problem: 'CD4 FITC needs a dil.: set it here or in Materials',
     });

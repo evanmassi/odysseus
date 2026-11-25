@@ -24,7 +24,10 @@ describe('lab memory saved in the browser', () => {
 
   it('still offers what it remembers in a new protocol', async () => {
     const memory = await reloadWith(savedLabMemory);
-    const knowledge = materialKnowledge(memory, { cards: [], fluors: [] });
+    const knowledge = materialKnowledge(memory, {
+      materials: { items: [], customGroups: [] },
+      fluors: [],
+    });
     expect({
       donor: knownDonors(memory, 'D-01', []).map(donor => `${donor.name} of ${donor.material}`),
       donorFields: memory.donorFields.map(field => field.label),

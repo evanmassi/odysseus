@@ -15,7 +15,7 @@ import type {
   MaterialItem,
   PlateLine,
   Protocol,
-  ValuesCard,
+  ProtocolValues,
   PlateMapCard,
 } from '@odysseus/shared-schemas';
 
@@ -100,10 +100,13 @@ const killingPlate = plateMap('map', 'Assay plate map', {
   series: { s: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' } },
 });
 
-const valuesCard = (id: string, content: Partial<ValuesCard>): ValuesCard =>
-  ({ id, type: 'values', items: [], rows: [], ...content }) as unknown as ValuesCard;
+const valuesWith = (content: Partial<ProtocolValues>): ProtocolValues => ({
+  items: [],
+  rows: [],
+  ...content,
+});
 
-const mainValues = valuesCard('values', {
+const mainValues = valuesWith({
   rows: [
     { id: 'sec-raji', materialId: 'm-raji' },
     { id: 'sec-tcells', materialId: 'm-tcells' },
@@ -119,28 +122,34 @@ const mainValues = valuesCard('values', {
   ],
 });
 
-function tableOf(
-  protocol: Protocol,
-  card: ValuesCard,
-  unsortedNames: readonly string[] = []
-): ValueTableGroup[] {
+const protocolOf = (
+  cards: Protocol['cards'],
+  values: ProtocolValues,
+  materials: MaterialItem[] = MATERIALS
+): Protocol =>
+  ({
+    cards,
+    materials: { items: materials, customGroups: [] },
+    values,
+    calculations: { items: [], materialSections: [] },
+    diluent: '',
+  }) as unknown as Protocol;
+
+function tableOf(protocol: Protocol, unsortedNames: readonly string[] = []): ValueTableGroup[] {
   const board = calculateBoard(collectBoardNames(protocol));
-  return buildValueTable(protocol, card, {
+  return buildValueTable(protocol, {
     materials: materialsById(protocol),
     board,
-    needs: valueNeeds(protocol, card, board),
+    needs: valueNeeds(protocol, board),
     unsortedNames,
   });
 }
 
-function tableFor(cards: Protocol['cards'], valuesId = 'values'): ValueTableGroup[] {
-  const protocol = {
-    cards: [{ id: 'materials', type: 'materials', items: MATERIALS }, ...cards],
-    diluent: '',
-  } as unknown as Protocol;
-  const card = protocol.cards.find(candidate => candidate.id === valuesId) as ValuesCard;
-  return tableOf(protocol, card);
-}
+const tableFor = (
+  cards: Protocol['cards'],
+  values: ProtocolValues,
+  materials?: MaterialItem[]
+): ValueTableGroup[] => tableOf(protocolOf(cards, values, materials));
 
 const groupNamed = (groups: ValueTableGroup[], label: string) =>
   groups.find(group => group.label === label)!;
@@ -153,7 +162,7 @@ const cellsByLabel = (group: ValueTableGroup, rowName: string) =>
   );
 
 describe('the values table', () => {
-  const groups = tableFor([killingPlate, mainValues]);
+  const groups = tableFor([killingPlate], mainValues);
 
   it('groups rows like Materials does', () => {
     expect(groups.map(group => group.label)).toEqual([
@@ -228,17 +237,12 @@ describe('the values table', () => {
         },
       },
     });
-    const withNote = {
-      id: 'materials',
-      type: 'materials',
-      items: [...MATERIALS, material('m-stx', 'STX (stim X description)', 'bio', 'Other')],
-    };
-    const mix = valuesCard('values', {
+    const withNote = [...MATERIALS, material('m-stx', 'STX (stim X description)', 'bio', 'Other')];
+    const mix = valuesWith({
       rows: [...mainValues.rows, { id: 'sec-mix', mixName: 'Th17 cocktail' }],
       items: mainValues.items,
     });
-    const protocol = { cards: [withNote, banded, mix] } as unknown as Protocol;
-    const table = tableOf(protocol, mix);
+    const table = tableOf(protocolOf([banded], mix, withNote));
     const bio = groupNamed(table, 'Biological material');
     const stx = bio.rows.find(row => row.name.startsWith('STX'))!;
     expect(stx.cells.map(cell => cell.label)).toContain('Final conc.');
@@ -261,7 +265,7 @@ describe('the values table', () => {
         'p:A2': { drug: { valueId: 'DMSO' } },
       },
     });
-    const raji = groupNamed(tableFor([banded, mainValues]), 'Biological material').rows.find(
+    const raji = groupNamed(tableFor([banded], mainValues), 'Biological material').rows.find(
       row => row.name === 'Raji'
     );
     expect(raji?.swatch).toEqual({
@@ -278,7 +282,7 @@ describe('the values table', () => {
         'p:A2': { drug: { valueId: 'DMSO' } },
       },
     });
-    const raji = groupNamed(tableFor([striped, mainValues]), 'Biological material').rows.find(
+    const raji = groupNamed(tableFor([striped], mainValues), 'Biological material').rows.find(
       row => row.name === 'Raji'
     );
     expect(raji?.swatch).toMatchObject({ kind: 'stripe' });
@@ -301,20 +305,19 @@ describe('the values table', () => {
         { id: 'r2', materialId: 'm-gone', amount: '2', unit: 'µg/mL' },
       ],
     };
-    const withCocktail = {
-      id: 'materials',
-      type: 'materials',
-      items: [...MATERIALS, cocktail, material('m-il6', 'IL-6', 'chem', 'Recombinant protein')],
-    };
-    const values = valuesCard('values', {
+    const withCocktail = [
+      ...MATERIALS,
+      cocktail,
+      material('m-il6', 'IL-6', 'chem', 'Recombinant protein'),
+    ];
+    const values = valuesWith({
       rows: [{ id: 'sec-th17', materialId: 'm-th17' }],
       items: [
         { id: 'well', name: 'Well volume', value: '80', unit: 'µL' },
         { id: 'th17-vol', row: 'sec-th17', name: 'Volume per well', value: '20', unit: 'µL' },
       ],
     });
-    const protocol = { cards: [withCocktail, values] } as unknown as Protocol;
-    const table = tableOf(protocol, values);
+    const table = tableOf(protocolOf([], values, withCocktail));
     const chem = groupNamed(table, 'Chemicals & proteins');
     expect(chem.rows.map(row => [row.name, row.isSubRow])).toEqual([
       ['Th17 cocktail', false],
@@ -336,7 +339,7 @@ describe('the values table', () => {
   it('puts a plate that is not in Materials under Supplies too', () => {
     const killing = { ...killingPlate, title: 'Killing plate' };
     const spare = plateMap('spare', 'Spare plate', {});
-    const table = tableFor([killing, spare, mainValues]);
+    const table = tableFor([killing, spare], mainValues);
     expect(table.map(group => group.label)).not.toContain('Plates');
     expect(groupNamed(table, 'Supplies').rows.map(row => row.name)).toEqual(
       expect.arrayContaining(['Killing plate', 'Spare plate'])
@@ -361,7 +364,7 @@ describe('the values table', () => {
         s2: { top: '1', unit: 'µM', dilutionFactor: '2', direction: 'right' },
       },
     });
-    const chem = groupNamed(tableFor([twins, mainValues]), 'Chemicals & proteins');
+    const chem = groupNamed(tableFor([twins], mainValues), 'Chemicals & proteins');
     expect(chem.rows.map(row => row.name)).toEqual(['Drug X', 'in Raji', 'in Jurkat']);
     expect(cellsByLabel(chem, 'in Jurkat')).toMatchObject({ 'Top conc.': '1 µM' });
   });
@@ -379,7 +382,7 @@ describe('the values table', () => {
         'p:A3': { drug: { valueId: 'DMSO' } },
       },
     });
-    const chem = groupNamed(tableFor([plateOne, plateTwo, mainValues]), 'Chemicals & proteins');
+    const chem = groupNamed(tableFor([plateOne, plateTwo], mainValues), 'Chemicals & proteins');
     expect(chem.rows.slice(0, 3).map(row => row.name)).toEqual([
       'Drug X',
       'Plate one',
@@ -388,22 +391,14 @@ describe('the values table', () => {
     expect(cellsByLabel(chem, 'Plate two')).toEqual({ Wells: '2' });
   });
 
-  it('shows rows for materials without values only in the first Values card', () => {
-    const second = valuesCard('second', {
-      rows: [{ id: 'sec-jurkat', materialId: 'm-jurkat' }],
-    });
-    const groupsOfSecond = tableFor([killingPlate, mainValues, second], 'second');
-    expect(groupsOfSecond.flatMap(group => group.rows.map(row => row.name))).toEqual(['Jurkat']);
-  });
-
   it('keeps every row an edit did not touch when the rebuilt table is shared with the last one', () => {
-    const edited = valuesCard('values', {
+    const edited = valuesWith({
       rows: mainValues.rows,
       items: mainValues.items.map(item =>
         item.id === 'raji-per' ? { ...item, value: '20000' } : item
       ),
     });
-    const shared = replaceEqualDeep(groups, tableFor([killingPlate, edited]));
+    const shared = replaceEqualDeep(groups, tableFor([killingPlate], edited));
     const rowsBefore = new Map(groups.flatMap(group => group.rows).map(row => [row.id, row]));
     const changed = shared
       .flatMap(group => group.rows)
@@ -418,12 +413,11 @@ describe('short names in the values table', () => {
     const medium = material('m-med', 'ImmunoCult™-XF T Cell Expansion Medium', 'media', 'Medium', {
       'short-name': 'ImmunoCult XF',
     });
-    const values = valuesCard('values', {
+    const values = valuesWith({
       rows: [{ id: 'sec-med', materialId: 'm-med' }],
       items: [{ id: 'med-vol', row: 'sec-med', name: 'Volume per well', value: '100', unit: 'µL' }],
     });
-    const moreMaterials = { id: 'more', type: 'materials', items: [medium] };
-    const groups = tableFor([moreMaterials as unknown as Protocol['cards'][number], values]);
+    const groups = tableFor([], values, [...MATERIALS, medium]);
     const [row] = groupNamed(groups, 'Media, buffers & solutions').rows;
     expect(row).toMatchObject({ name: medium.name, shownName: 'ImmunoCult XF' });
     expect(row.cells[0].fullName.startsWith(medium.name)).toBe(true);
@@ -451,24 +445,17 @@ describe('plate names and needed values in the values table', () => {
       'p:A3': { cells: { valueId: 'Mystery' } },
     },
   });
-  const donorProtocol = (values: ValuesCard) =>
-    ({
-      cards: [
-        {
-          id: 'materials',
-          type: 'materials',
-          items: [...MATERIALS.filter(item => item.id !== 'm-tcells'), tCellsWithDonors],
-        },
-        donorPlate,
-        values,
-      ],
-    }) as unknown as Protocol;
-  const noValues = valuesCard('values', {});
+  const donorProtocol = (values: ProtocolValues) =>
+    protocolOf([donorPlate], values, [
+      ...MATERIALS.filter(item => item.id !== 'm-tcells'),
+      tCellsWithDonors,
+    ]);
+  const noValues = valuesWith({});
   const rowNamed = (groups: ValueTableGroup[], label: string, name: string) =>
     groupNamed(groups, label).rows.find(row => row.name === name)!;
 
   it("files a donor's wells under its cell material, in the donor's color", () => {
-    const table = tableOf(donorProtocol(noValues), noValues);
+    const table = tableOf(donorProtocol(noValues));
     const bio = groupNamed(table, 'Biological material');
     expect(bio.rows.map(row => [row.name, row.isSubRow])).toEqual(
       expect.arrayContaining([
@@ -484,15 +471,13 @@ describe('plate names and needed values in the values table', () => {
 
   it('leaves a name still waiting in "From your plate" out of the table', () => {
     const supplyRows = (unsorted: string[]) =>
-      groupNamed(tableOf(donorProtocol(noValues), noValues, unsorted), 'Supplies').rows.map(
-        row => row.name
-      );
+      groupNamed(tableOf(donorProtocol(noValues), unsorted), 'Supplies').rows.map(row => row.name);
     expect(supplyRows([])).toContain('Mystery');
     expect(supplyRows(['Mystery'])).not.toContain('Mystery');
   });
 
   it('offers the volume the cell math needs on the cell row', () => {
-    const table = tableOf(donorProtocol(noValues), noValues);
+    const table = tableOf(donorProtocol(noValues));
     const needed = rowNamed(table, 'Biological material', 'T cells').cells.find(
       cell => cell.label === 'Vol./well'
     );
@@ -501,11 +486,11 @@ describe('plate names and needed values in the values table', () => {
   });
 
   it('marks a blank value that the math is waiting on', () => {
-    const values = valuesCard('values', {
+    const values = valuesWith({
       rows: [{ id: 'sec-tcells', materialId: 'm-tcells' }],
       items: [{ id: 't-vol', row: 'sec-tcells', name: 'Volume per well', value: '', unit: 'µL' }],
     });
-    const table = tableOf(donorProtocol(values), values);
+    const table = tableOf(donorProtocol(values));
     const cell = rowNamed(table, 'Biological material', 'T cells').cells.find(
       candidate => candidate.label === 'Volume per well'
     );
@@ -533,16 +518,12 @@ describe('cells on the values table', () => {
       'p:A4': { cells: { valueId: 'GFP lentivirus', amount: '5', unit: 'µL' } },
     },
   });
-  const plating = valuesCard('values', {
+  const plating = valuesWith({
     rows: [{ id: 'sec-tcells', materialId: 'm-tcells' }],
     items: [{ id: 't-vol', row: 'sec-tcells', name: 'Vol./well', value: '100', unit: 'µL' }],
   });
-  const cellTable = (items: MaterialItem[], plate = cellPlate) => {
-    const protocol = {
-      cards: [{ id: 'materials', type: 'materials', items }, plate, plating],
-    } as unknown as Protocol;
-    return groupNamed(tableOf(protocol, plating), 'Biological material');
-  };
+  const cellTable = (items: MaterialItem[], plate = cellPlate) =>
+    groupNamed(tableOf(protocolOf([plate], plating, items)), 'Biological material');
   const rowOf = (group: ValueTableGroup, name: string) =>
     group.rows.find(row => row.name === name)!;
   const cellOf = (group: ValueTableGroup, name: string, label: string) =>
@@ -649,10 +630,10 @@ describe('cells on the values table', () => {
         unit: 'mL',
       });
     });
-    const protocol = {
-      cards: [{ id: 'materials', type: 'materials', items: [donors] }, mixed, withTubes],
-    } as unknown as Protocol;
-    const bio = groupNamed(tableOf(protocol, withTubes), 'Biological material');
+    const bio = groupNamed(
+      tableOf(protocolOf([mixed], withTubes, [donors])),
+      'Biological material'
+    );
     expect(bio.columns.slice(5).map(column => column.label)).toEqual([
       'Wells',
       'Vol./well',
@@ -702,18 +683,12 @@ describe('cells on the values table', () => {
   });
 
   it('writes a typed count back to the donor in Materials', () => {
-    const protocol = {
-      cards: [{ id: 'materials', type: 'materials', items: [donors] }, cellPlate, plating],
-    } as unknown as Protocol;
-    const cell = cellOf(
-      groupNamed(tableOf(protocol, plating), 'Biological material'),
-      'D2',
-      'Vol.'
-    );
+    const protocol = protocolOf([cellPlate], plating, [donors]);
+    const cell = cellOf(groupNamed(tableOf(protocol), 'Biological material'), 'D2', 'Vol.');
     const written = produce(protocol, draft => {
-      if (cell) writeCellValue(draft, 'values', cell, '2');
+      if (cell) writeCellValue(draft, cell, '2');
     });
-    const [item] = (written.cards[0] as { items: MaterialItem[] }).items;
+    const [item] = written.materials.items;
     expect(item.donors?.rows[1].values['volume']).toBe('2');
     expect(item.donors?.shownFields).toContain('volume');
   });

@@ -58,10 +58,10 @@ painting → stain, linked plate copy → plate card.
 **Card's own, stays with the card:** position, size, folded, expanded height, title, open tab,
 side shown, replicates shown as one; Materials folded groups and set-aside open.
 
-**Not built: Table, Sketch and Text note.** The card rail offers them and their saved shapes exist,
-but no panel draws them (`CARD_PANELS` in `cardPanels.ts`), so nothing can be typed into one
-today. Their saved shape stays as it is; each gets its home in the protocol when it is built
-(decision 3). Building homes for them now would be speculative code.
+**Not built: Table, Sketch and Text note.** Their saved shapes, card types, icons and some table
+math exist, but no panel draws them (`CARD_PANELS` in `cardPanels.ts`) and the card rail hides any
+type without one, so nothing can make one and neither protocol has one. Removed in step 2
+(decision 7).
 
 ## Decisions
 
@@ -104,8 +104,11 @@ today. Their saved shape stays as it is; each gets its home in the protocol when
      guard ("different", since a laptop on older code can meet a newer file).
    - Evan's files are converted once per format change by a throwaway script kept outside the repo
      (`%TEMP%/data-home`), never committed. The originals before each conversion go to the
-     `Old versions` subfolder beside them, under their own names.
+     `Old versions` subfolder beside them, under their own names; from step 2a on, each in its own
+     `Old versions/Version <N>` folder so no copy overwrites another.
    - Existing upgrade code is deleted in step 0.
+7. **Decided 2026-11-24: the hidden Table, Sketch and Text note placeholders are removed in step 2.** Evan: "we can discuss their purpose and if they're needed later." When one is wanted it is
+   designed fresh for the protocol's data homes (decision 3 covers how closing works).
 
 ## Follows from the decisions (stated, not asked)
 
@@ -121,8 +124,6 @@ today. Their saved shape stays as it is; each gets its home in the protocol when
 - **A jump with no window.** "Go to where this is set" and the settings buttons jump to a card
   (`originCardId`, `settingsCardId`, 20 uses). When no card shows that data, what does the jump do?
   Asked in step 3.
-- **The unbuilt cards on the rail.** Table, Sketch and Text note are offered but open empty. Keep
-  offering them until they are built, or take them off the rail? Asked before step 2.
 
 ## Build plan (drafted 2026-11-24, reviewed against AGENTS.md and the audit standards)
 
@@ -213,6 +214,31 @@ The protocol gains one home per kind of data; a card keeps only its window setti
   (plate maps), 2c (Flow panels) if one diff is too big to check well, each its own file version.
 - Tests: `everyCard.json` in the new shape holds the same facts; a plate map shown by two cards is
   one plate map; closing either keeps it.
+
+**2a built 2026-11-24 (file version 9):**
+
+- `protocol.materials` (`ProtocolMaterials`: items, custom groups), `protocol.values`
+  (`ProtocolValues`: items, rows, Assay setup title; `ValueItem` and `ValueRow` derive from it)
+  and `protocol.calculations` (`ProtocolCalculations`: items, material sections). Materials cards
+  keep folded groups and set-aside open; Values and Calculations cards keep nothing of their own.
+- Table, Sketch and Text note removed from the schema, card types, icons, rail and math
+  (decision 7). The elisa sample's table was unnamed, so it never fed the math.
+- Every edit function lost its card id (`valueEdits`, `valueFill`, `calculationEdits`,
+  `commitReviewRows`); the Values and Calculations panels lost their unused `card` prop.
+- Every window shows the same thing: the "first card only" checks went (worked-out groups,
+  "From your steps", "From your plate", Assay setup's needed rows, and Values' rows for
+  materials with no row elsewhere).
+- Board names are gathered in a fixed order (materials, values, calculations, plate maps)
+  instead of card order; "go to where this is set" still jumps to the first card of that kind
+  (`firstCardIdOf`, now shared by four callers).
+- Duplicates folded while here: three private copies of the materials list (`allMaterials`,
+  `boardMaterials`, the Flow panel's own `listedMaterials`), boardNames' own row-name lookup
+  (now `valueRowName`), stepReadings' own find-or-create row (now `materialRowId`), and
+  "unfold the group" (now `unfoldGroup`, used by `ensureMaterial` and `commitReviewRows`).
+- Converted by `%TEMP%/data-home/convert-v9.mjs`: Evan's two protocols (v8 copies in
+  `Old versions/Version 8`) and the four samples.
+- Checked: typecheck clean; the two protocols' 122 answers identical; the every-card sample
+  holds every fact; the math samples give their expected answers.
 
 ### Step 3: closing is closing, deleting is deleting (no file change)
 

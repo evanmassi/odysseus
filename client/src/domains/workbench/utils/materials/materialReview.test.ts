@@ -25,7 +25,7 @@ function setup(items: MaterialItem[]): { protocol: Protocol; card: MaterialsCard
     (candidate): candidate is MaterialsCard => candidate.type === 'materials'
   );
   if (!card) throw new Error('blank protocol has no materials block');
-  card.items = items;
+  protocol.materials.items = items;
   return { protocol, card };
 }
 
@@ -76,35 +76,35 @@ describe('commitReviewRows', () => {
     const typed = material('dmso');
     typed.values['source'] = 'Sigma';
     const fresh = material('Ethanol');
-    const ids = commitReviewRows(protocol, card.id, [
-      reviewRow(card.items, protocol.keptBoth, typed, ''),
-      reviewRow(card.items, protocol.keptBoth, fresh, ''),
+    const ids = commitReviewRows(protocol, [
+      reviewRow(protocol.materials.items, protocol.keptBoth, typed, ''),
+      reviewRow(protocol.materials.items, protocol.keptBoth, fresh, ''),
     ]);
     expect(ids).toEqual([existing.id, fresh.id]);
-    expect(card.items.map(item => item.name)).toEqual(['DMSO', 'Ethanol']);
-    expect(card.items[0].values['source']).toBe('Sigma');
+    expect(protocol.materials.items.map(item => item.name)).toEqual(['DMSO', 'Ethanol']);
+    expect(protocol.materials.items[0].values['source']).toBe('Sigma');
     expect(card.foldedGroups).toEqual([]);
   });
 
   it('keeps both on request and remembers the name so it is not flagged again', () => {
-    const { protocol, card } = setup([material('DMSO')]);
+    const { protocol } = setup([material('DMSO')]);
     const typed = material('DMSO');
-    commitReviewRows(protocol, card.id, [
-      { ...reviewRow(card.items, protocol.keptBoth, typed, ''), isKeptBoth: true },
+    commitReviewRows(protocol, [
+      { ...reviewRow(protocol.materials.items, protocol.keptBoth, typed, ''), isKeptBoth: true },
     ]);
-    expect(card.items).toHaveLength(2);
+    expect(protocol.materials.items).toHaveLength(2);
     expect(protocol.keptBoth).toEqual(['dmso']);
     expect(
-      reviewRow(card.items, protocol.keptBoth, material('DMSO'), '').alreadyListedId
+      reviewRow(protocol.materials.items, protocol.keptBoth, material('DMSO'), '').alreadyListedId
     ).toBeUndefined();
   });
 
   it('adds a row whose already listed match was removed in the meantime', () => {
     const existing = material('DMSO');
-    const { protocol, card } = setup([existing]);
-    const row = reviewRow(card.items, protocol.keptBoth, material('DMSO'), '');
-    card.items = [];
-    commitReviewRows(protocol, card.id, [row]);
-    expect(card.items).toHaveLength(1);
+    const { protocol } = setup([existing]);
+    const row = reviewRow(protocol.materials.items, protocol.keptBoth, material('DMSO'), '');
+    protocol.materials.items = [];
+    commitReviewRows(protocol, [row]);
+    expect(protocol.materials.items).toHaveLength(1);
   });
 });

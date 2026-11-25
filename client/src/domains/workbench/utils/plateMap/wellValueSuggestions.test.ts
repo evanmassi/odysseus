@@ -15,38 +15,36 @@ const item = (fields: Partial<MaterialItem>): MaterialItem =>
   }) as MaterialItem;
 
 const protocol = {
-  cards: [
-    {
-      id: 'materials',
-      type: 'materials',
-      items: [
-        item({
-          id: 'pbmc',
-          group: 'bio',
-          type: 'Primary cells',
-          name: 'PBMC (fresh)',
-          donors: {
-            label: 'Donors',
-            shownFields: [],
-            customFields: [],
-            rows: [
-              { id: 'd1', name: 'Donor 1', values: { 'donor-id': 'D-101' }, units: {} },
-              { id: 'd2', name: 'Donor 2', values: { 'donor-id': 'D-102' }, units: {} },
-            ],
-          },
-        }),
-        item({
-          id: 'stim',
-          group: 'chem',
-          type: 'Drug or inhibitor',
-          name: 'Stimulant X long name',
-          shownFields: ['short-name'],
-          values: { 'short-name': 'Stim X' },
-        }),
-      ],
-    },
-  ],
-} as unknown as Pick<Protocol, 'cards'>;
+  cards: [],
+  materials: {
+    customGroups: [],
+    items: [
+      item({
+        id: 'pbmc',
+        group: 'bio',
+        type: 'Primary cells',
+        name: 'PBMC (fresh)',
+        donors: {
+          label: 'Donors',
+          shownFields: [],
+          customFields: [],
+          rows: [
+            { id: 'd1', name: 'Donor 1', values: { 'donor-id': 'D-101' }, units: {} },
+            { id: 'd2', name: 'Donor 2', values: { 'donor-id': 'D-102' }, units: {} },
+          ],
+        },
+      }),
+      item({
+        id: 'stim',
+        group: 'chem',
+        type: 'Drug or inhibitor',
+        name: 'Stimulant X long name',
+        shownFields: ['short-name'],
+        values: { 'short-name': 'Stim X' },
+      }),
+    ],
+  },
+} as unknown as Pick<Protocol, 'cards' | 'materials'>;
 
 const known = knownNamesIn(protocol);
 const texts = (typed: string, onLine: string[] = []) =>

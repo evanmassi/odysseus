@@ -1,4 +1,4 @@
-import type { Protocol, ValuesCard } from '@odysseus/shared-schemas';
+import type { Protocol } from '@odysseus/shared-schemas';
 
 export const lowerLead = (label: string): string =>
   /^[A-Z][a-z]/.test(label) ? label[0].toLowerCase() + label.slice(1) : label;
@@ -12,10 +12,8 @@ export const joinValueName = (owner: string, label: string): string =>
 export const GENERAL = '';
 export const ASSAY_SETUP_TITLE = 'Assay setup';
 
-export function assaySetupTitleOf(cards: Protocol['cards']): string {
-  const title = cards
-    .find((card): card is ValuesCard => card.type === 'values')
-    ?.assaySetupTitle?.trim();
+export function assaySetupTitleOf(protocol: Pick<Protocol, 'values'>): string {
+  const title = protocol.values.assaySetupTitle?.trim();
   return title ? title : ASSAY_SETUP_TITLE;
 }
 

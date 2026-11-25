@@ -17,16 +17,11 @@ const SHORTEST_MENTION = 3;
 
 export const plateOfferKey = (name: string): string => `plate:${normalizeMaterialKey(name)}`;
 
-function mixNames(protocol: Pick<Protocol, 'cards'>): string[] {
-  return protocol.cards.flatMap(card =>
-    card.type === 'values'
-      ? card.rows.flatMap(valueRow => ('mixName' in valueRow ? [valueRow.mixName] : []))
-      : []
-  );
-}
+const mixNames = (protocol: Pick<Protocol, 'values'>): string[] =>
+  protocol.values.rows.flatMap(valueRow => ('mixName' in valueRow ? [valueRow.mixName] : []));
 
 export function plateNameOffers(
-  protocol: Pick<Protocol, 'cards' | 'ignoredSuggestions'>
+  protocol: Pick<Protocol, 'cards' | 'ignoredSuggestions' | 'materials' | 'values'>
 ): PlateNameOffer[] {
   const materials = listedMaterials(protocol);
   const mixes = mixNames(protocol);

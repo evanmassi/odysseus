@@ -89,14 +89,14 @@ const cardOf = <Type extends ProtocolCardType>(protocol: Protocol, type: Type) =
 };
 
 function savedFacts(protocol: Protocol) {
-  const materials = cardOf(protocol, 'materials');
+  const materials = protocol.materials.items;
   const material = (name: string) => {
-    const item = materials.items.find(candidate => candidate.name === name);
+    const item = materials.find(candidate => candidate.name === name);
     if (!item) throw new Error(`no material ${name}`);
     return item;
   };
-  const nameOf = (materialId: string) => materials.items.find(item => item.id === materialId)?.name;
-  const values = cardOf(protocol, 'values');
+  const nameOf = (materialId: string) => materials.find(item => item.id === materialId)?.name;
+  const { values } = protocol;
   const board = calculateBoard(collectBoardNames(protocol));
   const linked = cardOf(protocol, 'linkedPlateMap');
   const plateMap = cardOf(protocol, 'plateMap');
@@ -125,8 +125,8 @@ function savedFacts(protocol: Protocol) {
       viability: material('Cell line A').values['viability'],
       renamedCatalogLabel: material('Cell line A').fieldLabels['catalog'],
     },
-    setAside: materials.items.filter(item => item.isSetAside).map(item => item.name),
-    isSetAsideOpen: materials.isSetAsideOpen,
+    setAside: materials.filter(item => item.isSetAside).map(item => item.name),
+    isSetAsideOpen: cardOf(protocol, 'materials').isSetAsideOpen,
     recipe: {
       ingredients: material('Medium A').recipe.map(
         entry => `${nameOf(entry.materialId)} ${entry.amount} ${entry.unit}`
@@ -142,9 +142,7 @@ function savedFacts(protocol: Protocol) {
     customField: material('Drug X').values['batch-note'],
     valueRows: values.rows.map(row => ('mixName' in row ? row.mixName : nameOf(row.materialId))),
     assaySetupTitle: values.assaySetupTitle,
-    calculations: cardOf(protocol, 'calculations').items.map(
-      item => `${item.name} = ${item.formula}`
-    ),
+    calculations: protocol.calculations.items.map(item => `${item.name} = ${item.formula}`),
     otherLabware: plateMap.otherLabware.map(labware => `${labware.labware} × ${labware.count}`),
     otherLabwareTabName: plateMap.otherLabwareTabName,
     samples: {
@@ -207,9 +205,6 @@ const EVERY_CARD_FACTS = {
     'materials',
     'plateMap',
     'procedure',
-    'sketch',
-    'table',
-    'text',
     'values',
   ],
   linkedPlateMap: { page: 'page-setup', shows: 'card-plate', sourcePage: 'page-plates' },

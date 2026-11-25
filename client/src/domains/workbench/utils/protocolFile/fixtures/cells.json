@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 8,
+  "version": 9,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "Cell viability dose response",
@@ -130,6 +130,255 @@
         ]
       }
     ],
+    "materials": {
+      "items": [
+        {
+          "id": "2c17wpm",
+          "group": "bio",
+          "type": "Cell line",
+          "name": "HeLa",
+          "shownFields": [
+            "source",
+            "catalog",
+            "lot",
+            "storage",
+            "total-cell-conc",
+            "viability",
+            "passage",
+            "mycoplasma-test-date"
+          ],
+          "values": {
+            "storage": "37 °C incubator",
+            "source": "ATCC",
+            "catalog": "CCL-2",
+            "total-cell-conc": "1e6",
+            "viability": "95"
+          },
+          "units": {},
+          "customFields": [],
+          "fieldLabels": {},
+          "isSetAside": false,
+          "recipe": []
+        },
+        {
+          "id": "kxevs55",
+          "group": "media",
+          "type": "Medium",
+          "name": "Complete DMEM",
+          "shownFields": ["source", "catalog", "lot", "storage", "recipe-note", "made-on"],
+          "values": {
+            "storage": "4 °C",
+            "recipe-note": "DMEM + 10% FBS + 1% pen/strep"
+          },
+          "units": {},
+          "customFields": [],
+          "fieldLabels": {},
+          "isSetAside": false,
+          "recipe": []
+        },
+        {
+          "id": "dwun4dt",
+          "group": "media",
+          "type": "Buffer",
+          "name": "PBS",
+          "shownFields": [
+            "source",
+            "catalog",
+            "lot",
+            "storage",
+            "strength",
+            "calcium-and-magnesium"
+          ],
+          "values": {
+            "storage": "RT",
+            "strength": "1×",
+            "calcium-and-magnesium": "Without"
+          },
+          "units": {},
+          "customFields": [],
+          "fieldLabels": {},
+          "isSetAside": false,
+          "recipe": []
+        },
+        {
+          "id": "aaw10cx",
+          "group": "chem",
+          "type": "Enzyme",
+          "name": "Trypsin-EDTA",
+          "shownFields": ["source", "catalog", "lot", "storage", "notes"],
+          "values": {
+            "storage": "−20 °C",
+            "notes": "0.25%"
+          },
+          "units": {},
+          "customFields": [],
+          "fieldLabels": {},
+          "isSetAside": false,
+          "recipe": []
+        },
+        {
+          "id": "ytkblu3",
+          "group": "chem",
+          "type": "Drug or inhibitor",
+          "name": "Compound X",
+          "shownFields": ["source", "catalog", "lot", "storage", "stock-concentration", "vehicle"],
+          "values": {
+            "storage": "−20 °C",
+            "stock-concentration": "10",
+            "vehicle": "DMSO"
+          },
+          "units": {
+            "stock-concentration": "mM"
+          },
+          "customFields": [],
+          "fieldLabels": {},
+          "isSetAside": false,
+          "recipe": []
+        },
+        {
+          "id": "ihm3znb",
+          "group": "kits",
+          "type": "Kit",
+          "name": "CellTiter-Glo",
+          "shownFields": ["source", "catalog", "lot", "storage"],
+          "values": {
+            "storage": "−20 °C",
+            "source": "Promega"
+          },
+          "units": {},
+          "customFields": [],
+          "fieldLabels": {},
+          "isSetAside": false,
+          "recipe": []
+        },
+        {
+          "id": "bzdkqm5",
+          "group": "supplies",
+          "type": "Plate",
+          "name": "Assay plate",
+          "shownFields": ["source", "catalog", "lot", "storage", "format", "surface", "color"],
+          "values": {
+            "storage": "Shelf",
+            "source": "Corning",
+            "format": "96-well",
+            "surface": "TC-treated",
+            "color": "White"
+          },
+          "units": {},
+          "customFields": [],
+          "fieldLabels": {},
+          "isSetAside": false,
+          "recipe": []
+        },
+        {
+          "id": "5qem2k3",
+          "group": "equip",
+          "type": "Instrument",
+          "name": "Centrifuge",
+          "shownFields": ["model", "settings"],
+          "values": {
+            "settings": "300 × g, 5 min, RT"
+          },
+          "units": {},
+          "customFields": [],
+          "fieldLabels": {},
+          "isSetAside": false,
+          "recipe": []
+        },
+        {
+          "id": "6kb5rka",
+          "group": "equip",
+          "type": "Instrument",
+          "name": "Plate reader",
+          "shownFields": ["model", "settings"],
+          "values": {
+            "settings": "luminescence, 1 s integration"
+          },
+          "units": {},
+          "customFields": [],
+          "fieldLabels": {},
+          "isSetAside": false,
+          "recipe": []
+        }
+      ],
+      "customGroups": []
+    },
+    "values": {
+      "items": [
+        {
+          "id": "gx8xelk",
+          "name": "Cells/well",
+          "value": "5000",
+          "unit": "cells"
+        },
+        {
+          "id": "6e8nyrc",
+          "name": "Vol./well",
+          "value": "100",
+          "unit": "µL"
+        },
+        {
+          "id": "gefx27z",
+          "name": "Extra (dead vol.)",
+          "value": "10",
+          "unit": "%"
+        },
+        {
+          "id": "d05kn7e",
+          "name": "Top conc.",
+          "value": "10",
+          "unit": "µM"
+        },
+        {
+          "id": "w8gptu3",
+          "name": "Fold",
+          "value": "3",
+          "unit": "X"
+        }
+      ],
+      "rows": []
+    },
+    "calculations": {
+      "items": [
+        {
+          "id": "mw4s4i2",
+          "name": "Cell wells",
+          "formula": "Sample wells + Control wells",
+          "unit": "auto"
+        },
+        {
+          "id": "g64zzfl",
+          "name": "Cells needed",
+          "formula": "Cells/well × Cell wells × (1 + Extra (dead vol.))",
+          "unit": "auto"
+        },
+        {
+          "id": "mc4gorp",
+          "name": "Live cell conc",
+          "formula": "HeLa total cell conc. × HeLa viability",
+          "unit": "auto"
+        },
+        {
+          "id": "y4o0rlx",
+          "name": "Cell suspension",
+          "formula": "Cells needed ÷ Live cell conc",
+          "unit": "mL"
+        },
+        {
+          "id": "poq6m7o",
+          "name": "Seeding volume",
+          "formula": "Cell wells × Vol./well × (1 + Extra (dead vol.))",
+          "unit": "mL"
+        },
+        {
+          "id": "7kuyix2",
+          "name": "Media to add",
+          "formula": "Seeding volume − Cell suspension",
+          "unit": "mL"
+        }
+      ],
+      "materialSections": []
+    },
     "cards": [
       {
         "id": "bw90g70",
@@ -142,185 +391,7 @@
         "isCollapsed": false,
         "type": "materials",
         "foldedGroups": [],
-        "customGroups": [],
-        "isSetAsideOpen": false,
-        "items": [
-          {
-            "id": "2c17wpm",
-            "group": "bio",
-            "type": "Cell line",
-            "name": "HeLa",
-            "shownFields": [
-              "source",
-              "catalog",
-              "lot",
-              "storage",
-              "total-cell-conc",
-              "viability",
-              "passage",
-              "mycoplasma-test-date"
-            ],
-            "values": {
-              "storage": "37 °C incubator",
-              "source": "ATCC",
-              "catalog": "CCL-2",
-              "total-cell-conc": "1e6",
-              "viability": "95"
-            },
-            "units": {},
-            "customFields": [],
-            "fieldLabels": {},
-            "isSetAside": false,
-            "recipe": []
-          },
-          {
-            "id": "kxevs55",
-            "group": "media",
-            "type": "Medium",
-            "name": "Complete DMEM",
-            "shownFields": ["source", "catalog", "lot", "storage", "recipe-note", "made-on"],
-            "values": {
-              "storage": "4 °C",
-              "recipe-note": "DMEM + 10% FBS + 1% pen/strep"
-            },
-            "units": {},
-            "customFields": [],
-            "fieldLabels": {},
-            "isSetAside": false,
-            "recipe": []
-          },
-          {
-            "id": "dwun4dt",
-            "group": "media",
-            "type": "Buffer",
-            "name": "PBS",
-            "shownFields": [
-              "source",
-              "catalog",
-              "lot",
-              "storage",
-              "strength",
-              "calcium-and-magnesium"
-            ],
-            "values": {
-              "storage": "RT",
-              "strength": "1×",
-              "calcium-and-magnesium": "Without"
-            },
-            "units": {},
-            "customFields": [],
-            "fieldLabels": {},
-            "isSetAside": false,
-            "recipe": []
-          },
-          {
-            "id": "aaw10cx",
-            "group": "chem",
-            "type": "Enzyme",
-            "name": "Trypsin-EDTA",
-            "shownFields": ["source", "catalog", "lot", "storage", "notes"],
-            "values": {
-              "storage": "−20 °C",
-              "notes": "0.25%"
-            },
-            "units": {},
-            "customFields": [],
-            "fieldLabels": {},
-            "isSetAside": false,
-            "recipe": []
-          },
-          {
-            "id": "ytkblu3",
-            "group": "chem",
-            "type": "Drug or inhibitor",
-            "name": "Compound X",
-            "shownFields": [
-              "source",
-              "catalog",
-              "lot",
-              "storage",
-              "stock-concentration",
-              "vehicle"
-            ],
-            "values": {
-              "storage": "−20 °C",
-              "stock-concentration": "10",
-              "vehicle": "DMSO"
-            },
-            "units": {
-              "stock-concentration": "mM"
-            },
-            "customFields": [],
-            "fieldLabels": {},
-            "isSetAside": false,
-            "recipe": []
-          },
-          {
-            "id": "ihm3znb",
-            "group": "kits",
-            "type": "Kit",
-            "name": "CellTiter-Glo",
-            "shownFields": ["source", "catalog", "lot", "storage"],
-            "values": {
-              "storage": "−20 °C",
-              "source": "Promega"
-            },
-            "units": {},
-            "customFields": [],
-            "fieldLabels": {},
-            "isSetAside": false,
-            "recipe": []
-          },
-          {
-            "id": "bzdkqm5",
-            "group": "supplies",
-            "type": "Plate",
-            "name": "Assay plate",
-            "shownFields": ["source", "catalog", "lot", "storage", "format", "surface", "color"],
-            "values": {
-              "storage": "Shelf",
-              "source": "Corning",
-              "format": "96-well",
-              "surface": "TC-treated",
-              "color": "White"
-            },
-            "units": {},
-            "customFields": [],
-            "fieldLabels": {},
-            "isSetAside": false,
-            "recipe": []
-          },
-          {
-            "id": "5qem2k3",
-            "group": "equip",
-            "type": "Instrument",
-            "name": "Centrifuge",
-            "shownFields": ["model", "settings"],
-            "values": {
-              "settings": "300 × g, 5 min, RT"
-            },
-            "units": {},
-            "customFields": [],
-            "fieldLabels": {},
-            "isSetAside": false,
-            "recipe": []
-          },
-          {
-            "id": "6kb5rka",
-            "group": "equip",
-            "type": "Instrument",
-            "name": "Plate reader",
-            "shownFields": ["model", "settings"],
-            "values": {
-              "settings": "luminescence, 1 s integration"
-            },
-            "units": {},
-            "customFields": [],
-            "fieldLabels": {},
-            "isSetAside": false,
-            "recipe": []
-          }
-        ]
+        "isSetAsideOpen": false
       },
       {
         "id": "vd9y6g4",
@@ -331,40 +402,7 @@
         "w": 4,
         "h": 16,
         "isCollapsed": false,
-        "type": "values",
-        "items": [
-          {
-            "id": "gx8xelk",
-            "name": "Cells/well",
-            "value": "5000",
-            "unit": "cells"
-          },
-          {
-            "id": "6e8nyrc",
-            "name": "Vol./well",
-            "value": "100",
-            "unit": "µL"
-          },
-          {
-            "id": "gefx27z",
-            "name": "Extra (dead vol.)",
-            "value": "10",
-            "unit": "%"
-          },
-          {
-            "id": "d05kn7e",
-            "name": "Top conc.",
-            "value": "10",
-            "unit": "µM"
-          },
-          {
-            "id": "w8gptu3",
-            "name": "Fold",
-            "value": "3",
-            "unit": "X"
-          }
-        ],
-        "rows": []
+        "type": "values"
       },
       {
         "id": "vp955u6",
@@ -908,46 +946,7 @@
         "w": 4,
         "h": 15,
         "isCollapsed": false,
-        "type": "calculations",
-        "items": [
-          {
-            "id": "mw4s4i2",
-            "name": "Cell wells",
-            "formula": "Sample wells + Control wells",
-            "unit": "auto"
-          },
-          {
-            "id": "g64zzfl",
-            "name": "Cells needed",
-            "formula": "Cells/well × Cell wells × (1 + Extra (dead vol.))",
-            "unit": "auto"
-          },
-          {
-            "id": "mc4gorp",
-            "name": "Live cell conc",
-            "formula": "HeLa total cell conc. × HeLa viability",
-            "unit": "auto"
-          },
-          {
-            "id": "y4o0rlx",
-            "name": "Cell suspension",
-            "formula": "Cells needed ÷ Live cell conc",
-            "unit": "mL"
-          },
-          {
-            "id": "poq6m7o",
-            "name": "Seeding volume",
-            "formula": "Cell wells × Vol./well × (1 + Extra (dead vol.))",
-            "unit": "mL"
-          },
-          {
-            "id": "7kuyix2",
-            "name": "Media to add",
-            "formula": "Seeding volume − Cell suspension",
-            "unit": "mL"
-          }
-        ],
-        "materialSections": []
+        "type": "calculations"
       },
       {
         "id": "31np0ed",
@@ -959,18 +958,6 @@
         "h": 14,
         "isCollapsed": false,
         "type": "procedure"
-      },
-      {
-        "id": "ikj1u8c",
-        "title": "Sketch",
-        "page": "v2i5v7f",
-        "x": 7,
-        "y": 28,
-        "w": 5,
-        "h": 14,
-        "isCollapsed": false,
-        "type": "sketch",
-        "strokes": []
       },
       {
         "id": "snkgxdt",

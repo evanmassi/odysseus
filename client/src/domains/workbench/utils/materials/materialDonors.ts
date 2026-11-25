@@ -27,7 +27,7 @@ export function donorListName(material: MaterialItem): string {
 }
 
 export const donorTargetsOf = (
-  protocol: Pick<Protocol, 'cards'>
+  protocol: Pick<Protocol, 'materials'>
 ): Array<{ value: string; label: string }> =>
   listedMaterials(protocol)
     .filter(item => item.group === BIO_GROUP)
@@ -155,7 +155,7 @@ export interface KnownDonorMatch {
   donor: ExperimentDonor;
 }
 
-export function donorsIn(protocol: Pick<Protocol, 'cards'>): KnownDonorMatch[] {
+export function donorsIn(protocol: Pick<Protocol, 'materials'>): KnownDonorMatch[] {
   return listedMaterials(protocol).flatMap(material =>
     (material.donors?.rows ?? []).map(donor => ({ material, donor }))
   );
@@ -182,23 +182,19 @@ export interface DonorSummary {
   summary: string;
 }
 
-export const donorSummaries = (protocol: Pick<Protocol, 'cards'>): DonorSummary[] =>
+export const donorSummaries = (protocol: Pick<Protocol, 'materials'>): DonorSummary[] =>
   donorsIn(protocol).map(match => ({ name: match.donor.name, summary: donorSummary(match) }));
 
 export function moveIntoDonors(draft: Protocol, itemId: string, targetId: string): void {
   const target = listedMaterials(draft).find(candidate => candidate.id === targetId);
-  const card = draft.cards.find(
-    candidate => candidate.type === 'materials' && candidate.items.some(item => item.id === itemId)
-  );
-  if (!target?.donors || card?.type !== 'materials' || itemId === targetId) return;
-  const item = card.items.find(candidate => candidate.id === itemId);
-  if (!item) return;
+  const item = draft.materials.items.find(candidate => candidate.id === itemId);
+  if (!target?.donors || !item || itemId === targetId) return;
   const donorKeys = new Set(donorFields(target.donors).map(field => field.key));
   const carried = Object.entries(item.values).flatMap(([key, value]) => {
     const donorKey = DONOR_KEY_OF_MATERIAL_KEY[key] ?? key;
     return value.trim() && donorKeys.has(donorKey) ? [[key, donorKey] as const] : [];
   });
-  card.items = card.items.filter(candidate => candidate.id !== itemId);
+  draft.materials.items = draft.materials.items.filter(candidate => candidate.id !== itemId);
   if (findNamed(target.donors.rows, item.name, row => row.name)) return;
   addDonor(target.donors, nameWithoutNotes(item.name), {
     values: Object.fromEntries(carried.map(([key, donorKey]) => [donorKey, item.values[key]])),

@@ -5,6 +5,7 @@ import {
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
+import { firstCardIdOf } from '../cards/createCard';
 import {
   nameKey,
   type BoardName,
@@ -251,7 +252,7 @@ function runNames(
   ].find(name => names.has(nameKey(name)));
   const gap: CalculationGap | undefined = takenName
     ? { problem: `Rename "${takenName}": the ${subject} dilution prep needs that name.` }
-    : missingSharedValue(subject, volume, wellVolume, assaySetupTitleOf(protocol.cards));
+    : missingSharedValue(subject, volume, wellVolume, assaySetupTitleOf(protocol));
   const lines = (Object.keys(formulas) as PrepLine[])
     .filter(key => !names.has(nameKey(line(key))))
     .map(
@@ -307,7 +308,7 @@ export function dilutionCalculationNames(
   taken: readonly BoardName[]
 ): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  const dilutionsCardId = protocol.cards.find(card => card.type === 'dilutions')?.id;
+  const dilutionsCardId = firstCardIdOf(protocol, 'dilutions');
   const runs = dilutionRuns(protocol);
   const tags = runTags(runs);
   const diluents = runDiluents(runs, protocol.diluent);

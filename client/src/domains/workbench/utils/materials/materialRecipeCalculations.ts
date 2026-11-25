@@ -1,3 +1,4 @@
+import { firstCardIdOf } from '../cards/createCard';
 import { STOCK_FIELD } from '../dilutions/dilutionStock';
 import {
   calculationAnswerText,
@@ -34,7 +35,7 @@ import { assaySetupTitleOf, joinValueName, lowerLead } from '../values/valueName
 import { fieldName, materialFields } from './materialCatalog';
 import { nameWithoutNotes } from './materialLookup';
 
-import type { MaterialItem, MaterialsCard, Protocol } from '@odysseus/shared-schemas';
+import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
 export const recipeFinalId = (mixId: string, entryId: string): string =>
   `${mixId}:recipe:${entryId}:final`;
@@ -96,7 +97,7 @@ function stockName(mix: MaterialItem) {
 
 function mixNames(
   mix: MaterialItem,
-  materialsCardId: string,
+  materialsCardId: string | undefined,
   materials: ReadonlyMap<string, MaterialItem>,
   names: ReadonlyMap<string, BoardName>,
   assaySetupTitle: string
@@ -204,28 +205,23 @@ export function recipeCalculationNames(
   taken: readonly BoardName[]
 ): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  const materialCards = protocol.cards.filter(
-    (card): card is MaterialsCard => card.type === 'materials'
-  );
-  const byId = new Map(
-    materialCards.flatMap(card => card.items).map(item => [item.id, item] as const)
-  );
-  const assaySetupTitle = assaySetupTitleOf(protocol.cards);
-  return materialCards.flatMap(card =>
-    card.items.filter(isMix).flatMap(mix => mixNames(mix, card.id, byId, names, assaySetupTitle))
-  );
+  const { items } = protocol.materials;
+  const byId = new Map(items.map(item => [item.id, item] as const));
+  const materialsCardId = firstCardIdOf(protocol, 'materials');
+  const assaySetupTitle = assaySetupTitleOf(protocol);
+  return items
+    .filter(isMix)
+    .flatMap(mix => mixNames(mix, materialsCardId, byId, names, assaySetupTitle));
 }
 
 const AGREEMENT = 0.01;
 
 export function recipeWarnings(
-  protocol: Pick<Protocol, 'cards'>,
+  protocol: Pick<Protocol, 'materials'>,
   board: SolvedBoard
 ): Map<string, string[]> {
   const warnings = new Map<string, string[]>();
-  const mixes = protocol.cards
-    .flatMap(card => (card.type === 'materials' ? card.items : []))
-    .filter(isMix);
+  const mixes = protocol.materials.items.filter(isMix);
   for (const mix of mixes) {
     const result = board.results.get(mixWorkingId(mix.id));
     const typed = mixValue(mix, WORKING_CONCENTRATION, board.names);
