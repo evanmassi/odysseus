@@ -2,7 +2,7 @@ import {
   type MaterialItem,
   type Protocol,
   type ValueRow,
-  type PlateMapCard,
+  type PlateMap,
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
@@ -275,12 +275,9 @@ function countCells(subject: CountSubject, board: SolvedBoard): ValueCell[] {
   });
 }
 
-const isPlateMap = (card: Protocol['cards'][number]): card is PlateMapCard =>
-  card.type === 'plateMap';
-
 function plateMaterialFor(
-  plateMap: PlateMapCard,
-  plates: readonly PlateMapCard[],
+  plateMap: PlateMap,
+  plates: readonly PlateMap[],
   materials: readonly MaterialItem[]
 ): MaterialItem | undefined {
   return materials.find(material => {
@@ -432,11 +429,11 @@ function groupLabel(key: string): string {
 }
 
 export function buildValueTable(
-  protocol: Pick<Protocol, 'cards' | 'materials' | 'values'>,
+  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'values'>,
   { materials, board, needs, unsortedNames }: ValueTableSources
 ): ValueTableGroup[] {
   const { values } = protocol;
-  const plates = protocol.cards.filter(isPlateMap);
+  const plates = protocol.plateMaps;
   const matches = donorsIn(protocol);
   const subjects = countSubjects(protocol);
   const countedIds = new Set(subjects.map(subject => subject.material.id));

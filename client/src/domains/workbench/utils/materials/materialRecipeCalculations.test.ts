@@ -47,6 +47,7 @@ function protocolWith(mixValues: Array<[name: string, value: string, unit: strin
       ],
     },
     calculations: { items: [], materialSections: [] },
+    plateMaps: [],
     cards: [
       { id: 'materials', type: 'materials', page: 'page' },
       { id: 'values', type: 'values', page: 'page' },
@@ -79,10 +80,9 @@ describe('recipe finals in the well', () => {
     ]);
     protocol.values.items.push({ id: 'tube', name: 'Total tube vol.', value: '500', unit: 'µL' });
     const mix = { valueId: 'th17' };
-    protocol.cards.push({
+    protocol.plateMaps.push({
       id: 'plate',
-      type: 'plateMap',
-      page: 'page',
+      title: '',
       plates: [{ id: 'p', labware: '96', name: '' }],
       otherLabware: [{ id: 't', labware: 'facs', count: 1 }],
       lines: [{ id: 'l', name: '', role: 'auto', values: [{ id: 'th17', text: 'Th17 cocktail' }] }],
@@ -90,10 +90,9 @@ describe('recipe finals in the well', () => {
       series: {},
       counts: {},
       amountNames: {},
-      side: 'assay',
       stain: {},
       stainedIn: {},
-    } as unknown as Protocol['cards'][number]);
+    });
     const board = calculate(protocol);
     expect(answer(board, `${recipeFinalId('mix', 'r1')}:well`)).toBe('5 ng/mL');
     expect(answer(board, `${recipeFinalId('mix', 'r1')}:tube`)).toBe('10 ng/mL');

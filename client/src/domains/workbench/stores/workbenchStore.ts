@@ -42,11 +42,9 @@ interface WorkbenchState {
 let lastBoard: { inputs: string; board: SolvedBoard } | undefined;
 let lastEditAt = 0;
 
-const plateMapsOf = (protocol: Protocol) => protocol.cards.filter(card => card.type === 'plateMap');
-
 function haveSamePlateMaps(before: Protocol, after: Protocol): boolean {
-  const [was, now] = [plateMapsOf(before), plateMapsOf(after)];
-  return was.length === now.length && was.every((card, index) => card === now[index]);
+  const [was, now] = [before.plateMaps, after.plateMaps];
+  return was.length === now.length && was.every((plateMap, index) => plateMap === now[index]);
 }
 
 function calculate(protocol: Protocol): SolvedBoard {

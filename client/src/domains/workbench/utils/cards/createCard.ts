@@ -2,7 +2,12 @@ import { createId } from '../ids/createId';
 
 import { CARD_TYPES, defaultCardTitle } from './cardTypes';
 
-import type { Protocol, ProtocolCard, ProtocolCardType } from '@odysseus/shared-schemas';
+import type {
+  PlateMapCard,
+  Protocol,
+  ProtocolCard,
+  ProtocolCardType,
+} from '@odysseus/shared-schemas';
 
 interface Placement {
   page: string;
@@ -12,7 +17,9 @@ interface Placement {
   h: number;
 }
 
-export function createCard<Type extends ProtocolCardType>(
+type TitledCardType = Exclude<ProtocolCardType, 'plateMap'>;
+
+export function createCard<Type extends TitledCardType>(
   type: Type,
   placement: Placement
 ): ProtocolCard {
@@ -34,7 +41,36 @@ export const firstCardIdOf = (
   type: ProtocolCardType
 ): string | undefined => protocol.cards.find(card => card.type === type)?.id;
 
-export function firstCardOrNew<Type extends ProtocolCardType>(
+export const cardsShowing = (cards: readonly ProtocolCard[], plateMapId: string): PlateMapCard[] =>
+  cards.filter(
+    (card): card is PlateMapCard => card.type === 'plateMap' && card.shows === plateMapId
+  );
+
+export const cardIdShowing = (
+  protocol: Pick<Protocol, 'cards'>,
+  plateMapId: string
+): string | undefined => cardsShowing(protocol.cards, plateMapId)[0]?.id;
+
+export function showPlateMap(
+  draft: Pick<Protocol, 'cards'>,
+  plateMapId: string,
+  placement: Placement,
+  side: PlateMapCard['side']
+): PlateMapCard {
+  const card: PlateMapCard = {
+    id: createId(),
+    type: 'plateMap',
+    isCollapsed: false,
+    ...placement,
+    ...CARD_TYPES.plateMap.createContent(),
+    shows: plateMapId,
+    side,
+  };
+  draft.cards.push(card);
+  return card;
+}
+
+export function firstCardOrNew<Type extends TitledCardType>(
   draft: Protocol,
   type: Type
 ): Extract<ProtocolCard, { type: Type }> {

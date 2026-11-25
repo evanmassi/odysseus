@@ -4,19 +4,13 @@ import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { followWellEdit } from '../../../../utils/materials/renameFollowing';
 import { heldNames, type HeldName } from '../../../../utils/plateMap/wellEdits';
 
-import type { PlateMapCard } from '@odysseus/shared-schemas';
-
 const NOTHING_HELD: ReadonlyMap<string, HeldName> = new Map();
 
-const plateMapNow = (cardId: string) =>
-  useWorkbenchStore
-    .getState()
-    .protocol.cards.find(
-      (card): card is PlateMapCard => card.id === cardId && card.type === 'plateMap'
-    );
+const plateMapNow = (plateMapId: string) =>
+  useWorkbenchStore.getState().protocol.plateMaps.find(plateMap => plateMap.id === plateMapId);
 
 export function useWellEditSession(
-  cardId: string,
+  plateMapId: string,
   keys: ReadonlySet<string>,
   isEditorOpen: boolean
 ): ReadonlyMap<string, HeldName> {
@@ -31,16 +25,16 @@ export function useWellEditSession(
 
   useEffect(() => {
     const keyList = [...keys];
-    const plateMap = plateMapNow(cardId);
+    const plateMap = plateMapNow(plateMapId);
     const startedNow = plateMap && keyList.length ? heldNames(plateMap, keyList) : NOTHING_HELD;
     setStarted(startedNow);
     return () => {
       if (!startedNow.size) return;
       useWorkbenchStore
         .getState()
-        .updateProtocol(draft => followWellEdit(draft, cardId, startedNow, keyList));
+        .updateProtocol(draft => followWellEdit(draft, plateMapId, startedNow, keyList));
     };
-  }, [cardId, keys, editorClosings]);
+  }, [plateMapId, keys, editorClosings]);
 
   return started;
 }

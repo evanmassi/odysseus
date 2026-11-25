@@ -3,7 +3,7 @@ import {
   isFilledEntry,
   lineValueOf,
   type PlateLine,
-  type PlateMapCard,
+  type PlateMap,
 } from '@odysseus/shared-schemas';
 
 import { seriesProgress, wellLine, wellLineText, type WellColor } from './wellContents';
@@ -23,7 +23,7 @@ const SOLID_STRIPE = 100;
 const STRIPE_FADE = 70;
 
 export function lineLayers(
-  card: PlateMapCard,
+  card: PlateMap,
   colorLine: PlateLine | undefined,
   board: SolvedBoard
 ): LineLayer[] {
@@ -48,7 +48,7 @@ export function lineLayers(
 }
 
 export function wellStripes(
-  card: PlateMapCard,
+  card: PlateMap,
   key: string,
   layers: readonly LineLayer[]
 ): Array<WellColor | undefined> {
@@ -145,7 +145,7 @@ function clustersOf(cells: IndicatorCell[]): Array<Omit<IndicatorCluster, 'place
 }
 
 function amountSummary(
-  card: PlateMapCard,
+  card: PlateMap,
   line: PlateLine,
   keys: readonly string[],
   board: SolvedBoard
@@ -193,7 +193,7 @@ const isScatteredPlace = (place: IndicatorPlacement) =>
   place === 'wellBorder' || place === 'corner';
 
 export function plateIndicators(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   layers: readonly LineLayer[],
   board: SolvedBoard,

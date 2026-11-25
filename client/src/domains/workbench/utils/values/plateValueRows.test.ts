@@ -1,11 +1,10 @@
 import { plateValueRows, removePlateRow, setPlateRowValue } from './plateValueRows';
 
-import type { Protocol, PlateMapCard } from '@odysseus/shared-schemas';
+import type { PlateMap, Protocol } from '@odysseus/shared-schemas';
 
 function protocolWithPlate(): Protocol {
-  const plateMap = {
+  const plateMap: PlateMap = {
     id: 'map',
-    type: 'plateMap',
     title: 'Assay plate map',
     plates: [{ id: 'p', labware: '96', name: '' }],
     otherLabware: [],
@@ -35,15 +34,13 @@ function protocolWithPlate(): Protocol {
     series: { s: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' } },
     counts: {},
     amountNames: {},
-    side: 'assay',
     stain: {},
     stainedIn: {},
-  } as unknown as PlateMapCard;
-  return { cards: [plateMap] } as unknown as Protocol;
+  };
+  return { plateMaps: [plateMap] } as unknown as Protocol;
 }
 
-const plateIn = (protocol: Protocol) =>
-  protocol.cards.find(card => card.type === 'plateMap') as PlateMapCard;
+const plateIn = (protocol: Protocol) => protocol.plateMaps[0];
 
 const rowNamed = (protocol: Protocol, name: string) =>
   plateValueRows(plateIn(protocol)).find(row => row.name === name)!;

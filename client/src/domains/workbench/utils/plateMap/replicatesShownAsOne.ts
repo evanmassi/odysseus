@@ -2,8 +2,8 @@ import { isAtHome, type StainSamples } from './stainLayout';
 import { wellDetails } from './wellContents';
 
 import type { PlateMapSheet } from './plateMapTabs';
+import type { ShownPlateMap } from './shownPlateMap';
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { PlateMapCard } from '@odysseus/shared-schemas';
 
 export interface ReplicateGroup {
   row: number;
@@ -21,7 +21,7 @@ export interface ReplicatesShownAsOne {
 const NONE_SHOWN_AS_ONE: ReplicatesShownAsOne = { anchors: new Map(), covered: new Set() };
 
 export function replicatesShownAsOne(
-  card: PlateMapCard,
+  card: ShownPlateMap,
   sheet: PlateMapSheet,
   board: SolvedBoard,
   stainSamples: StainSamples | undefined

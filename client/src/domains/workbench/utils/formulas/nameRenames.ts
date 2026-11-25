@@ -70,17 +70,15 @@ export function applyRenames(
     );
     if (owner) item.name = `${renames.byItemPrefix.get(owner)} ${item.name.slice(owner.length)}`;
   }
-  for (const card of draft.cards) {
-    if (card.type === 'plateMap') {
-      for (const line of card.lines) {
-        line.name = renamed(line.name) ?? line.name;
-        for (const value of line.values) value.text = renamed(value.text) ?? value.text;
-      }
-      for (const series of Object.values(card.series)) {
-        if (!('top' in series)) continue;
-        series.top = renamed(series.top) ?? series.top;
-        series.dilutionFactor = renamed(series.dilutionFactor) ?? series.dilutionFactor;
-      }
+  for (const plateMap of draft.plateMaps) {
+    for (const line of plateMap.lines) {
+      line.name = renamed(line.name) ?? line.name;
+      for (const value of line.values) value.text = renamed(value.text) ?? value.text;
+    }
+    for (const series of Object.values(plateMap.series)) {
+      if (!('top' in series)) continue;
+      series.top = renamed(series.top) ?? series.top;
+      series.dilutionFactor = renamed(series.dilutionFactor) ?? series.dilutionFactor;
     }
   }
   for (const page of draft.pages) {

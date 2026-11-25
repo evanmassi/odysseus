@@ -1,17 +1,19 @@
 import { useCallback } from 'react';
 
-import { normalizePlateMap, type PlateMapCard } from '@odysseus/shared-schemas';
+import { normalizePlateMap, type PlateMap } from '@odysseus/shared-schemas';
 
-import { useUpdateCard } from '../../../../hooks/useUpdateCard';
+import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 
-export function useUpdatePlateMap(card: PlateMapCard) {
-  const updateCard = useUpdateCard(card);
+export function useUpdatePlateMap(plateMapId: string) {
+  const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   return useCallback(
-    (recipe: (draft: PlateMapCard) => void) =>
-      updateCard(draft => {
-        recipe(draft);
-        normalizePlateMap(draft);
+    (recipe: (draft: PlateMap) => void) =>
+      updateProtocol(draft => {
+        const plateMap = draft.plateMaps.find(candidate => candidate.id === plateMapId);
+        if (!plateMap) return;
+        recipe(plateMap);
+        normalizePlateMap(plateMap);
       }),
-    [updateCard]
+    [plateMapId, updateProtocol]
   );
 }

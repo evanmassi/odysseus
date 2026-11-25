@@ -15,7 +15,7 @@ const item = (fields: Partial<MaterialItem>): MaterialItem =>
   }) as MaterialItem;
 
 const protocol = {
-  cards: [],
+  plateMaps: [],
   materials: {
     customGroups: [],
     items: [
@@ -44,7 +44,7 @@ const protocol = {
       }),
     ],
   },
-} as unknown as Pick<Protocol, 'cards' | 'materials'>;
+} as unknown as Pick<Protocol, 'materials' | 'plateMaps'>;
 
 const known = knownNamesIn(protocol);
 const texts = (typed: string, onLine: string[] = []) =>

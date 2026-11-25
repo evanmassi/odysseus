@@ -3,7 +3,6 @@ import {
   type MaterialItem,
   type ExperimentDonor,
   type Protocol,
-  type PlateMapCard,
 } from '@odysseus/shared-schemas';
 
 import { calculateBoard, nameKey } from '../formulas/boardCalculation';
@@ -30,11 +29,11 @@ export interface PlatedCells {
   placements: CellPlacement[];
 }
 
-export function platedCells(protocol: Pick<Protocol, 'cards' | 'materials'>): PlatedCells[] {
+export function platedCells(protocol: Pick<Protocol, 'materials' | 'plateMaps'>): PlatedCells[] {
   const materials = listedMaterials(protocol).filter(item => !item.isSetAside);
   const matches = donorsIn(protocol);
   const plated = new Map<string, PlatedCells>();
-  const plates = protocol.cards.filter((card): card is PlateMapCard => card.type === 'plateMap');
+  const plates = protocol.plateMaps;
   for (const plateMap of plates) {
     for (const [key, lines] of Object.entries(plateMap.samples)) {
       for (const line of plateMap.lines) {

@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 9,
+  "version": 10,
   "savedAt": "2026-11-22T12:00:00.000Z",
   "protocol": {
     "title": "Safety net protocol",
@@ -337,89 +337,10 @@
       ],
       "materialSections": ["mat-cells"]
     },
-    "cards": [
-      {
-        "id": "card-materials",
-        "title": "Materials",
-        "page": "page-setup",
-        "x": 0,
-        "y": 0,
-        "w": 12,
-        "h": 10,
-        "isCollapsed": false,
-        "type": "materials",
-        "foldedGroups": ["kits"],
-        "isSetAsideOpen": true
-      },
-      {
-        "id": "card-values",
-        "title": "Values",
-        "page": "page-setup",
-        "x": 6,
-        "y": 10,
-        "w": 6,
-        "h": 6,
-        "isCollapsed": false,
-        "type": "values"
-      },
-      {
-        "id": "card-calculations",
-        "title": "Calculations",
-        "page": "page-setup",
-        "x": 0,
-        "y": 16,
-        "w": 6,
-        "h": 4,
-        "isCollapsed": false,
-        "type": "calculations"
-      },
-      {
-        "id": "card-procedure",
-        "title": "Procedure",
-        "page": "page-setup",
-        "x": 6,
-        "y": 16,
-        "w": 6,
-        "h": 4,
-        "isCollapsed": false,
-        "type": "procedure"
-      },
-      {
-        "id": "card-flow-diagram",
-        "title": "Flow diagram",
-        "page": "page-setup",
-        "x": 0,
-        "y": 20,
-        "w": 6,
-        "h": 4,
-        "isCollapsed": false,
-        "type": "flowDiagram"
-      },
-      {
-        "id": "card-linked-plate",
-        "title": "Plates",
-        "page": "page-setup",
-        "x": 0,
-        "y": 24,
-        "w": 12,
-        "h": 8,
-        "isCollapsed": false,
-        "type": "linkedPlateMap",
-        "shows": "card-plate",
-        "side": "assay",
-        "activeTab": 1,
-        "showsReplicatesAsOne": true
-      },
+    "plateMaps": [
       {
         "id": "card-plate",
         "title": "Plates",
-        "page": "page-plates",
-        "x": 0,
-        "y": 0,
-        "w": 12,
-        "h": 8,
-        "isCollapsed": false,
-        "type": "plateMap",
         "plates": [
           {
             "id": "plate-1",
@@ -439,7 +360,6 @@
             "count": 3
           }
         ],
-        "activeTab": 0,
         "lines": [
           {
             "id": "line-cells",
@@ -570,14 +490,12 @@
           }
         },
         "otherLabwareTabName": "Culture flasks",
-        "showsReplicatesAsOne": false,
         "counts": {
           "used:well": "8"
         },
         "amountNames": {
           "s:series-factor:top": "Drug X top"
         },
-        "side": "stain",
         "stain": {
           "plate-1:A1": "stain-full",
           "plate-1:B1": "stain-fmo",
@@ -587,6 +505,93 @@
           "plate-1:A2": "plate-1:A1",
           "plate-1:A3": "plate-1:D3"
         }
+      }
+    ],
+    "cards": [
+      {
+        "id": "card-materials",
+        "title": "Materials",
+        "page": "page-setup",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 10,
+        "isCollapsed": false,
+        "type": "materials",
+        "foldedGroups": ["kits"],
+        "isSetAsideOpen": true
+      },
+      {
+        "id": "card-values",
+        "title": "Values",
+        "page": "page-setup",
+        "x": 6,
+        "y": 10,
+        "w": 6,
+        "h": 6,
+        "isCollapsed": false,
+        "type": "values"
+      },
+      {
+        "id": "card-calculations",
+        "title": "Calculations",
+        "page": "page-setup",
+        "x": 0,
+        "y": 16,
+        "w": 6,
+        "h": 4,
+        "isCollapsed": false,
+        "type": "calculations"
+      },
+      {
+        "id": "card-procedure",
+        "title": "Procedure",
+        "page": "page-setup",
+        "x": 6,
+        "y": 16,
+        "w": 6,
+        "h": 4,
+        "isCollapsed": false,
+        "type": "procedure"
+      },
+      {
+        "id": "card-flow-diagram",
+        "title": "Flow diagram",
+        "page": "page-setup",
+        "x": 0,
+        "y": 20,
+        "w": 6,
+        "h": 4,
+        "isCollapsed": false,
+        "type": "flowDiagram"
+      },
+      {
+        "id": "card-linked-plate",
+        "page": "page-setup",
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8,
+        "isCollapsed": false,
+        "type": "plateMap",
+        "shows": "card-plate",
+        "side": "assay",
+        "activeTab": 1,
+        "showsReplicatesAsOne": true
+      },
+      {
+        "id": "card-plate",
+        "page": "page-plates",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8,
+        "isCollapsed": false,
+        "type": "plateMap",
+        "shows": "card-plate",
+        "side": "stain",
+        "activeTab": 0,
+        "showsReplicatesAsOne": false
       },
       {
         "id": "card-dilutions",

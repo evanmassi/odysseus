@@ -112,7 +112,7 @@ function linksOf(
 }
 
 function prepWarnings(
-  protocol: Pick<Protocol, 'cards' | 'materials' | 'values'>,
+  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'values'>,
   board: SolvedBoard
 ) {
   const byLine = new Map<string, string[]>();
@@ -128,7 +128,7 @@ function prepWarnings(
 }
 
 export function WorkbenchCalculationsPanel() {
-  const protocol = useProtocolWith('plateMap', 'dilutions');
+  const protocol = useProtocolWith('dilutions', 'materials');
   const board = useWorkbenchStore(state => state.board);
   const activePageId = useWorkbenchStore(state => state.activePageId);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);

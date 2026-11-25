@@ -159,7 +159,7 @@ export const countName = (subject: CountSubject, count: CellCount): string =>
 export const cellPartId = (subject: CellSubject, part: string): string =>
   `cells:${cellSubjectId(subject)}:${part}`;
 
-export function countSubjects(protocol: Pick<Protocol, 'cards' | 'materials'>): CountSubject[] {
+export function countSubjects(protocol: Pick<Protocol, 'materials' | 'plateMaps'>): CountSubject[] {
   const plated = platedCells(protocol);
   const platedSubjects = new Set(plated.map(entry => nameKey(entry.subject)));
   const platedMaterials = new Set(plated.map(entry => entry.material.id));

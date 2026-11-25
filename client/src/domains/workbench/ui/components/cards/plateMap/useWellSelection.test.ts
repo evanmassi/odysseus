@@ -4,7 +4,7 @@ import { sheetOf, plateMapTabs } from '../../../../utils/plateMap/plateMapTabs';
 
 import { useWellSelection } from './useWellSelection';
 
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
 
 const card = {
   plates: [{ id: 'p', labware: '96', name: '' }],
@@ -17,7 +17,7 @@ const card = {
   side: 'assay',
   stain: {},
   stainedIn: {},
-} as unknown as PlateMapCard;
+} as unknown as ShownPlateMap;
 const sheet = sheetOf(card, plateMapTabs(card)[0]);
 const position = (key: string) => sheet.positions.find(candidate => candidate.key === `p:${key}`)!;
 const plain = { isExtending: false, isToggling: false };

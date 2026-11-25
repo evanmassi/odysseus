@@ -8,7 +8,7 @@ import { pointAmount } from './plateSeries';
 
 import type { PlateMapSheet } from './plateMapTabs';
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { PlateSeries, PlateMapCard } from '@odysseus/shared-schemas';
+import type { PlateSeries, PlateMap } from '@odysseus/shared-schemas';
 
 type Direction = PlateSeries['direction'];
 
@@ -59,7 +59,7 @@ export function seriesFormFor(
   return { ...blank, isList: false, top, unit, dilutionFactor, direction };
 }
 
-export function lineUnitOf(card: PlateMapCard, lineId: string): string {
+export function lineUnitOf(card: PlateMap, lineId: string): string {
   const cells = Object.values(card.samples).flatMap(lines =>
     lines[lineId] ? [lines[lineId]] : []
   );
@@ -73,7 +73,7 @@ export function lineUnitOf(card: PlateMapCard, lineId: string): string {
 }
 
 export function seriesTargets(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>,
   form: Pick<SeriesForm, 'lineId' | 'seriesId'>
@@ -112,7 +112,7 @@ function seriesShape(form: SeriesForm): PlateSeries {
 }
 
 export function writeSeries(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>,
   form: SeriesForm
@@ -137,7 +137,7 @@ export function writeSeries(
   return seriesId;
 }
 
-export function removeSeries(card: PlateMapCard, seriesId: string): void {
+export function removeSeries(card: PlateMap, seriesId: string): void {
   for (const entry of Object.values(card.samples).flatMap(lines => Object.values(lines))) {
     if (entry.seriesId !== seriesId) continue;
     delete entry.seriesId;
@@ -147,7 +147,7 @@ export function removeSeries(card: PlateMapCard, seriesId: string): void {
 }
 
 export function seriesPreview(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>,
   form: SeriesForm,

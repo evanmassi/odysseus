@@ -2,7 +2,7 @@ import {
   isFilledEntry,
   lineValueOf,
   type PlateLine,
-  type PlateMapCard,
+  type PlateMap,
 } from '@odysseus/shared-schemas';
 
 import { displayValue, readableAmount } from '../formulas/quantities';
@@ -35,7 +35,7 @@ export const tinted = (color: string, percent: number): string =>
   `color-mix(in srgb, ${color} ${percent}%, transparent)`;
 
 export function wellLine(
-  card: PlateMapCard,
+  card: PlateMap,
   key: string,
   line: PlateLine,
   board: SolvedBoard
@@ -54,18 +54,14 @@ export function wellLine(
 export const wellLineText = ({ label, readable }: WellLine) =>
   [label, readable].filter(Boolean).join(' · ');
 
-export const wellDetails = (card: PlateMapCard, key: string, board: SolvedBoard) =>
+export const wellDetails = (card: PlateMap, key: string, board: SolvedBoard) =>
   card.lines.flatMap(line => {
     const shown = wellLine(card, key, line, board);
     const text = shown && wellLineText(shown);
     return text ? [text] : [];
   });
 
-export function seriesProgress(
-  card: PlateMapCard,
-  key: string,
-  line: PlateLine
-): number | undefined {
+export function seriesProgress(card: PlateMap, key: string, line: PlateLine): number | undefined {
   const entry = card.samples[key]?.[line.id];
   if (entry?.seriesId === undefined) return undefined;
   const lastStep = Math.max(
@@ -78,7 +74,7 @@ export function seriesProgress(
 }
 
 export function wellColor(
-  card: PlateMapCard,
+  card: PlateMap,
   key: string,
   colorLine: PlateLine | undefined
 ): WellColor | undefined {

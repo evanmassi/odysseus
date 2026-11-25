@@ -3,7 +3,7 @@ import { isWellFilled, shiftedTargets } from './wellSelection';
 
 import type { PlateMapSheet, PlateMapPosition } from './plateMapTabs';
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { PlateMap } from '@odysseus/shared-schemas';
 
 export type StainSamples = ReadonlyMap<string, readonly string[]>;
 
@@ -14,9 +14,9 @@ interface Pool {
   target: string;
 }
 
-export const stainPositionOf = (card: PlateMapCard, key: string) => card.stainedIn[key] ?? key;
+export const stainPositionOf = (card: PlateMap, key: string) => card.stainedIn[key] ?? key;
 
-export function stainSamples(card: PlateMapCard, sheet: PlateMapSheet): StainSamples {
+export function stainSamples(card: PlateMap, sheet: PlateMapSheet): StainSamples {
   const samples = new Map(sheet.positions.map(position => [position.key, [] as string[]]));
   for (const position of sheet.positions) {
     if (isWellFilled(card, position.key))
@@ -39,7 +39,7 @@ export function sharedByAll<Value>(
   return rest.every(value => JSON.stringify(value) === shown) ? first : undefined;
 }
 
-export const isRearranged = (card: PlateMapCard, sheet: PlateMapSheet) =>
+export const isRearranged = (card: PlateMap, sheet: PlateMapSheet) =>
   sheet.positions.some(position => card.stainedIn[position.key] !== undefined);
 
 const occupiedPositions = (
@@ -51,7 +51,7 @@ const occupiedPositions = (
     position => keys.has(position.key) && (samples.get(position.key)?.length ?? 0) > 0
   );
 
-function regroup(card: PlateMapCard, samples: StainSamples, pools: readonly Pool[]): void {
+function regroup(card: PlateMap, samples: StainSamples, pools: readonly Pool[]): void {
   const stainIds = pools.map(pool =>
     pool.positions.map(position => card.stain[position.key]).find(Boolean)
   );
@@ -74,7 +74,7 @@ export const canPoolSamples = (
 ) => occupiedPositions(sheet, samples, keys).length > 1;
 
 export function poolSamples(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>
 ): string[] {
@@ -87,7 +87,7 @@ export function poolSamples(
 }
 
 function replicateGroups(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   samples: StainSamples,
   keys: ReadonlySet<string>,
@@ -105,7 +105,7 @@ function replicateGroups(
 }
 
 export const canPoolReplicates = (
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   samples: StainSamples,
   keys: ReadonlySet<string>,
@@ -116,7 +116,7 @@ export const canPoolReplicates = (
 };
 
 export function poolReplicates(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>,
   board: SolvedBoard
@@ -140,11 +140,7 @@ const isPooled = (samples: StainSamples, key: string) => (samples.get(key)?.leng
 export const canUnpool = (samples: StainSamples, keys: ReadonlySet<string>) =>
   [...keys].some(key => isPooled(samples, key));
 
-export function unpool(
-  card: PlateMapCard,
-  sheet: PlateMapSheet,
-  keys: ReadonlySet<string>
-): string[] {
+export function unpool(card: PlateMap, sheet: PlateMapSheet, keys: ReadonlySet<string>): string[] {
   const samples = stainSamples(card, sheet);
   const dissolving = new Set([...keys].filter(key => isPooled(samples, key)));
   const queue = [...dissolving];
@@ -170,7 +166,7 @@ export function unpool(
 }
 
 export function stainMoveTargets(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   cutKeys: ReadonlySet<string>,
   keys: ReadonlySet<string>
@@ -183,7 +179,7 @@ export function stainMoveTargets(
 }
 
 export function moveStainPositions(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   cutKeys: ReadonlySet<string>,
   landing: readonly string[]
@@ -203,7 +199,7 @@ export function moveStainPositions(
   });
 }
 
-export function forgetStainOf(card: PlateMapCard, keys: ReadonlySet<string>): void {
+export function forgetStainOf(card: PlateMap, keys: ReadonlySet<string>): void {
   for (const key of keys) {
     const position = stainPositionOf(card, key);
     const isStillUsed = Object.keys(card.samples).some(

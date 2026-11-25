@@ -1,4 +1,4 @@
-import { firstCardIdOf } from '../cards/createCard';
+import { cardIdShowing, firstCardIdOf } from '../cards/createCard';
 import { dilutionCalculationNames } from '../dilutions/dilutionCalculations';
 import { flowCytometryCalculationNames } from '../flowCytometry/flowCytometryNames';
 import { cellCalculationNames } from '../materials/cellCalculations';
@@ -23,13 +23,11 @@ import { nameKey, type BoardName } from './boardCalculation';
 
 import type {
   MaterialItem,
+  PlateMap,
   Protocol,
   ProtocolCalculations,
-  ProtocolCard,
   ProtocolValues,
 } from '@odysseus/shared-schemas';
-
-type CardOf<Type extends ProtocolCard['type']> = Extract<ProtocolCard, { type: Type }>;
 
 function materialNames(
   materials: readonly MaterialItem[],
@@ -89,19 +87,19 @@ function valueNames(
   });
 }
 
-function plateMapNames(card: CardOf<'plateMap'>): BoardName[] {
-  const counts = plateMapCounts(card).map(
+function plateMapNames(plateMap: PlateMap): BoardName[] {
+  const counts = plateMapCounts(plateMap).map(
     (count): BoardName => ({
       kind: 'count',
-      id: `${card.id}:${count.key}`,
+      id: `${plateMap.id}:${count.key}`,
       name: count.name,
       count: count.count,
     })
   );
-  const amounts = plateAmounts(card).map(
+  const amounts = plateAmounts(plateMap).map(
     (amount): BoardName => ({
       kind: 'value',
-      id: `${card.id}:${amount.key}`,
+      id: `${plateMap.id}:${amount.key}`,
       name: amount.name,
       value: amount.value,
       unit: amount.unit,
@@ -125,10 +123,7 @@ function wellCountNames(
   materials: readonly MaterialItem[]
 ) {
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
-  const plateMaps = protocol.cards.filter(
-    (card): card is CardOf<'plateMap'> => card.type === 'plateMap'
-  );
-  return [...materialSampleCounts(plateMaps, materials)].flatMap(([material, byNoun]) =>
+  return [...materialSampleCounts(protocol.plateMaps, materials)].flatMap(([material, byNoun]) =>
     [...byNoun].flatMap(([noun, count]): BoardName[] => {
       const plural = lowerLead(perLabwareKind(WELLS, noun).word);
       const name = `${material.name.trim()} ${plural}`;
@@ -152,8 +147,8 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
     ...fromCard(materialNames(materials, cellMaterialIds), materialsCardId),
     ...fromCard(valueNames(protocol.values, materialsById), firstCardIdOf(protocol, 'values')),
     ...fromCard(calculationNames(protocol.calculations), firstCardIdOf(protocol, 'calculations')),
-    ...protocol.cards.flatMap(card =>
-      card.type === 'plateMap' ? fromCard(plateMapNames(card), card.id) : []
+    ...protocol.plateMaps.flatMap(plateMap =>
+      fromCard(plateMapNames(plateMap), cardIdShowing(protocol, plateMap.id))
     ),
   ];
   const ownNames = [

@@ -1,6 +1,7 @@
-import { createCard } from '../utils/cards/createCard';
+import { showPlateMap } from '../utils/cards/createCard';
 import { startDonors } from '../utils/materials/materialDonors';
 import { plateFollowsListRename } from '../utils/materials/renameFollowing';
+import { newPlateMap } from '../utils/plateMap/plateMapEdits';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
 import { moveValueToRow } from '../utils/values/valueEdits';
 
@@ -39,6 +40,8 @@ function boardWith(): Protocol {
 const { getState } = useWorkbenchStore;
 
 const calculationItems = () => getState().protocol.calculations.items;
+
+const placementOn = (draft: Protocol) => ({ page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
 
 beforeEach(() => getState().openProtocol(boardWith(), 'test.json'));
 
@@ -122,17 +125,15 @@ describe('workbenchStore', () => {
   describe('plate edits', () => {
     const addPlate = (cells: Record<string, Record<string, object>>) =>
       getState().updateProtocol(draft => {
-        const plateMap = createCard('plateMap', {
-          page: draft.pages[0].id,
-          x: 0,
-          y: 0,
-          w: 6,
-          h: 6,
-        });
-        if (plateMap.type !== 'plateMap') return;
-        plateMap.lines = [{ id: 'l', name: '', role: 'auto', values: [{ id: 'd', text: 'Drug' }] }];
-        plateMap.samples = cells;
-        draft.cards.push(plateMap);
+        const plateMap = {
+          ...newPlateMap(),
+          lines: [
+            { id: 'l', name: '', role: 'auto' as const, values: [{ id: 'd', text: 'Drug' }] },
+          ],
+          samples: cells,
+        };
+        draft.plateMaps.push(plateMap);
+        showPlateMap(draft, plateMap.id, placementOn(draft), 'assay');
       });
 
     it('removes a typed value once the plate provides the same name', () => {
@@ -165,21 +166,17 @@ describe('workbenchStore', () => {
           units: {},
         });
         draft.materials.items.push(pbmc);
-        const plateMap = createCard('plateMap', {
-          page: draft.pages[0].id,
-          x: 0,
-          y: 0,
-          w: 6,
-          h: 6,
-        });
-        if (plateMap.type !== 'plateMap') return;
-        plateMap.plates = [{ id: 'p1', labware: '96', name: '' }];
-        plateMap.lines = [
-          { id: 'l', name: '', role: 'band', values: [{ id: 'd1', text: 'Donor 1' }] },
-        ];
         const cells = { valueId: 'd1', amount: '100000', unit: 'cells' };
-        plateMap.samples = { 'p1:A1': { l: cells }, 'p1:A2': { l: cells } };
-        draft.cards.push(plateMap);
+        const plateMap = {
+          ...newPlateMap(),
+          plates: [{ id: 'p1', labware: '96' as const, name: '' }],
+          lines: [
+            { id: 'l', name: '', role: 'band' as const, values: [{ id: 'd1', text: 'Donor 1' }] },
+          ],
+          samples: { 'p1:A1': { l: cells }, 'p1:A2': { l: cells } },
+        };
+        draft.plateMaps.push(plateMap);
+        showPlateMap(draft, plateMap.id, placementOn(draft), 'assay');
       })
     );
 
@@ -212,9 +209,8 @@ describe('workbenchStore', () => {
         entry => entry.name === 'Donor 1 cells/well'
       )?.id;
       getState().updateProtocol(draft => {
-        const plateMap = draft.cards.find(card => card.type === 'plateMap');
-        if (plateMap?.type === 'plateMap' && amountId)
-          plateMap.amountNames[amountId.slice(plateMap.id.length + 1)] = 'Seeding';
+        const [plateMap] = draft.plateMaps;
+        if (amountId) plateMap.amountNames[amountId.slice(plateMap.id.length + 1)] = 'Seeding';
       });
       const names = () => [...getState().board.names.values()].map(entry => entry.name);
       expect(names()).toContain('Seeding');

@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { colorLineOf, type PlateMapCard, withGreekLetters } from '@odysseus/shared-schemas';
+import {
+  colorLineOf,
+  type PlateMap,
+  type PlateMapCard,
+  withGreekLetters,
+} from '@odysseus/shared-schemas';
 
 import { RestingTooltipProvider } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
@@ -55,11 +60,11 @@ import { WorkbenchPlateStainLegend } from './WorkbenchPlateStainLegend';
 import { WorkbenchPlateTable } from './WorkbenchPlateTable';
 import { WorkbenchWellEditorPanel } from './WorkbenchWellEditorPanel';
 
-type LabwareDisplay = Pick<PlateMapCard, 'activeTab' | 'showsReplicatesAsOne'>;
+import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
 
 interface WorkbenchPlateMapPanelProps {
   card: PlateMapCard;
-  onDisplayChange?: (recipe: (display: LabwareDisplay) => void) => void;
+  plateMap: ShownPlateMap;
 }
 
 // PITFALL: the well editor, menus and dialogs are portaled outside the app root, so clicks in them never count as clicking away.
@@ -70,33 +75,35 @@ interface EditorOpening {
   generation: number;
 }
 
-export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlateMapPanelProps) {
-  const board = usePlateMapBoard(card);
+export function WorkbenchPlateMapPanel({ card, plateMap }: WorkbenchPlateMapPanelProps) {
+  const board = usePlateMapBoard(plateMap);
   const summaries = useWorkbenchData(state => donorSummaries(state.protocol));
-  const updateCard = useUpdateCard(card);
-  const updateDisplay = onDisplayChange ?? updateCard;
+  const updateDisplay = useUpdateCard(card);
   const bodyRef = useRef<HTMLDivElement>(null);
   const roomWidth = useElementWidth(bodyRef);
-  const tabs = useMemo(() => plateMapTabs(card), [card]);
-  const tab = useMemo(() => activeTabOf(card), [card]);
-  const sheet = useMemo(() => sheetOf(card, tab), [card, tab]);
-  const words = tabWords(card, tab);
-  const isStain = card.side === 'stain';
+  const tabs = useMemo(() => plateMapTabs(plateMap), [plateMap]);
+  const tab = useMemo(() => activeTabOf(plateMap), [plateMap]);
+  const sheet = useMemo(() => sheetOf(plateMap, tab), [plateMap, tab]);
+  const words = tabWords(plateMap, tab);
+  const isStain = plateMap.side === 'stain';
   const panels = useCardsOf('flowCytometryPanel');
   const stains = useMemo(() => plateStains(panels), [panels]);
   const stainById = useMemo(() => new Map(stains.map(stain => [stain.id, stain])), [stains]);
-  const colorLine = useMemo(() => colorLineOf(card), [card]);
-  const layers = useMemo(() => lineLayers(card, colorLine, board), [card, colorLine, board]);
+  const colorLine = useMemo(() => colorLineOf(plateMap), [plateMap]);
+  const layers = useMemo(
+    () => lineLayers(plateMap, colorLine, board),
+    [plateMap, colorLine, board]
+  );
   const captions = useMemo(() => plateCaptions(layers), [layers]);
   const printsInWells =
     tab.kind !== 'plate' ||
     wellSizeFor(tab.plate.labware, roomWidth, sheet.cols).density !== 'tiny';
   const indicators = useMemo(
-    () => (sheet.isPlate ? plateIndicators(card, sheet, layers, board, printsInWells) : []),
-    [card, sheet, layers, board, printsInWells]
+    () => (sheet.isPlate ? plateIndicators(plateMap, sheet, layers, board, printsInWells) : []),
+    [plateMap, sheet, layers, board, printsInWells]
   );
-  const stainCounts = useMemo(() => stainedWellCounts([card]), [card]);
-  const updatePlateMap = useUpdatePlateMap(card);
+  const stainCounts = useMemo(() => stainedWellCounts([plateMap]), [plateMap]);
+  const updatePlateMap = useUpdatePlateMap(plateMap.id);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const recolorStain = (stainId: string, color: string) =>
     updateProtocol(draft => {
@@ -111,20 +118,20 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
   const focusEditor = () =>
     setEditor(current => ({ focusesFirstRow: true, generation: (current?.generation ?? 0) + 1 }));
   const samples = useMemo(
-    () => (isStain ? stainSamples(card, sheet) : undefined),
-    [card, sheet, isStain]
+    () => (isStain ? stainSamples(plateMap, sheet) : undefined),
+    [plateMap, sheet, isStain]
   );
   const shownAsOne = useMemo(
-    () => replicatesShownAsOne(card, sheet, board, samples),
-    [card, sheet, board, samples]
+    () => replicatesShownAsOne(plateMap, sheet, board, samples),
+    [plateMap, sheet, board, samples]
   );
   const selection = useWellSelection(sheet, tab.id, closeEditor);
-  const startedNames = useWellEditSession(card.id, selection.keys, editor !== undefined);
+  const startedNames = useWellEditSession(plateMap.id, selection.keys, editor !== undefined);
 
   const openEditorWith = (seedText?: string) => {
     if (seedText === undefined) return focusEditor();
     const keys = [...selection.keys];
-    const firstLineId = startingLineId(card, keys);
+    const firstLineId = startingLineId(plateMap, keys);
     updatePlateMap(draft => setWellsText(draft, keys, firstLineId, seedText));
     focusEditor();
   };
@@ -139,8 +146,8 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
     canPaste,
     cutKeys,
     copiedKeys,
-  } = useWellKeyboard(card, tab, sheet, selection, ask, openEditorWith, isStain);
-  const labwareChanges = useLabwareChanges(card, tab, ask);
+  } = useWellKeyboard(plateMap, tab, sheet, selection, ask, openEditorWith, isStain);
+  const labwareChanges = useLabwareChanges(card, plateMap, tab, ask);
 
   const [menuPosition, setMenuPosition] = useState<{ x: number; y: number }>();
   const openMenu = (key: string, at: { x: number; y: number }) => {
@@ -156,22 +163,22 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
   };
 
   const stainSelected = (stainId: string | undefined) =>
-    updateCard(draft => stainWells(draft, selection.keys, stainId));
+    updatePlateMap(draft => stainWells(draft, selection.keys, stainId));
 
   const fillUnassigned = (stainId: string) =>
-    updateCard(draft =>
+    updatePlateMap(draft =>
       stainWells(
         draft,
         sheet.positions
           .map(position => position.key)
-          .filter(key => samples?.get(key)?.length && !card.stain[key]),
+          .filter(key => samples?.get(key)?.length && !plateMap.stain[key]),
         stainId
       )
     );
 
-  const regroupSelected = (edit: (draft: PlateMapCard) => string[]) => () => {
+  const regroupSelected = (edit: (draft: PlateMap) => string[]) => () => {
     let regrouped: string[] = [];
-    updateCard(draft => {
+    updatePlateMap(draft => {
       regrouped = edit(draft);
     });
     selection.selectKeys(regrouped);
@@ -184,7 +191,7 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
       onPoolSamples: canPoolSamples(sheet, wells, keys)
         ? regroupSelected(draft => poolSamples(draft, sheet, keys))
         : undefined,
-      onPoolReplicates: canPoolReplicates(card, sheet, wells, keys, board)
+      onPoolReplicates: canPoolReplicates(plateMap, sheet, wells, keys, board)
         ? regroupSelected(draft => poolReplicates(draft, sheet, keys, board))
         : undefined,
       onUnpool: canUnpool(wells, keys)
@@ -227,23 +234,23 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
       candidate.kind === 'plate'
         ? {
             id: candidate.id,
-            name: plateNameOf(card, candidate.plate),
+            name: plateNameOf(plateMap, candidate.plate),
             kind: labwareOf(candidate.plate.labware).label.replace(' plate', ''),
             ownName: candidate.plate.name,
             isPlate: true,
           }
         : {
             id: candidate.id,
-            name: otherLabwareTabNameOf(card),
-            kind: otherLabwareKinds(card),
-            ownName: card.otherLabwareTabName ?? '',
+            name: otherLabwareTabNameOf(plateMap),
+            kind: otherLabwareKinds(plateMap),
+            ownName: plateMap.otherLabwareTabName ?? '',
             isPlate: false,
           }
   );
 
   const renameTab = (tabId: string, typed: string) => {
     const name = withGreekLetters(typed.trim());
-    updateCard(draft => {
+    updatePlateMap(draft => {
       const plate = draft.plates.find(({ id }) => id === tabId);
       if (plate) plate.name = name;
       else draft.otherLabwareTabName = name || undefined;
@@ -254,7 +261,7 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
     <RestingTooltipProvider>
       <div ref={bodyRef} className="flex flex-col gap-2 px-3 pb-1">
         <WorkbenchPlateMapControls
-          card={card}
+          card={plateMap}
           tabs={tabLabels}
           activeId={tab.id}
           onShowTab={id =>
@@ -286,7 +293,7 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
         {roomWidth > 0 &&
           (tab.kind === 'plate' ? (
             <WorkbenchPlateTable
-              card={card}
+              card={plateMap}
               sheet={sheet}
               colorLine={colorLine}
               layers={layers}
@@ -310,11 +317,11 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
             />
           ) : (
             <WorkbenchOtherLabwareList
-              card={card}
+              card={plateMap}
               sheet={sheet}
               colorLine={colorLine}
               layers={layers}
-              scale={otherLabwareScaleFor(card, roomWidth)}
+              scale={otherLabwareScaleFor(plateMap, roomWidth)}
               board={board}
               donorSummaries={summaries}
               selection={selection}
@@ -339,16 +346,16 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
           />
         ) : (
           <WorkbenchPlateLegendSection
-            card={card}
+            card={plateMap}
             colorLine={colorLine}
-            counts={plateMapCounts(card)}
+            counts={plateMapCounts(plateMap)}
             indicators={indicators}
           />
         )}
         {editor && !isStain && selection.keys.size > 0 && (
           <WorkbenchWellEditorPanel
             key={editor.generation}
-            card={card}
+            card={plateMap}
             tab={tab}
             sheet={sheet}
             keys={selection.keys}
@@ -364,8 +371,8 @@ export function WorkbenchPlateMapPanel({ card, onDisplayChange }: WorkbenchPlate
           menuPosition={menuPosition}
           hasFilledSelection={[...selection.keys].some(key =>
             samples
-              ? card.stain[key] !== undefined || !!samples.get(key)?.length
-              : isWellFilled(card, key)
+              ? plateMap.stain[key] !== undefined || !!samples.get(key)?.length
+              : isWellFilled(plateMap, key)
           )}
           canPaste={!!menuPosition && canPaste()}
           pooling={menuPosition && samples ? poolingFor(samples) : undefined}

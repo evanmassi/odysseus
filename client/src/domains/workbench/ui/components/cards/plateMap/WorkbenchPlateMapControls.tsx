@@ -10,7 +10,7 @@ import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
 import { WorkbenchLabwarePickerPanel } from './WorkbenchLabwarePickerPanel';
 
 import type { LabwareType } from '../../../../utils/plateMap/labwareCatalog';
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
 
 export interface PlateMapTabLabel {
   id: string;
@@ -21,7 +21,7 @@ export interface PlateMapTabLabel {
 }
 
 interface WorkbenchPlateMapControlsProps {
-  card: PlateMapCard;
+  card: ShownPlateMap;
   tabs: readonly PlateMapTabLabel[];
   activeId: string;
   onShowTab: (id: string) => void;

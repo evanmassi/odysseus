@@ -50,6 +50,21 @@ function protocolWith(
     materials: { items: materials, customGroups: [] },
     values: { items: values.map((line, index) => ({ id: `v${index}`, ...line })), rows: [] },
     calculations: { items: [], materialSections: [] },
+    plateMaps: [
+      {
+        id: 'map',
+        title: 'Assay plate',
+        plates: [{ id: 'p', labware: '96', name: '' }],
+        lines: [{ id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Drug X' }] }],
+        samples: cells,
+        series: { s: series },
+        otherLabware: [],
+        counts: {},
+        amountNames: {},
+        stain: {},
+        stainedIn: {},
+      },
+    ],
     cards: [
       {
         id: 'materials',
@@ -61,22 +76,7 @@ function protocolWith(
         h: 4,
         foldedGroups: [],
       },
-      {
-        id: 'map',
-        type: 'plateMap',
-        page: 'page',
-        title: 'Assay plate',
-        plates: [{ id: 'p', labware: '96', name: '' }],
-        lines: [{ id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Drug X' }] }],
-        samples: cells,
-        series: { s: series },
-        otherLabware: [],
-        counts: {},
-        amountNames: {},
-        side: 'assay',
-        stain: {},
-        stainedIn: {},
-      },
+      { id: 'map-card', type: 'plateMap', page: 'page', shows: 'map', side: 'assay' },
       {
         id: 'values',
         type: 'values',
@@ -115,21 +115,20 @@ const prepFor = (protocol: Protocol) =>
 describe('dilution prep', () => {
   it('pools identical series from copied plates into one prep sized for all their wells', () => {
     const protocol = protocolWith(doseSeries, []);
-    const [plateMap] = protocol.cards.filter(card => card.type === 'plateMap');
+    const [plateMap] = protocol.plateMaps;
     const copy = structuredClone(plateMap);
-    if (copy.type !== 'plateMap') return;
     copy.id = 'copy';
     copy.title = 'Assay plate copy';
     copy.series = { other: copy.series['s'] };
     for (const lines of Object.values(copy.samples)) lines['drug'].seriesId = 'other';
-    protocol.cards.push(copy);
+    protocol.plateMaps.push(copy);
     const runs = dilutionRuns(protocol);
     expect(runs).toHaveLength(1);
     expect(runs[0].members.map(member => member.plateId)).toEqual(['map', 'copy']);
     expect(runs[0].places).toEqual(['Assay plate · Plate 1', 'Assay plate copy · Plate 1']);
     expect(runs[0].replicatesByPoint.get(0)).toBe(6);
     expect(dilutionRuns(protocol)[0].replicatesByPoint.get(0)).toBe(6);
-    expect(dilutionRuns({ cards: [plateMap] })[0].places).toEqual(['Plate 1']);
+    expect(dilutionRuns({ plateMaps: [plateMap] })[0].places).toEqual(['Plate 1']);
   });
 
   it('finds each dilution series on the plates with its most replicated point', () => {
@@ -375,8 +374,7 @@ describe('dilution edits', () => {
     recordOnMaterial(protocol, 'Drug X', 'stock-concentration', '5', 'mM', name =>
       material(name, {}, {})
     );
-    const plateMap = protocol.cards[1];
-    expect(plateMap.type === 'plateMap' && plateMap.series['s'].prep).toEqual({ roundTo: '10' });
+    expect(protocol.plateMaps[0].series['s'].prep).toEqual({ roundTo: '10' });
     expect(protocol.materials.items[0]).toMatchObject({
       name: 'Drug X',
       values: { 'stock-concentration': '5' },

@@ -1,10 +1,18 @@
-import { createId } from '../ids/createId';
-
 import type { ProtocolCard, ProtocolCardType } from '@odysseus/shared-schemas';
 
 type CardContent<Type extends ProtocolCardType> = Omit<
   Extract<ProtocolCard, { type: Type }>,
-  'id' | 'type' | 'title' | 'page' | 'x' | 'y' | 'w' | 'h' | 'isCollapsed' | 'expandedHeight'
+  | 'id'
+  | 'type'
+  | 'title'
+  | 'page'
+  | 'x'
+  | 'y'
+  | 'w'
+  | 'h'
+  | 'isCollapsed'
+  | 'expandedHeight'
+  | 'shows'
 >;
 
 export interface CardUsageTip {
@@ -74,32 +82,7 @@ export const CARD_TYPES: { readonly [Type in ProtocolCardType]: CardType<Type> }
     hint: 'Plates, flasks, dishes or tubes; counts feed calculations',
     size: [6, 14],
     fitsContent: true,
-    createContent: () => ({
-      plates: [{ id: createId(), labware: '96' as const, name: '' }],
-      otherLabware: [],
-      activeTab: 0,
-      lines: [],
-      samples: {},
-      series: {},
-      showsReplicatesAsOne: true,
-      counts: {},
-      amountNames: {},
-      side: 'assay' as const,
-      stain: {},
-      stainedIn: {},
-    }),
-  },
-  linkedPlateMap: {
-    label: 'Plate map',
-    hint: 'Labware shown from another page',
-    size: [6, 14],
-    fitsContent: true,
-    createContent: () => ({
-      shows: '',
-      side: 'assay' as const,
-      activeTab: 0,
-      showsReplicatesAsOne: true,
-    }),
+    createContent: () => ({ side: 'assay' as const, activeTab: 0, showsReplicatesAsOne: true }),
   },
   flowCytometryPanel: {
     label: 'Flow panel',

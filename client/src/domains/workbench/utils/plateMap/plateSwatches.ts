@@ -1,9 +1,4 @@
-import {
-  indicatorColorOf,
-  colorLineOf,
-  type Protocol,
-  type PlateMapCard,
-} from '@odysseus/shared-schemas';
+import { indicatorColorOf, colorLineOf, type Protocol } from '@odysseus/shared-schemas';
 
 import { findNamed } from '../materials/materialLookup';
 
@@ -19,11 +14,10 @@ export interface PlateSwatch {
 export type PlateSwatchOf = (name: string) => PlateSwatch | undefined;
 
 export function plateSwatches(
-  protocol: Pick<Protocol, 'cards'>,
+  protocol: Pick<Protocol, 'plateMaps'>,
   board: SolvedBoard
 ): PlateSwatchOf {
-  const swatches = protocol.cards
-    .filter((card): card is PlateMapCard => card.type === 'plateMap')
+  const swatches = protocol.plateMaps
     .flatMap(plateMap =>
       lineLayers(plateMap, colorLineOf(plateMap), board).flatMap(({ line, role }) => {
         const kind = indicatorKindOf(role);

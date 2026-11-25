@@ -15,8 +15,7 @@ export function setPrepSetting(
   key: SeriesPrepKey,
   value: string
 ): void {
-  const plateMap = draft.cards.find(card => card.id === plateId);
-  const series = plateMap?.type === 'plateMap' ? plateMap.series[seriesId] : undefined;
+  const series = draft.plateMaps.find(plateMap => plateMap.id === plateId)?.series[seriesId];
   if (series) series.prep = { ...series.prep, [key]: value };
 }
 

@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 9,
+  "version": 10,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "T cell killing assay",
@@ -515,41 +515,10 @@
       ],
       "materialSections": []
     },
-    "cards": [
-      {
-        "id": "85fqukl",
-        "title": "Materials",
-        "page": "faa6w4g",
-        "x": 0,
-        "y": 0,
-        "w": 12,
-        "h": 12,
-        "isCollapsed": false,
-        "type": "materials",
-        "foldedGroups": [],
-        "isSetAsideOpen": false
-      },
-      {
-        "id": "c3std70",
-        "title": "Values",
-        "page": "faa6w4g",
-        "x": 0,
-        "y": 90,
-        "w": 12,
-        "h": 34,
-        "isCollapsed": false,
-        "type": "values"
-      },
+    "plateMaps": [
       {
         "id": "y6sx73w",
-        "title": "Vessel map",
-        "page": "faa6w4g",
-        "x": 0,
-        "y": 12,
-        "w": 12,
-        "h": 15,
-        "isCollapsed": false,
-        "type": "plateMap",
+        "title": "",
         "plates": [
           {
             "id": "jhbeh6n",
@@ -558,7 +527,6 @@
           }
         ],
         "otherLabware": [],
-        "activeTab": 0,
         "lines": [
           {
             "id": "jpuxn9p",
@@ -929,12 +897,50 @@
             "direction": "right"
           }
         },
-        "showsReplicatesAsOne": true,
         "counts": {},
         "amountNames": {},
-        "side": "assay",
         "stain": {},
         "stainedIn": {}
+      }
+    ],
+    "cards": [
+      {
+        "id": "85fqukl",
+        "title": "Materials",
+        "page": "faa6w4g",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 12,
+        "isCollapsed": false,
+        "type": "materials",
+        "foldedGroups": [],
+        "isSetAsideOpen": false
+      },
+      {
+        "id": "c3std70",
+        "title": "Values",
+        "page": "faa6w4g",
+        "x": 0,
+        "y": 90,
+        "w": 12,
+        "h": 34,
+        "isCollapsed": false,
+        "type": "values"
+      },
+      {
+        "id": "y6sx73w",
+        "page": "faa6w4g",
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 15,
+        "isCollapsed": false,
+        "type": "plateMap",
+        "shows": "y6sx73w",
+        "side": "assay",
+        "activeTab": 0,
+        "showsReplicatesAsOne": true
       },
       {
         "id": "4md9dro",

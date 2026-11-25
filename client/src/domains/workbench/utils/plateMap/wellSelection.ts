@@ -1,4 +1,4 @@
-import { isFilledEntry, type SampleEntry, type PlateMapCard } from '@odysseus/shared-schemas';
+import { isFilledEntry, type SampleEntry, type PlateMap } from '@odysseus/shared-schemas';
 
 import type { PlateMapSheet } from './plateMapTabs';
 
@@ -50,7 +50,7 @@ export function selectionName(sheet: PlateMapSheet, keys: ReadonlySet<string>): 
   return isRectangle ? `${labelAt(top, left)}–${labelAt(bottom, right)}` : '';
 }
 
-export const isWellFilled = (card: PlateMapCard, key: string) =>
+export const isWellFilled = (card: PlateMap, key: string) =>
   Object.values(card.samples[key] ?? {}).some(isFilledEntry);
 
 function cornerOf(sheet: PlateMapSheet, keys: ReadonlySet<string>): GridPoint {
@@ -62,7 +62,7 @@ function cornerOf(sheet: PlateMapSheet, keys: ReadonlySet<string>): GridPoint {
 }
 
 export function copyWells(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>
 ): CopiedWell[] {

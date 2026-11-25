@@ -13,10 +13,10 @@ import {
 } from '../../../../utils/plateMap/labwareCatalog';
 import { labwareCountOf } from '../../../../utils/plateMap/plateMapEdits';
 
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
 
 interface WorkbenchLabwarePickerPanelProps {
-  card: PlateMapCard;
+  card: ShownPlateMap;
   anchorRef: RefObject<HTMLElement>;
   onCountChange: (type: LabwareType, count: number) => void;
   onClose: () => void;

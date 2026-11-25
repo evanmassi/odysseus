@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 9,
+  "version": 10,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "IL-6 sandwich ELISA",
@@ -449,41 +449,10 @@
       ],
       "materialSections": []
     },
-    "cards": [
-      {
-        "id": "c4wnnas",
-        "title": "Materials",
-        "page": "mqd21pe",
-        "x": 0,
-        "y": 0,
-        "w": 12,
-        "h": 13,
-        "isCollapsed": false,
-        "type": "materials",
-        "foldedGroups": [],
-        "isSetAsideOpen": false
-      },
-      {
-        "id": "cj5twwa",
-        "title": "Values",
-        "page": "mqd21pe",
-        "x": 0,
-        "y": 33,
-        "w": 4,
-        "h": 20,
-        "isCollapsed": false,
-        "type": "values"
-      },
+    "plateMaps": [
       {
         "id": "kokto6p",
-        "title": "Vessel map",
-        "page": "mqd21pe",
-        "x": 4,
-        "y": 33,
-        "w": 4,
-        "h": 13,
-        "isCollapsed": false,
-        "type": "plateMap",
+        "title": "",
         "plates": [
           {
             "id": "6ub86x9",
@@ -492,7 +461,6 @@
           }
         ],
         "otherLabware": [],
-        "activeTab": 0,
         "lines": [
           {
             "id": "44b1a535",
@@ -850,12 +818,50 @@
           }
         },
         "series": {},
-        "showsReplicatesAsOne": true,
         "counts": {},
         "amountNames": {},
-        "side": "assay",
         "stain": {},
         "stainedIn": {}
+      }
+    ],
+    "cards": [
+      {
+        "id": "c4wnnas",
+        "title": "Materials",
+        "page": "mqd21pe",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 13,
+        "isCollapsed": false,
+        "type": "materials",
+        "foldedGroups": [],
+        "isSetAsideOpen": false
+      },
+      {
+        "id": "cj5twwa",
+        "title": "Values",
+        "page": "mqd21pe",
+        "x": 0,
+        "y": 33,
+        "w": 4,
+        "h": 20,
+        "isCollapsed": false,
+        "type": "values"
+      },
+      {
+        "id": "kokto6p",
+        "page": "mqd21pe",
+        "x": 4,
+        "y": 33,
+        "w": 4,
+        "h": 13,
+        "isCollapsed": false,
+        "type": "plateMap",
+        "shows": "kokto6p",
+        "side": "assay",
+        "activeTab": 0,
+        "showsReplicatesAsOne": true
       },
       {
         "id": "pf5sqja",

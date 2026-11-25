@@ -15,6 +15,7 @@ export function blankProtocol(): Protocol {
     materials: { items: [], customGroups: [] },
     values: { items: [], rows: [] },
     calculations: { items: [], materialSections: [] },
+    plateMaps: [],
     cards: [
       createCard('materials', { page: page.id, x: 0, y: 0, w: 12, h: 8 }),
       createCard('procedure', { page: page.id, x: 0, y: 8, w: 12, h: 10 }),

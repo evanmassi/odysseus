@@ -16,7 +16,7 @@ import type {
   PlateLine,
   Protocol,
   ProtocolValues,
-  PlateMapCard,
+  PlateMap,
 } from '@odysseus/shared-schemas';
 
 const material = (
@@ -63,25 +63,20 @@ const line = (id: string, texts: string[]): PlateLine => ({
   values: texts.map(text => ({ id: text, text, color: `#${text.length}${text.length}0000` })),
 });
 
-const plateMap = (id: string, title: string, content: Partial<PlateMapCard>): PlateMapCard =>
-  ({
-    id,
-    type: 'plateMap',
-    title,
-    plates: [{ id: 'p', labware: '96', name: '' }],
-    otherLabware: [],
-    lines: [],
-    samples: {},
-    series: {},
-    counts: {},
-    amountNames: {},
-
-    side: 'assay',
-
-    stain: {},
-    stainedIn: {},
-    ...content,
-  }) as unknown as PlateMapCard;
+const plateMap = (id: string, title: string, content: Partial<PlateMap>): PlateMap => ({
+  id,
+  title,
+  plates: [{ id: 'p', labware: '96', name: '' }],
+  otherLabware: [],
+  lines: [],
+  samples: {},
+  series: {},
+  counts: {},
+  amountNames: {},
+  stain: {},
+  stainedIn: {},
+  ...content,
+});
 
 const killingPlate = plateMap('map', 'Assay plate map', {
   lines: [line('drug', ['Drug X', 'DMSO', 'Targets only']), line('cells', ['Raji'])],
@@ -123,12 +118,13 @@ const mainValues = valuesWith({
 });
 
 const protocolOf = (
-  cards: Protocol['cards'],
+  plateMaps: PlateMap[],
   values: ProtocolValues,
   materials: MaterialItem[] = MATERIALS
 ): Protocol =>
   ({
-    cards,
+    cards: [],
+    plateMaps,
     materials: { items: materials, customGroups: [] },
     values,
     calculations: { items: [], materialSections: [] },
@@ -146,10 +142,10 @@ function tableOf(protocol: Protocol, unsortedNames: readonly string[] = []): Val
 }
 
 const tableFor = (
-  cards: Protocol['cards'],
+  plateMaps: PlateMap[],
   values: ProtocolValues,
   materials?: MaterialItem[]
-): ValueTableGroup[] => tableOf(protocolOf(cards, values, materials));
+): ValueTableGroup[] => tableOf(protocolOf(plateMaps, values, materials));
 
 const groupNamed = (groups: ValueTableGroup[], label: string) =>
   groups.find(group => group.label === label)!;

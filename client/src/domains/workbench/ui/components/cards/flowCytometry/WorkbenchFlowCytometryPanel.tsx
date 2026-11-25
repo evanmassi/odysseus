@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { HeaderStrip, PanelEmptyState, Select, Tooltip } from '@shared/ui';
 
 import { useFluorCatalog } from '../../../../hooks/useFluorCatalog';
-import { useCardsOf, useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
+import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { BUILT_IN_CYTOMETERS } from '../../../../utils/flowCytometry/cytometerCatalog';
 import {
@@ -64,9 +64,9 @@ export function WorkbenchFlowCytometryPanel({ card }: WorkbenchFlowCytometryPane
   const catalog = useFluorCatalog();
   const layout = useMemo(() => panelLayout(card, materials, catalog), [card, materials, catalog]);
   const stainings = useMemo(() => panelStainings(card), [card]);
-  const plateCards = useCardsOf('plateMap');
-  const stainPlaces = useMemo(() => stainedPlaces(plateCards), [plateCards]);
-  const samples = useMemo(() => stainedSampleCounts(plateCards), [plateCards]);
+  const plateMaps = useWorkbenchStore(state => state.protocol.plateMaps);
+  const stainPlaces = useMemo(() => stainedPlaces(plateMaps), [plateMaps]);
+  const samples = useMemo(() => stainedSampleCounts(plateMaps), [plateMaps]);
   const amountNouns = useMemo(() => stainSampleNouns(card.stains, samples), [card, samples]);
   const amountEntries = useWorkbenchData(state =>
     card.markers.map((row): [string, StainAmount[]] => [

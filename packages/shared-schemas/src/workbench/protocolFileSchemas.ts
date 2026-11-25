@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 9;
+export const PROTOCOL_FILE_VERSION = 10;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -38,9 +38,8 @@ const pageSchema = z.object({
   steps: z.array(stepSchema),
 });
 
-const cardBase = {
+const cardFrame = {
   id,
-  title: z.string(),
   page: id,
   x: z.number().int().min(0),
   y: z.number().int().min(0),
@@ -49,6 +48,8 @@ const cardBase = {
   isCollapsed: z.boolean(),
   expandedHeight: z.number().int().min(1).optional(),
 };
+
+const cardBase = { ...cardFrame, title: z.string() };
 
 const experimentDonorsSchema = z.object({
   label: z.string(),
@@ -167,29 +168,26 @@ export const OTHER_LABWARE = [
 
 const PLATE_MAP_SIDES = ['assay', 'stain'] as const;
 
-export const plateMapCardSchema = z.object({
-  ...cardBase,
-  type: z.literal('plateMap'),
+const plateMapSchema = z.object({
+  id,
+  title: z.string(),
   plates: z.array(z.object({ id, labware: z.enum(PLATE_FORMATS), name: z.string() })),
   otherLabware: z.array(
     z.object({ id, labware: z.enum(OTHER_LABWARE), count: z.number().int().min(1) })
   ),
-  activeTab: z.number().int().min(0),
   lines: z.array(plateLineSchema),
   samples: z.record(z.string(), z.record(z.string(), sampleEntrySchema)),
   series: z.record(z.string(), seriesSchema),
   otherLabwareTabName: z.string().optional(),
-  showsReplicatesAsOne: z.boolean(),
   counts: textMap,
   amountNames: textMap,
-  side: z.enum(PLATE_MAP_SIDES),
   stain: textMap,
   stainedIn: textMap,
 });
 
-const linkedPlateMapCardSchema = z.object({
-  ...cardBase,
-  type: z.literal('linkedPlateMap'),
+const plateMapCardSchema = z.object({
+  ...cardFrame,
+  type: z.literal('plateMap'),
   shows: id,
   side: z.enum(PLATE_MAP_SIDES),
   activeTab: z.number().int().min(0),
@@ -246,7 +244,6 @@ const protocolCardSchema = z.discriminatedUnion('type', [
   z.object({ ...cardBase, type: z.literal('values') }),
   z.object({ ...cardBase, type: z.literal('calculations') }),
   plateMapCardSchema,
-  linkedPlateMapCardSchema,
   flowCytometryPanelCardSchema,
   z.object({ ...cardBase, type: z.literal('procedure') }),
   z.object({ ...cardBase, type: z.literal('dilutions') }),
@@ -263,6 +260,7 @@ const protocolSchema = z.object({
   materials: protocolMaterialsSchema,
   values: protocolValuesSchema,
   calculations: protocolCalculationsSchema,
+  plateMaps: z.array(plateMapSchema),
   cards: z.array(protocolCardSchema),
   lotMemory: z.record(z.string(), z.record(z.string(), textMap)),
   keptBoth: z.array(z.string()),
@@ -292,8 +290,8 @@ export type ProtocolValues = z.infer<typeof protocolValuesSchema>;
 export type ValueItem = ProtocolValues['items'][number];
 export type ValueRow = ProtocolValues['rows'][number];
 export type ProtocolCalculations = z.infer<typeof protocolCalculationsSchema>;
+export type PlateMap = z.infer<typeof plateMapSchema>;
 export type PlateMapCard = z.infer<typeof plateMapCardSchema>;
-export type LinkedPlateMapCard = z.infer<typeof linkedPlateMapCardSchema>;
 export type FlowCytometryPanelCard = z.infer<typeof flowCytometryPanelCardSchema>;
 export type Stain = FlowCytometryPanelCard['stains'][number];
 export type Cytometer = z.infer<typeof cytometerSchema>;

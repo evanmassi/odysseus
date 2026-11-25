@@ -15,10 +15,11 @@ import { WorkbenchColorSwatchList } from './WorkbenchColorSwatchList';
 import { WorkbenchPlateNameField } from './WorkbenchPlateNameField';
 
 import type { IndicatorKind, PlateIndicator } from '../../../../utils/plateMap/plateLayers';
-import type { PlateLine, PlateMapCard } from '@odysseus/shared-schemas';
+import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
+import type { PlateLine } from '@odysseus/shared-schemas';
 
 interface WorkbenchPlateLegendSectionProps {
-  card: PlateMapCard;
+  card: ShownPlateMap;
   colorLine: PlateLine | undefined;
   counts: readonly PlateMapCount[];
   indicators: readonly PlateIndicator[];
@@ -65,7 +66,7 @@ export function WorkbenchPlateLegendSection({
   counts,
   indicators,
 }: WorkbenchPlateLegendSectionProps) {
-  const updatePlateMap = useUpdatePlateMap(card);
+  const updatePlateMap = useUpdatePlateMap(card.id);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const [recoloringId, setRecoloringId] = useState<string>();
   const countOf = new Map(counts.map(count => [count.key, count]));

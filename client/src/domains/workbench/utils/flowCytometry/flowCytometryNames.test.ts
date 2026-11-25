@@ -5,6 +5,7 @@ import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
 
 import type {
   FlowCytometryPanelCard,
+  PlateMap,
   Protocol,
   ProtocolCard,
   ProtocolValues,
@@ -41,23 +42,28 @@ const panel: FlowCytometryPanelCard = {
   ],
 };
 
-const plateMap: ProtocolCard = {
-  ...placement,
+const plateMap: PlateMap = {
   id: 'plate',
-  type: 'plateMap',
-  title: 'Vessel map',
+  title: '',
   plates: [{ id: 'p1', labware: '96', name: '' }],
   otherLabware: [],
-  activeTab: 0,
   lines: [],
   samples: {},
   series: {},
-  showsReplicatesAsOne: true,
   counts: {},
   amountNames: {},
-  side: 'stain',
   stain: { 'p1:A1': 'full', 'p1:A2': 'full', 'p1:A3': 'fmo' },
   stainedIn: {},
+};
+
+const plateCard: ProtocolCard = {
+  ...placement,
+  id: 'plate-card',
+  type: 'plateMap',
+  shows: 'plate',
+  side: 'stain',
+  activeTab: 0,
+  showsReplicatesAsOne: true,
 };
 
 const protocol = (
@@ -75,6 +81,7 @@ const protocol = (
   materials: { items, customGroups: [] },
   values: data.values ?? { items: [], rows: [] },
   calculations: data.calculations ?? { items: [], materialSections: [] },
+  plateMaps: [plateMap],
   cards: [
     {
       ...placement,
@@ -85,7 +92,7 @@ const protocol = (
       isSetAsideOpen: false,
     },
     panel,
-    plateMap,
+    plateCard,
   ],
   lotMemory: {},
   keptBoth: [],
@@ -157,15 +164,13 @@ describe('flow panel names', () => {
       const base = protocol({ values: { items, rows: [] } });
       return {
         ...base,
-        cards: base.cards.map(card =>
-          card.id === 'plate'
-            ? {
-                ...plateMap,
-                otherLabware: [{ id: 't', labware: 'facs' as const, count: 2 }],
-                stain: { 'p1:A1': 'full', 'p1:A2': 'full', 't#1:1': 'full', 't#2:1': 'full' },
-              }
-            : card
-        ),
+        plateMaps: [
+          {
+            ...plateMap,
+            otherLabware: [{ id: 't', labware: 'facs' as const, count: 2 }],
+            stain: { 'p1:A1': 'full', 'p1:A2': 'full', 't#1:1': 'full', 't#2:1': 'full' },
+          },
+        ],
       } as Protocol;
     };
     const board = calculateBoard(

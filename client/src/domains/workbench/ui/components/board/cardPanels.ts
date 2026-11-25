@@ -5,10 +5,8 @@ import { WorkbenchDilutionsPanel } from '../cards/dilutions/WorkbenchDilutionsPa
 import { WorkbenchFlowCytometryPanel } from '../cards/flowCytometry/WorkbenchFlowCytometryPanel';
 import { WorkbenchFlowDiagramPanel } from '../cards/flowDiagram/WorkbenchFlowDiagramPanel';
 import { WorkbenchMaterialsPanel } from '../cards/materials/WorkbenchMaterialsPanel';
-import { WorkbenchLinkedPlateMapCardControls } from '../cards/plateMap/WorkbenchLinkedPlateMapCardControls';
-import { WorkbenchLinkedPlateMapPanel } from '../cards/plateMap/WorkbenchLinkedPlateMapPanel';
 import { WorkbenchPlateMapCardControls } from '../cards/plateMap/WorkbenchPlateMapCardControls';
-import { WorkbenchPlateMapPanel } from '../cards/plateMap/WorkbenchPlateMapPanel';
+import { WorkbenchPlateMapCardPanel } from '../cards/plateMap/WorkbenchPlateMapCardPanel';
 import { WorkbenchProcedurePanel } from '../cards/procedure/WorkbenchProcedurePanel';
 import { WorkbenchValuesPanel } from '../cards/values/WorkbenchValuesPanel';
 
@@ -23,8 +21,7 @@ export const CARD_PANELS: CardPanels = {
   procedure: WorkbenchProcedurePanel,
   values: WorkbenchValuesPanel,
   calculations: WorkbenchCalculationsPanel,
-  plateMap: WorkbenchPlateMapPanel,
-  linkedPlateMap: WorkbenchLinkedPlateMapPanel,
+  plateMap: WorkbenchPlateMapCardPanel,
   flowCytometryPanel: WorkbenchFlowCytometryPanel,
   dilutions: WorkbenchDilutionsPanel,
   flowDiagram: WorkbenchFlowDiagramPanel,
@@ -32,5 +29,4 @@ export const CARD_PANELS: CardPanels = {
 
 export const CARD_HEADER_CONTROLS: CardPanels = {
   plateMap: WorkbenchPlateMapCardControls,
-  linkedPlateMap: WorkbenchLinkedPlateMapCardControls,
 };

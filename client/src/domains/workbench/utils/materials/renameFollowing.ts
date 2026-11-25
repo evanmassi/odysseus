@@ -1,9 +1,4 @@
-import {
-  normalizePlateMap,
-  type Protocol,
-  type PlateMapCard,
-  normalizeMaterialKey,
-} from '@odysseus/shared-schemas';
+import { normalizePlateMap, type Protocol, normalizeMaterialKey } from '@odysseus/shared-schemas';
 
 import { heldNames, renameValue, type HeldName } from '../plateMap/wellEdits';
 
@@ -21,11 +16,8 @@ export function withLeadingName(text: string, name: string): string {
   return notesAt < 0 ? name : `${name} ${text.slice(notesAt)}`;
 }
 
-const plateMaps = (protocol: Pick<Protocol, 'cards'>) =>
-  protocol.cards.filter((card): card is PlateMapCard => card.type === 'plateMap');
-
-const isNameOnAnyWell = (protocol: Pick<Protocol, 'cards'>, name: string): boolean =>
-  plateMaps(protocol).some(plateMap => {
+const isNameOnAnyWell = (protocol: Pick<Protocol, 'plateMaps'>, name: string): boolean =>
+  protocol.plateMaps.some(plateMap => {
     const heldIds = new Set(
       Object.values(plateMap.samples).flatMap(lines =>
         Object.values(lines).map(entry => entry.valueId)
@@ -57,7 +49,7 @@ export function plateFollowsListRename(draft: Protocol, from: string, to: string
 function renamePlateValues(draft: Protocol, from: string, to: string): void {
   const toName = nameWithoutNotes(to);
   if (!bareKey(to) || isSameBareName(from, to)) return;
-  for (const plateMap of plateMaps(draft)) {
+  for (const plateMap of draft.plateMaps) {
     const values = plateMap.lines.flatMap(line => line.values);
     const renamed = values.filter(value => isSameBareName(value.text, from));
     for (const value of renamed) value.text = withLeadingName(value.text, toName);
@@ -67,11 +59,11 @@ function renamePlateValues(draft: Protocol, from: string, to: string): void {
 
 export function renamePlateValue(
   draft: Protocol,
-  cardId: string,
+  plateMapId: string,
   valueId: string,
   text: string
 ): void {
-  const plateMap = plateMaps(draft).find(card => card.id === cardId);
+  const plateMap = draft.plateMaps.find(candidate => candidate.id === plateMapId);
   const value = plateMap?.lines.flatMap(line => line.values).find(item => item.id === valueId);
   if (!plateMap || !value) return;
   const from = value.text;
@@ -82,11 +74,11 @@ export function renamePlateValue(
 
 export function followWellEdit(
   draft: Protocol,
-  cardId: string,
+  plateMapId: string,
   started: ReadonlyMap<string, HeldName>,
   keys: readonly string[]
 ): void {
-  const plateMap = plateMaps(draft).find(card => card.id === cardId);
+  const plateMap = draft.plateMaps.find(candidate => candidate.id === plateMapId);
   if (!plateMap) return;
   const now = heldNames(plateMap, keys);
   for (const [lineId, start] of started) {

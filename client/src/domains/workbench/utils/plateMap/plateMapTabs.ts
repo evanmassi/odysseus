@@ -5,9 +5,10 @@ import {
   type LabwareWords,
 } from './labwareCatalog';
 
-import type { ProtocolCard, PlateMapCard } from '@odysseus/shared-schemas';
+import type { ShownPlateMap } from './shownPlateMap';
+import type { PlateMap } from '@odysseus/shared-schemas';
 
-type Plate = PlateMapCard['plates'][number];
+type Plate = PlateMap['plates'][number];
 
 export type PlateMapTab =
   | { kind: 'plate'; id: string; plate: Plate }
@@ -32,22 +33,22 @@ const ROW_LETTERS = 'ABCDEFGHIJKLMNOP';
 
 export const rowLetter = (row: number) => ROW_LETTERS[row];
 
-export const plateMapTabs = (card: PlateMapCard): PlateMapTab[] => [
+export const plateMapTabs = (card: PlateMap): PlateMapTab[] => [
   ...card.plates.map((plate): PlateMapTab => ({ kind: 'plate', id: plate.id, plate })),
   ...(card.otherLabware.length
     ? [{ kind: 'otherLabware' as const, id: OTHER_LABWARE_TAB_ID }]
     : []),
 ];
 
-export function activeTabOf(card: PlateMapCard): PlateMapTab {
+export function activeTabOf(card: ShownPlateMap): PlateMapTab {
   const tabs = plateMapTabs(card);
   return tabs[Math.min(card.activeTab, tabs.length - 1)];
 }
 
-export const plateNameOf = (card: PlateMapCard, plate: Plate) =>
+export const plateNameOf = (card: PlateMap, plate: Plate) =>
   plate.name || `Plate ${card.plates.indexOf(plate) + 1}`;
 
-export const otherLabwareTabNameOf = (card: PlateMapCard) =>
+export const otherLabwareTabNameOf = (card: PlateMap) =>
   card.otherLabwareTabName?.trim() ? card.otherLabwareTabName : otherLabwareKinds(card);
 
 function kindsList(words: readonly string[]): string {
@@ -58,32 +59,28 @@ function kindsList(words: readonly string[]): string {
     : listed.join('');
 }
 
-const otherLabwarePlurals = (card: Pick<PlateMapCard, 'otherLabware'>) => [
+const otherLabwarePlurals = (card: Pick<PlateMap, 'otherLabware'>) => [
   ...new Set(card.otherLabware.map(set => LABWARE_KIND_PLURALS[labwareOf(set.labware).kind])),
 ];
 
-export const otherLabwareKinds = (card: Pick<PlateMapCard, 'otherLabware'>): string =>
+export const otherLabwareKinds = (card: Pick<PlateMap, 'otherLabware'>): string =>
   kindsList(otherLabwarePlurals(card));
 
-export const tabWords = (card: PlateMapCard, tab: PlateMapTab): LabwareWords =>
+export const tabWords = (card: PlateMap, tab: PlateMapTab): LabwareWords =>
   wordsForTypes(
     tab.kind === 'plate' ? [tab.plate.labware] : card.otherLabware.map(set => set.labware)
   );
 
-const AUTOMATIC_TITLES = new Set(['', 'vessel map', 'plate map']);
-
-export function labwareKinds(card: Pick<PlateMapCard, 'plates' | 'otherLabware'>): string {
+export function labwareKinds(card: Pick<PlateMap, 'plates' | 'otherLabware'>): string {
   if (!card.otherLabware.length) return 'Plate map';
   return kindsList([...(card.plates.length ? ['plates'] : []), ...otherLabwarePlurals(card)]);
 }
 
-export const labwareTitle = (card: PlateMapCard): string =>
-  AUTOMATIC_TITLES.has(card.title.trim().toLowerCase()) ? labwareKinds(card) : card.title.trim();
+export const labwareTitle = (card: PlateMap): string => card.title.trim() || labwareKinds(card);
 
-export function labwareTitleOf(cards: readonly ProtocolCard[], cardId?: string): string {
-  const plateMaps = cards.filter((card): card is PlateMapCard => card.type === 'plateMap');
+export function labwareTitleOf(plateMaps: readonly PlateMap[], plateMapId?: string): string {
   const plateMap =
-    plateMaps.find(card => card.id === cardId) ??
+    plateMaps.find(candidate => candidate.id === plateMapId) ??
     (plateMaps.length === 1 ? plateMaps[0] : undefined);
   return plateMap ? labwareTitle(plateMap) : 'Plate map';
 }
@@ -101,7 +98,7 @@ function plateSheet(plate: Plate): PlateMapSheet {
   return { isPlate: true, rows, cols, positions };
 }
 
-function otherLabwareSheet(card: PlateMapCard): PlateMapSheet {
+function otherLabwareSheet(card: PlateMap): PlateMapSheet {
   const numbered = new Map<string, number>();
   const positions = card.otherLabware.flatMap((set, row) => {
     const labware = labwareOf(set.labware);
@@ -119,5 +116,5 @@ function otherLabwareSheet(card: PlateMapCard): PlateMapSheet {
   return { isPlate: false, rows: card.otherLabware.length, cols, positions };
 }
 
-export const sheetOf = (card: PlateMapCard, tab: PlateMapTab): PlateMapSheet =>
+export const sheetOf = (card: PlateMap, tab: PlateMapTab): PlateMapSheet =>
   tab.kind === 'plate' ? plateSheet(tab.plate) : otherLabwareSheet(card);

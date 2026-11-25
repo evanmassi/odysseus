@@ -1,4 +1,4 @@
-import { normalizePlateMap, type PlateMapCard } from '@odysseus/shared-schemas';
+import { normalizePlateMap, type PlateMap } from '@odysseus/shared-schemas';
 
 import { calculateBoard } from '../formulas/boardCalculation';
 
@@ -24,9 +24,9 @@ const plateMap = () =>
     side: 'assay',
     stain: {},
     stainedIn: {},
-  }) as unknown as PlateMapCard;
+  }) as unknown as PlateMap;
 
-const sheetFor = (card: PlateMapCard) => sheetOf(card, plateMapTabs(card)[0]);
+const sheetFor = (card: PlateMap) => sheetOf(card, plateMapTabs(card)[0]);
 const rowB = new Set(['p:B2', 'p:B3', 'p:B4']);
 const form = seriesFormFor('drug', undefined, undefined, { amount: '10', unit: 'µM' });
 

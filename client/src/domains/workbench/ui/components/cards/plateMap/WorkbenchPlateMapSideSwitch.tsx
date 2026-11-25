@@ -5,9 +5,9 @@ import {
   TAB_TILE_HORIZONTAL,
 } from '@shared/ui';
 
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
 
-type PlateMapSide = PlateMapCard['side'];
+type PlateMapSide = ShownPlateMap['side'];
 
 interface WorkbenchPlateMapSideSwitchProps {
   side: PlateMapSide;

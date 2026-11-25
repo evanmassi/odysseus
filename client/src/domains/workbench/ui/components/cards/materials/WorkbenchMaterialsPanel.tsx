@@ -123,7 +123,7 @@ const NAME_CELL = 'name';
 
 export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) {
   const materials = useWorkbenchStore(state => state.protocol.materials);
-  const plateCards = useCardsOf('plateMap');
+  const plateMaps = useWorkbenchStore(state => state.protocol.plateMaps);
   const flowCytometryPanelCards = useCardsOf('flowCytometryPanel');
   const materialsOnly = useMemo(() => ({ materials }), [materials]);
   const takenNameIdList = useWorkbenchData(state => [...state.board.takenNameIds]);
@@ -196,9 +196,9 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
   const allMaterials = useMemo(() => materialsById(materialsOnly), [materialsOnly]);
   const recipeUsers = useMemo(() => recipesUsing([...allMaterials.values()]), [allMaterials]);
   const plateWells = useMemo(() => {
-    const counts = materialWellCounts(plateCards, [...allMaterials.values()]);
+    const counts = materialWellCounts(plateMaps, [...allMaterials.values()]);
     return new Map([...counts].map(([material, count]) => [material.id, count]));
-  }, [plateCards, allMaterials]);
+  }, [plateMaps, allMaterials]);
   const panelDetectors = useMemo(
     () => panelDetectorLabels({ cards: flowCytometryPanelCards }),
     [flowCytometryPanelCards]

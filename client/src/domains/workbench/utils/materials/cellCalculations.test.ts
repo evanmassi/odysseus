@@ -47,12 +47,10 @@ function protocolWith(
       items: values.map(([name, value, unit]) => ({ id: name, name, value, unit })),
     },
     calculations: { items: [], materialSections: [] },
-    cards: [
-      { id: 'materials', type: 'materials', page: 'page' },
+    plateMaps: [
       {
         id: 'plate',
-        type: 'plateMap',
-        page: 'page',
+        title: '',
         plates: [{ id: 'p', labware: '96', name: '' }],
         otherLabware: [],
         lines: [{ id: 'd', name: 'Donors', role: 'auto', values: [{ id: 'v1', text: 'Donor 1' }] }],
@@ -60,10 +58,13 @@ function protocolWith(
         series: {},
         counts: {},
         amountNames: {},
-        side: 'assay',
         stain: {},
         stainedIn: {},
       },
+    ],
+    cards: [
+      { id: 'materials', type: 'materials', page: 'page' },
+      { id: 'plate-card', type: 'plateMap', page: 'page', shows: 'plate', side: 'assay' },
       { id: 'values', type: 'values', page: 'page' },
     ],
   } as unknown as Protocol;
@@ -140,8 +141,7 @@ describe('cell math for a donor on the plate', () => {
 describe('cell math for a donor in tubes', () => {
   const inTubes = (values: Array<[string, string, string]>): Protocol => {
     const protocol = protocolWith({ 'live-cells': '1e7' }, values);
-    const plateMap = protocol.cards.find(card => card.type === 'plateMap');
-    if (plateMap?.type !== 'plateMap') throw new Error('no plate map');
+    const [plateMap] = protocol.plateMaps;
     plateMap.plates = [];
     plateMap.otherLabware = [{ id: 't', labware: 'facs', count: 3 }];
     plateMap.samples = Object.fromEntries(
@@ -161,8 +161,7 @@ describe('cell math for a donor in tubes', () => {
 
   const inWellsAndTubes = (values: Array<[string, string, string]>): Protocol => {
     const protocol = inTubes([['PBMC volume per well', '100', 'µL'], ...values]);
-    const plateMap = protocol.cards.find(card => card.type === 'plateMap');
-    if (plateMap?.type !== 'plateMap') throw new Error('no plate map');
+    const [plateMap] = protocol.plateMaps;
     const cells = (amount: string) => ({ d: { valueId: 'v1', amount, unit: 'cells' } });
     plateMap.plates = [{ id: 'p', labware: '96', name: '' }];
     plateMap.otherLabware = [{ id: 't', labware: 'facs', count: 2 }];
@@ -239,15 +238,11 @@ describe('cell math for cells diluted from a stock', () => {
         rows: [{ id: 's', materialId: 'hkca' }],
         items: [{ id: 'vol', name: 'Volume per well', value: '20', unit: 'µL', row: 's' }],
       },
-      cards: base.cards.map(card =>
-        card.type === 'plateMap'
-          ? {
-              ...card,
-              samples: cells,
-              lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'HKCA' }] }],
-            }
-          : card
-      ),
+      plateMaps: base.plateMaps.map(plateMap => ({
+        ...plateMap,
+        samples: cells,
+        lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'HKCA' }] }],
+      })),
     } as Protocol;
   }
 
@@ -302,15 +297,11 @@ describe('cell math from the counts', () => {
           { id: 'extra', name: 'Extra (dead vol.)', value: '20', unit: '%' },
         ],
       },
-      cards: base.cards.map(card =>
-        card.type === 'plateMap'
-          ? {
-              ...card,
-              samples: cells,
-              lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'Raji' }] }],
-            }
-          : card
-      ),
+      plateMaps: base.plateMaps.map(plateMap => ({
+        ...plateMap,
+        samples: cells,
+        lines: [{ id: 'd', name: '', role: 'band', values: [{ id: 'v1', text: 'Raji' }] }],
+      })),
     } as Protocol;
   }
 

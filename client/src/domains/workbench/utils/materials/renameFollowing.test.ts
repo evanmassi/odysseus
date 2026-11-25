@@ -1,6 +1,6 @@
 import { produce } from 'immer';
 
-import { createCard } from '../cards/createCard';
+import { newPlateMap } from '../plateMap/plateMapEdits';
 import { heldNames, setWellsText } from '../plateMap/wellEdits';
 import { blankProtocol } from '../protocolFile/blankProtocol';
 
@@ -14,7 +14,7 @@ import {
   withLeadingName,
 } from './renameFollowing';
 
-import type { Protocol, PlateMapCard } from '@odysseus/shared-schemas';
+import type { Protocol } from '@odysseus/shared-schemas';
 
 const STIM_NAME = 'STX (Stim X Description (receptor agonist))';
 const P1_WELLS = ['p1:A1', 'p1:A2'];
@@ -35,23 +35,22 @@ function twoPlateProtocol(materialName = STIM_NAME): Protocol {
       isSetAside: false,
       recipe: [],
     });
-    const map = createCard('plateMap', { page: draft.pages[0].id, x: 0, y: 0, w: 6, h: 6 });
-    if (map.type !== 'plateMap') return;
-    map.id = 'map';
-    map.plates = [
-      { id: 'p1', labware: '384', name: 'P1 - Flat bottom' },
-      { id: 'p2', labware: '384', name: 'P2 - V-bottom' },
-    ];
-    map.lines = [{ id: 'line', name: '', role: 'band', values: [{ id: 'stx', text: 'STX' }] }];
-    map.samples = Object.fromEntries(
-      [...P1_WELLS, ...P2_WELLS].map(key => [key, { line: { valueId: 'stx' } }])
-    );
-    draft.cards.push(map);
+    draft.plateMaps.push({
+      ...newPlateMap(),
+      id: 'map',
+      plates: [
+        { id: 'p1', labware: '384', name: 'P1 - Flat bottom' },
+        { id: 'p2', labware: '384', name: 'P2 - V-bottom' },
+      ],
+      lines: [{ id: 'line', name: '', role: 'band', values: [{ id: 'stx', text: 'STX' }] }],
+      samples: Object.fromEntries(
+        [...P1_WELLS, ...P2_WELLS].map(key => [key, { line: { valueId: 'stx' } }])
+      ),
+    });
   });
 }
 
-const mapOf = (protocol: Protocol) =>
-  protocol.cards.find((card): card is PlateMapCard => card.id === 'map')!;
+const mapOf = (protocol: Protocol) => protocol.plateMaps.find(plateMap => plateMap.id === 'map')!;
 const stimName = (protocol: Protocol) =>
   listedMaterials(protocol).find(item => item.id === 'stim')?.name;
 const plateTexts = (protocol: Protocol) => mapOf(protocol).lines[0].values.map(value => value.text);

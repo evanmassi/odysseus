@@ -6,7 +6,8 @@ import { DropdownMenu, MenuItem, useMenuItemHover } from '@shared/ui';
 
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
 import { CARD_TYPES } from '../../../utils/cards/cardTypes';
-import { createCard } from '../../../utils/cards/createCard';
+import { cardsShowing, createCard, showPlateMap } from '../../../utils/cards/createCard';
+import { newPlateMap } from '../../../utils/plateMap/plateMapEdits';
 import {
   plateNameOf,
   otherLabwareTabNameOf,
@@ -17,12 +18,7 @@ import {
 import { CARD_ICONS } from './cardIcons';
 import { CARD_PANELS } from './cardPanels';
 
-import type {
-  LinkedPlateMapCard,
-  Protocol,
-  ProtocolCardType,
-  PlateMapCard,
-} from '@odysseus/shared-schemas';
+import type { PlateMap, Protocol, ProtocolCardType } from '@odysseus/shared-schemas';
 
 const RAIL_GROUPS: ReadonlyArray<[string, ProtocolCardType[]]> = [
   ['Inputs', ['materials', 'flowCytometryPanel']],
@@ -32,12 +28,15 @@ const RAIL_GROUPS: ReadonlyArray<[string, ProtocolCardType[]]> = [
 ];
 
 const MENU_GAP = 8;
+const NOT_SHOWN = 'Not shown';
 const MENU_HEADING =
   'relative z-10 block px-3 pb-1 pt-2 type-label text-label-2xs text-muted-foreground first:pt-1';
 
-const tabNames = (card: PlateMapCard) =>
-  plateMapTabs(card)
-    .map(tab => (tab.kind === 'plate' ? plateNameOf(card, tab.plate) : otherLabwareTabNameOf(card)))
+const tabNames = (plateMap: PlateMap) =>
+  plateMapTabs(plateMap)
+    .map(tab =>
+      tab.kind === 'plate' ? plateNameOf(plateMap, tab.plate) : otherLabwareTabNameOf(plateMap)
+    )
     .join(', ');
 
 const bottomOf = (draft: Protocol, page: string) =>
@@ -48,44 +47,78 @@ export function WorkbenchCardRail() {
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const pages = useWorkbenchStore(state => state.protocol.pages);
   const cards = useWorkbenchStore(state => state.protocol.cards);
-  const plates = cards.filter((card): card is PlateMapCard => card.type === 'plateMap');
+  const plateMaps = useWorkbenchStore(state => state.protocol.plateMaps);
+  const plateMapsOn = (pageId: string) =>
+    plateMaps.filter(plateMap =>
+      cardsShowing(cards, plateMap.id).some(card => card.page === pageId)
+    );
+  const notShown = plateMaps.filter(plateMap => !cardsShowing(cards, plateMap.id).length);
   const hasProcedure = cards.some(card => card.page === activePageId && card.type === 'procedure');
   const startFromRef = useRef<HTMLDivElement>(null);
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
   const [startMenuAt, setStartMenuAt] = useState<{ top: number; left: number }>();
   const closeStartMenu = () => setIsStartMenuOpen(false);
 
-  const addCard = (type: ProtocolCardType) =>
+  const placePlateCard = (draft: Protocol, plateMapId: string, side: 'assay' | 'stain') => {
+    const [w, h] = CARD_TYPES.plateMap.size;
+    const page = activePageId;
+    const shownWidth = cardsShowing(draft.cards, plateMapId)[0]?.w;
+    showPlateMap(
+      draft,
+      plateMapId,
+      { page, x: 0, y: bottomOf(draft, page), w: shownWidth ?? w, h },
+      side
+    );
+  };
+
+  const showExisting = (plateMap: PlateMap) =>
+    updateProtocol(draft =>
+      placePlateCard(
+        draft,
+        plateMap.id,
+        draft.cards.some(card => card.type === 'flowCytometryPanel' && card.stains.length)
+          ? 'stain'
+          : 'assay'
+      )
+    );
+
+  const addCard = (type: ProtocolCardType) => {
+    if (type === 'plateMap') {
+      updateProtocol(draft => {
+        const plateMap = newPlateMap();
+        draft.plateMaps.push(plateMap);
+        placePlateCard(draft, plateMap.id, 'assay');
+      });
+      return;
+    }
     updateProtocol(draft => {
       const [w, h] = CARD_TYPES[type].size;
       draft.cards.push(
         createCard(type, { page: activePageId, x: 0, y: bottomOf(draft, activePageId), w, h })
       );
     });
-
-  const showPlate = (source: PlateMapCard) =>
-    updateProtocol(draft => {
-      const view = createCard('linkedPlateMap', {
-        page: activePageId,
-        x: 0,
-        y: bottomOf(draft, activePageId),
-        w: source.w,
-        h: CARD_TYPES.linkedPlateMap.size[1],
-      }) as LinkedPlateMapCard;
-      view.shows = source.id;
-      view.side = draft.cards.some(card => card.type === 'flowCytometryPanel' && card.stains.length)
-        ? 'stain'
-        : 'assay';
-      draft.cards.push(view);
-    });
+  };
 
   const pick = (type: ProtocolCardType) => {
-    if (type !== 'plateMap' || !plates.length) return addCard(type);
+    if (type !== 'plateMap' || !plateMaps.length) return addCard(type);
     if (isStartMenuOpen) return closeStartMenu();
     const item = startFromRef.current?.getBoundingClientRect();
     if (item) setStartMenuAt({ top: item.top, left: item.right + MENU_GAP });
     setIsStartMenuOpen(true);
   };
+
+  const plateMapItem = (plateMap: PlateMap) => (
+    <MenuItem
+      key={plateMap.id}
+      icon={CARD_ICONS.plateMap}
+      label={labwareTitle(plateMap)}
+      description={tabNames(plateMap)}
+      onClick={() => {
+        closeStartMenu();
+        showExisting(plateMap);
+      }}
+    />
+  );
 
   const menuHover = useMenuItemHover();
 
@@ -101,7 +134,7 @@ export function WorkbenchCardRail() {
           {types.map(type => {
             const Icon = CARD_ICONS[type];
             const isOnPage = type === 'procedure' && hasProcedure;
-            const hasStartChoice = type === 'plateMap' && plates.length > 0;
+            const hasStartChoice = type === 'plateMap' && plateMaps.length > 0;
             return (
               <div key={type} ref={hasStartChoice ? startFromRef : undefined} className="relative">
                 <button
@@ -144,26 +177,21 @@ export function WorkbenchCardRail() {
                       }}
                     />
                     {pages.map(page => {
-                      const onPage = plates.filter(source => source.page === page.id);
+                      const onPage = plateMapsOn(page.id);
                       if (!onPage.length) return null;
                       return (
                         <Fragment key={page.id}>
                           <span className={MENU_HEADING}>{page.name}</span>
-                          {onPage.map(source => (
-                            <MenuItem
-                              key={source.id}
-                              icon={CARD_ICONS.plateMap}
-                              label={labwareTitle(source)}
-                              description={tabNames(source)}
-                              onClick={() => {
-                                closeStartMenu();
-                                showPlate(source);
-                              }}
-                            />
-                          ))}
+                          {onPage.map(plateMapItem)}
                         </Fragment>
                       );
                     })}
+                    {notShown.length > 0 && (
+                      <>
+                        <span className={MENU_HEADING}>{NOT_SHOWN}</span>
+                        {notShown.map(plateMapItem)}
+                      </>
+                    )}
                   </DropdownMenu>
                 )}
               </div>

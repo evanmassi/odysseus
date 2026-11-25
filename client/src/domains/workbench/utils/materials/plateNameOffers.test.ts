@@ -28,9 +28,10 @@ function protocolWith(names: string[], ignored: string[] = []): Protocol {
     cards: [
       { id: 'materials', type: 'materials' },
       { id: 'values', type: 'values' },
+    ],
+    plateMaps: [
       {
         id: 'map',
-        type: 'plateMap',
         title: 'Plate',
         lines: [
           {

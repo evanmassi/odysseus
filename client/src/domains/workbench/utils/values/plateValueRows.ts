@@ -1,4 +1,4 @@
-import { normalizePlateMap, type Protocol, type PlateMapCard } from '@odysseus/shared-schemas';
+import { normalizePlateMap, type Protocol, type PlateMap } from '@odysseus/shared-schemas';
 
 import {
   plateAmounts,
@@ -19,7 +19,7 @@ export interface PlateValueRow {
   source: PlateRowSource;
 }
 
-export function plateValueRows(plateMap: PlateMapCard): PlateValueRow[] {
+export function plateValueRows(plateMap: PlateMap): PlateValueRow[] {
   const counts = plateMapCounts(plateMap)
     .filter(count => count.kind !== 'total' || count.count > 1)
     .map(
@@ -41,12 +41,10 @@ export function plateValueRows(plateMap: PlateMapCard): PlateValueRow[] {
   return [...counts, ...amounts];
 }
 
-function plateOf(draft: Protocol, plateId: string): PlateMapCard | undefined {
-  const plateMap = draft.cards.find(candidate => candidate.id === plateId);
-  return plateMap?.type === 'plateMap' ? plateMap : undefined;
-}
+const plateOf = (draft: Protocol, plateId: string): PlateMap | undefined =>
+  draft.plateMaps.find(plateMap => plateMap.id === plateId);
 
-function editPlate(draft: Protocol, plateId: string, change: (plateMap: PlateMapCard) => void) {
+function editPlate(draft: Protocol, plateId: string, change: (plateMap: PlateMap) => void) {
   const plateMap = plateOf(draft, plateId);
   if (!plateMap) return;
   change(plateMap);

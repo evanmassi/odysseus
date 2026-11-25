@@ -10,13 +10,18 @@ import elisaSample from './fixtures/elisa.json';
 import everyCardSample from './fixtures/everyCard.json';
 import { ProtocolFileError, readProtocolFile, writeProtocolFile } from './protocolFile';
 
-import type { Protocol, ProtocolCard, ProtocolCardType } from '@odysseus/shared-schemas';
+import type {
+  PlateMapCard,
+  Protocol,
+  ProtocolCard,
+  ProtocolCardType,
+} from '@odysseus/shared-schemas';
 
 const read = (file: unknown) => readProtocolFile(JSON.stringify(file));
 
 const plateOf = (protocol: Protocol) => {
-  const plateMap = protocol.cards.find(candidate => candidate.type === 'plateMap');
-  if (plateMap?.type !== 'plateMap') throw new Error('no plate block');
+  const [plateMap] = protocol.plateMaps;
+  if (!plateMap) throw new Error('no plate map');
   return plateMap;
 };
 
@@ -65,7 +70,7 @@ describe('opening a file', () => {
 
   it('merges plate lines that share a name and no well', () => {
     const file = JSON.parse(writeProtocolFile(read(cytotoxSample)));
-    const plate = file.protocol.cards.find((item: { type: string }) => item.type === 'plateMap');
+    const [plate] = file.protocol.plateMaps;
     plate.lines = [1, 2].map(index => ({
       id: `d${index}`,
       name: 'Donors',
@@ -98,8 +103,12 @@ function savedFacts(protocol: Protocol) {
   const nameOf = (materialId: string) => materials.find(item => item.id === materialId)?.name;
   const { values } = protocol;
   const board = calculateBoard(collectBoardNames(protocol));
-  const linked = cardOf(protocol, 'linkedPlateMap');
-  const plateMap = cardOf(protocol, 'plateMap');
+  const plateMap = plateOf(protocol);
+  const plateCards = protocol.cards.filter(
+    (card): card is PlateMapCard => card.type === 'plateMap' && card.shows === plateMap.id
+  );
+  const plateCard = plateCards.find(card => card.id === plateMap.id);
+  if (!plateCard) throw new Error('no card for the plate map');
   const flowCytometryPanel = cardOf(protocol, 'flowCytometryPanel');
   const stainName = (id: string | undefined) =>
     flowCytometryPanel.stains.find(stain => stain.id === id)?.name;
@@ -109,7 +118,7 @@ function savedFacts(protocol: Protocol) {
     [material(name).values['amount'], material(name).units['amount']].filter(Boolean).join(' ');
   return {
     cardTypes: protocol.cards.map(card => card.type).sort(),
-    linkedPlateMap: { page: linked.page, shows: linked.shows, sourcePage: plateMap.page },
+    plateMapShownOn: plateCards.map(card => card.page).sort(),
     donorListLabel: material('PBMC').donors?.label,
     donors: material('PBMC').donors?.rows.map(donor => ({
       name: donor.name,
@@ -170,9 +179,9 @@ function savedFacts(protocol: Protocol) {
       hidden: line.hiddenIndicators,
       ratioTo: line.ratioTo,
     })),
-    showsReplicatesAsOne: plateMap.showsReplicatesAsOne,
+    showsReplicatesAsOne: plateCard.showsReplicatesAsOne,
     typedCounts: plateMap.counts,
-    shownSide: plateMap.side,
+    shownSide: plateCard.side,
     stains: {
       A1: stainName(plateMap.stain['plate-1:A1']),
       B1: stainName(plateMap.stain['plate-1:B1']),
@@ -201,13 +210,13 @@ const EVERY_CARD_FACTS = {
     'dilutions',
     'flowCytometryPanel',
     'flowDiagram',
-    'linkedPlateMap',
     'materials',
+    'plateMap',
     'plateMap',
     'procedure',
     'values',
   ],
-  linkedPlateMap: { page: 'page-setup', shows: 'card-plate', sourcePage: 'page-plates' },
+  plateMapShownOn: ['page-plates', 'page-setup'],
   donorListLabel: 'Donors',
   donors: [
     {

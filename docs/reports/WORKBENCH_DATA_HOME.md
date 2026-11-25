@@ -1,7 +1,7 @@
 # Workbench: Where the Data Lives
 
 Design for moving the workbench's saved data out of cards and into the protocol, so a card only
-shows and edits it. Started 2026-11-24 with Evan; nothing built.
+shows and edits it. Started 2026-11-24 with Evan. Built: steps 0, 1, 2a and 2b; next 2c.
 
 ## Why
 
@@ -78,11 +78,11 @@ type without one, so nothing can make one and neither protocol has one. Removed 
      its warning and undo; adding a plate inside a card adds it to the protocol.
    - Plate maps and Flow panels can each be several in one protocol, so each card shows one; the
      plate card and the linked copy become one kind of card. One no card shows is offered when
-     adding that kind of card ("Stim plates, not on any page"), beside starting a new one.
+     adding that kind of card, under "Not shown" (decision 8), beside starting a new one.
    - A plate shown in two windows is one plate: removing it in one removes it from both.
 3. **Decided 2026-11-24: one rule everywhere, no exceptions.** Sketch drawings and text notes
    follow it too when they are built: closing the card closes the window, the drawing or note waits
-   on the card rail ("Notes, not on any page"), and it can be deleted for good there.
+   on the card rail under "Not shown" (decision 8), and it can be deleted for good there.
 4. **Decided 2026-11-24: formulas and steps point at the number; a missing one waits by name.**
    You still type names; the app keeps which number was meant, so a rename needs no rewriting. A
    name that doesn't exist yet waits and connects when it appears (as "Add as a value" works
@@ -109,6 +109,12 @@ type without one, so nothing can make one and neither protocol has one. Removed 
    - Existing upgrade code is deleted in step 0.
 7. **Decided 2026-11-24: the hidden Table, Sketch and Text note placeholders are removed in step 2.** Evan: "we can discuss their purpose and if they're needed later." When one is wanted it is
    designed fresh for the protocol's data homes (decision 3 covers how closing works).
+8. **Decided 2026-11-24: sets no card shows are listed under "Not shown" on the card rail.** In
+   the Plate map's "Start from" menu they get their own section after the page headings
+   (picked over a tag on each item, from a mock). "Not on any page", "Closed", "Put away" and
+   "Hidden" were offered; Evan: "not shown is definitely closer". Picking one shows it in a card
+   on the current page. Built in 2b for plate maps, so a closed plate card's plates can always
+   be brought back; delete for good stays in step 3.
 
 ## Follows from the decisions (stated, not asked)
 
@@ -127,7 +133,8 @@ type without one, so nothing can make one and neither protocol has one. Removed 
 
 ## Build plan (drafted 2026-11-24, reviewed against AGENTS.md and the audit standards)
 
-Six steps, each built, checked and committed on its own, each leaving the app fully working.
+Seven steps (0 to 6), each built, checked and committed on its own, each leaving the app fully
+working.
 
 **Every step's check:**
 
@@ -240,11 +247,40 @@ The protocol gains one home per kind of data; a card keeps only its window setti
 - Checked: typecheck clean; the two protocols' 122 answers identical; the every-card sample
   holds every fact; the math samples give their expected answers.
 
+**2b built 2026-11-24 (file version 10):**
+
+- `protocol.plateMaps` (`PlateMap`: id, title, plates, other labware and its tab name, lines,
+  samples, series, counts, amount names, stain, stained-in). A plate card (`PlateMapCard`) is a
+  window: frame, `shows`, side, open tab, replicates shown as one, and no title of its own; its
+  header shows and renames the plate map's title. Cards share `cardFrame`; the others add a
+  title (`cardBase`).
+- The linked copy is gone: every plate card is what it was. `linkedPlateMap`,
+  `WorkbenchLinkedPlateMapPanel`, `WorkbenchLinkedPlateMapCardControls`, `shownPlate`,
+  `linkedPlateMapsOf` and `removeCard`'s hand-over went; `linkedPlateMaps.ts` became
+  `cardRemoval.ts` (the removal message only; removing a card is one line in the shell).
+- `ShownPlateMap` (`utils/plateMap/shownPlateMap.ts`) is a plate map with its card's side, tab
+  and replicates; `WorkbenchPlateMapCardPanel` builds it and hands it to `WorkbenchPlateMapPanel`.
+  Plate data edits go through `useUpdatePlateMap(plateMapId)`, window edits through the card.
+- `utils/cards/createCard.ts` gained `cardsShowing`, `cardIdShowing` (plate numbers' "go to"
+  targets) and `showPlateMap`; `createCard` covers only titled cards. `newPlateMap()` starts a
+  new one. Changing a single plate's format resizes every card showing it; duplicating a tab
+  is one edit that also opens it; duplicating as a new card copies only the plate data.
+- The card rail's "Start from" lists plate maps by the pages their cards are on and, under
+  "Not shown", those no card shows (decision 8). Each card's chip names the other cards showing
+  the same plate map ("also on Page 2 +1").
+- Titles: empty means "named for its labware"; the old automatic "Vessel map" and "Plate map"
+  were converted to empty, so `AUTOMATIC_TITLES` is gone.
+- Fixed while here: the Calculations panel asked for the wrong cards since 2a, so the
+  "Materials" settings button on worked-out groups was missing; a linked copy's "duplicate as
+  tab" moved the original card's tab, not its own.
+- Converted by `%TEMP%/data-home/convert-v10.mjs` (v9 copies in `Old versions/Version 9`).
+- Checked: the two protocols' 122 answers identical; the every-card sample holds every fact.
+
 ### Step 3: closing is closing, deleting is deleting (no file change)
 
 - The card's close button closes without a warning.
-- The card rail offers plate maps and Flow panels no card shows ("Stim plates, not on any page")
-  beside starting new, with delete for good beside each.
+- The card rail's "Not shown" sections (plate maps from 2b, Flow panels from 2c) get delete for
+  good beside each.
 - The card's menu gets delete for good (warning and undo).
 - Removing a page deletes its steps and closes its cards (decision 5).
 - Tests: close then re-add shows the same data; removing a page keeps its cards' data.
@@ -277,10 +313,52 @@ The protocol gains one home per kind of data; a card keeps only its window setti
   cell links keep only what is about showing (`need`, `worked`, `wells`). Dilutions gains plate
   numbers. The old dispatch is deleted.
 - Tests: one per kind of number, written and read back through the lookup.
+
+### Step 6: the built-in math reads what kind of number a value is, not its name (file change)
+
+Raised while weighing what of the workbench another lab could reuse. **Decided 2026-11-24**
+(Evan: "step 6 is decided").
+
+- **The gap.** Steps 1 and 4 keep _which_ number a formula means through a rename. Nothing in
+  steps 0 to 5 covers _what kind_ of number it is. The built-in math (dilutions, cell math,
+  recipes, the Flow panel, Values grouping) still finds its inputs by name through the word list:
+  `findTerm` / `findTermOn` in `dilutionCalculations.ts`, `cellCalculations.ts`,
+  `materialRecipeCalculations.ts`, `valueTable.ts` and `formulaScopes.ts`, and `isAssaySetting`
+  over `ASSAY_SETUP_TERMS` (`termList.ts`). The terms read this way: Total well vol., Vol./well,
+  Extra, Cells/well, Wells, Stock conc., Mass/well, Cells/vial.
+- **What breaks today and after step 5.** Rename "Total well vol." to "Final vol. per well" (or
+  another lab's "Working vol.") and a formula using it still works after step 4, but the dilution
+  math waits with "Total well vol." missing, though the number is there.
+- **Lookups key on whose number it is too.** They search `<owner> <term>` (e.g. "Raji Cells/well",
+  "Medium Mass/well", `''` for Assay setup), so the tag would record both the kind and its
+  material (or Assay setup) by id, the way Values rows already keep their material
+  (`joinValueName`).
+- **Proposal.** A value saves its kind (e.g. Well volume) by id. Typing a name the word list knows
+  sets it, as recognizing works today. Any other name can take one from a "This is… ▸" menu. The
+  built-in math reads the tag, not the name, so renaming or rewording changes only what is shown.
+  The word list stays for recognizing what is typed.
+- **The tag is kind + container + owner.** Vol./well and Vol./tube are one term on two
+  containers (`perLabwareKind`), so the tag keeps which container, as the lookups do today.
+- **Answered 2026-11-24 (Evan left these to Claude):**
+  - _Retyping the name:_ one rule, no hidden state. A name the word list knows sets the tag to
+    that kind, whoever set it before; a name it doesn't know leaves the tag alone. Renaming "Total
+    well vol." to "Vol./well" means the number changed meaning; renaming it to "Final vol." keeps
+    it a well volume.
+  - _Two values with the same kind and owner:_ the math needs one number, so there is one per
+    material per container (one per protocol for Assay setup). Picking the kind from the menu
+    moves it there ("Well volume is on Total well vol. — move it here?"). Typing a second one
+    flags both, as a name used twice is flagged today, and the math waits until one changes.
+  - _How it shows:_ nothing new when the name already says it, so ordinary protocols look as
+    today. A square tag shows only when the name doesn't say it (set from the menu). "This is… ▸"
+    sits in the value's menu beside "Move to…" (`WorkbenchValueItem.tsx`). Look settled from a
+    mock when built.
+  - _`formerly` spellings:_ kept. They are spellings typing recognizes ("Count" still files into
+    the cell count); tags replace reading names in the math, not recognizing what is typed.
 - Then W114 step 5 resumes.
 
 **Order:** 0 clears the old-version code so every later step changes one file shape. 1 is small
-and independent. 2 is the foundation, 3 makes it visible, 4 and 5 build on it.
+and independent. 2 is the foundation, 3 makes it visible, 4 and 5 build on it, and 6 builds on
+1, 4 and 5.
 
 ## Code standards for this work
 

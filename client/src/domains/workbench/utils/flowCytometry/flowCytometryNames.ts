@@ -20,7 +20,6 @@ import type {
   FlowCytometryPanelCard,
   MaterialItem,
   Protocol,
-  PlateMapCard,
   Stain,
 } from '@odysseus/shared-schemas';
 
@@ -199,9 +198,7 @@ export function flowCytometryCalculationNames(
   taken: readonly BoardName[]
 ): BoardName[] {
   const materials = new Map(listedMaterials(protocol).map(item => [item.id, item]));
-  const samples = stainedSampleCounts(
-    protocol.cards.filter((card): card is PlateMapCard => card.type === 'plateMap')
-  );
+  const samples = stainedSampleCounts(protocol.plateMaps);
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   const ownNames = new Map(taken.map(entry => [nameKey(entry.name), entry]));
   return protocol.cards.flatMap(card =>

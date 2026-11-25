@@ -1,4 +1,4 @@
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { PlateMap } from '@odysseus/shared-schemas';
 
 type LabwareKind = 'well' | 'flask' | 'dish' | 'tube';
 
@@ -28,7 +28,7 @@ const plate = (format: string, rows: number, cols: number): PlateLabware => ({
   cols,
 });
 
-const PLATE_LABWARE: Readonly<Record<PlateMapCard['plates'][number]['labware'], PlateLabware>> = {
+const PLATE_LABWARE: Readonly<Record<PlateMap['plates'][number]['labware'], PlateLabware>> = {
   '6': plate('6', 2, 3),
   '12': plate('12', 3, 4),
   '24': plate('24', 4, 6),
@@ -41,7 +41,7 @@ const FLASK = { group: 'Flasks and dishes', kind: 'flask', prefix: 'F' } as cons
 const TUBE = { group: 'Tubes', kind: 'tube', prefix: 'T' } as const;
 
 export const OTHER_LABWARE: Readonly<
-  Record<PlateMapCard['otherLabware'][number]['labware'], OtherLabware>
+  Record<PlateMap['otherLabware'][number]['labware'], OtherLabware>
 > = {
   T25: { ...FLASK, label: 'T25 flask', shape: 'flask25', scale: 1, short: 'T25' },
   T75: { ...FLASK, label: 'T75 flask', shape: 'flask75', scale: 1.25, short: 'T75' },
@@ -94,7 +94,7 @@ export function wordsForTypes(types: readonly LabwareType[]): LabwareWords {
     : MIXED_LABWARE_WORDS;
 }
 
-export function labwareTypeAt(card: PlateMapCard, wellKey: string): LabwareType {
+export function labwareTypeAt(card: PlateMap, wellKey: string): LabwareType {
   const onPlate = card.plates.find(candidate => wellKey.startsWith(`${candidate.id}:`));
   if (onPlate) return onPlate.labware;
   return (

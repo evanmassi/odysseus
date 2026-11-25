@@ -10,31 +10,40 @@ import {
 } from './plateMapEdits';
 import { plateMapTabs } from './plateMapTabs';
 
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { PlateMap, PlateMapCard } from '@odysseus/shared-schemas';
 
-const plateMap = (): PlateMapCard =>
-  ({
-    id: 'map',
-    x: 0,
-    y: 0,
-    w: 6,
-    h: 10,
-    plates: [{ id: 'p', labware: '96', name: 'Day 1' }],
-    otherLabware: [{ id: 's', labware: 'T75', count: 3 }],
-    activeTab: 1,
-    lines: [{ id: 'l', name: '', role: 'auto', values: [{ id: 'v', text: 'Drug' }] }],
-    samples: {
-      'p:H12': { l: { valueId: 'v' } },
-      'p:A1': { l: { valueId: 'v' } },
-      's#2:1': { l: { valueId: 'v' } },
-    },
-    series: {},
-    counts: { v: '9' },
-    amountNames: {},
-    side: 'assay',
-    stain: {},
-    stainedIn: {},
-  }) as unknown as PlateMapCard;
+const plateMap = (): PlateMap => ({
+  id: 'map',
+  title: '',
+  plates: [{ id: 'p', labware: '96', name: 'Day 1' }],
+  otherLabware: [{ id: 's', labware: 'T75', count: 3 }],
+  lines: [{ id: 'l', name: '', role: 'auto', values: [{ id: 'v', text: 'Drug' }] }],
+  samples: {
+    'p:H12': { l: { valueId: 'v' } },
+    'p:A1': { l: { valueId: 'v' } },
+    's#2:1': { l: { valueId: 'v' } },
+  },
+  series: {},
+  counts: { v: '9' },
+  amountNames: {},
+  stain: {},
+  stainedIn: {},
+});
+
+const cardShowing = (plateMapId: string): PlateMapCard => ({
+  id: 'card',
+  type: 'plateMap',
+  page: 'page',
+  x: 0,
+  y: 0,
+  w: 6,
+  h: 10,
+  isCollapsed: false,
+  shows: plateMapId,
+  side: 'assay',
+  activeTab: 1,
+  showsReplicatesAsOne: true,
+});
 
 describe('plate map edits', () => {
   it('add and remove plates and other labware by count', () => {
@@ -55,18 +64,18 @@ describe('plate map edits', () => {
     expect(wellsLostTo(card, withoutPlate(card, 'p'))).toBe(2);
   });
 
-  it('drop wells that no longer fit and size the card to a new only plate', () => {
-    const card = plateMap();
-    card.stain = { 'p:A1': 'full', 's#2:1': 'fmo' };
-    const next = withLabwareCount(withLabwareCount(card, '96', 0), '6', 1);
-    applyLabware(card, next);
-    expect(Object.keys(card.samples)).toEqual(['s#2:1']);
-    expect(card.stain).toEqual({ 's#2:1': 'fmo' });
+  it('drop wells that no longer fit and size the cards showing a new only plate', () => {
+    const shown = plateMap();
+    shown.stain = { 'p:A1': 'full', 's#2:1': 'fmo' };
+    const card = cardShowing(shown.id);
+    const next = withLabwareCount(withLabwareCount(shown, '96', 0), '6', 1);
+    applyLabware({ cards: [card], plateMaps: [shown] }, shown.id, next);
+    expect(Object.keys(shown.samples)).toEqual(['s#2:1']);
+    expect(shown.stain).toEqual({ 's#2:1': 'fmo' });
     expect(card.w).toBe(4);
-    expect(card.activeTab).toBe(1);
   });
 
-  it('duplicates a plate tab into a new card beside this one with fresh well keys', () => {
+  it('duplicates a plate tab into a new plate map with fresh well keys', () => {
     const card = plateMap();
     card.stain = { 'p:A1': 'full', 's#2:1': 'fmo' };
     const copy = duplicateOfTab(card, plateMapTabs(card)[0]);
@@ -77,7 +86,7 @@ describe('plate map edits', () => {
     expect(Object.keys(copy.samples).sort()).toEqual([`${plate.id}:A1`, `${plate.id}:H12`]);
     expect(copy.stain).toEqual({ [`${plate.id}:A1`]: 'full' });
     expect(copy.counts).toEqual({});
-    expect(copy).toMatchObject({ x: 6, y: 0, activeTab: 0 });
+    expect(copy.id).not.toBe('map');
   });
 
   it('duplicates a plate into a new tab of the same card with series of its own', () => {
@@ -85,11 +94,11 @@ describe('plate map edits', () => {
     card.samples['p:B1'] = { l: { valueId: 'v', seriesId: 'ser', seriesPoint: 0 } };
     card.series = { ser: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' } };
     card.stain = { 'p:A1': 'full' };
-    duplicatePlateAsTab(card, card.plates[0]);
+    const copyTab = duplicatePlateAsTab(card, card.plates[0]);
     const [original, copy] = card.plates;
     expect(original.id).toBe('p');
     expect(copy).toMatchObject({ labware: '96', name: 'Day 1 copy' });
-    expect(card.activeTab).toBe(1);
+    expect(copyTab).toBe(1);
     expect(card.samples[`${copy.id}:A1`]).toEqual({ l: { valueId: 'v' } });
     expect(card.stain).toEqual({ 'p:A1': 'full', [`${copy.id}:A1`]: 'full' });
     const copiedSeriesId = card.samples[`${copy.id}:B1`]['l'].seriesId;

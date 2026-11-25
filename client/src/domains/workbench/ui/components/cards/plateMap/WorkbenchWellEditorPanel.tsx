@@ -52,7 +52,8 @@ import { WorkbenchWellSeriesForm } from './WorkbenchWellSeriesForm';
 
 import type { lineLayers } from '../../../../utils/plateMap/plateLayers';
 import type { PlateMapSheet, PlateMapTab } from '../../../../utils/plateMap/plateMapTabs';
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
+import type { PlateMap } from '@odysseus/shared-schemas';
 
 interface DraftLine {
   lineId: string;
@@ -66,7 +67,7 @@ interface EditorRow {
 }
 
 interface WorkbenchWellEditorPanelProps {
-  card: PlateMapCard;
+  card: ShownPlateMap;
   tab: PlateMapTab;
   sheet: PlateMapSheet;
   keys: ReadonlySet<string>;
@@ -117,7 +118,7 @@ export function WorkbenchWellEditorPanel({
 }: WorkbenchWellEditorPanelProps) {
   const board = useWorkbenchStore(state => state.board);
   const knownNames = useWorkbenchData(state => knownNamesIn(state.protocol));
-  const updatePlateMap = useUpdatePlateMap(card);
+  const updatePlateMap = useUpdatePlateMap(card.id);
   const editorRef = useRef<HTMLDivElement>(null);
   const selectionAnchor = useCallback(
     () => (wellsRef.current ? selectionBox(wellsRef.current, keys) : undefined),
@@ -165,7 +166,7 @@ export function WorkbenchWellEditorPanel({
     setDrafts([]);
   }, [keys]);
 
-  const writeRow = (target: EditorRow, change: (draft: PlateMapCard) => void) => {
+  const writeRow = (target: EditorRow, change: (draft: PlateMap) => void) => {
     const pending = target.draft;
     updatePlateMap(draft => {
       change(draft);
@@ -192,7 +193,7 @@ export function WorkbenchWellEditorPanel({
     if (!openSeries) return;
     const next = { ...openSeries, ...change };
     let { seriesId } = next;
-    const write = (draft: PlateMapCard) => {
+    const write = (draft: PlateMap) => {
       seriesId = writeSeries(draft, sheet, keys, next);
     };
     const target = rows.find(candidate => candidate.lineId === next.lineId);
@@ -236,7 +237,7 @@ export function WorkbenchWellEditorPanel({
       {rows.map((target, index) => {
         const { row, lineId, draft } = target;
         const series = row.seriesId === undefined ? undefined : card.series[row.seriesId];
-        const edit = (change: (draft: PlateMapCard) => void) => writeRow(target, change);
+        const edit = (change: (draft: PlateMap) => void) => writeRow(target, change);
         const form = openSeries?.lineId === lineId ? openSeries : undefined;
         const started = draft ? undefined : startedNames.get(lineId);
         const elsewhere =

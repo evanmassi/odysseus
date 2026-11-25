@@ -1,27 +1,17 @@
 import { materialWellCounts, plateAmounts, plateMapCounts } from './plateMapNames';
 
-import type { MaterialItem, PlateLine, PlateMapCard } from '@odysseus/shared-schemas';
+import type { MaterialItem, PlateLine, PlateMap } from '@odysseus/shared-schemas';
 
-const plateMap = (content: Partial<PlateMapCard>): PlateMapCard => ({
+const plateMap = (content: Partial<PlateMap>): PlateMap => ({
   id: 'map',
-  type: 'plateMap',
-  title: 'Vessel map',
-  page: 'page',
-  x: 0,
-  y: 0,
-  w: 6,
-  h: 6,
-  isCollapsed: false,
+  title: '',
   plates: [{ id: 'p1', labware: '96', name: '' }],
   otherLabware: [],
-  activeTab: 0,
   lines: [],
   samples: {},
   series: {},
-  showsReplicatesAsOne: true,
   counts: {},
   amountNames: {},
-  side: 'assay',
   stain: {},
   stainedIn: {},
   ...content,

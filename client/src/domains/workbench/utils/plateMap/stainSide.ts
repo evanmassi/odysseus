@@ -3,7 +3,7 @@ import { plateNameOf, otherLabwareTabNameOf } from './plateMapTabs';
 
 import type { WellColor } from './wellContents';
 import type { SampleNoun } from '../terms/termList';
-import type { FlowCytometryPanelCard, PlateMapCard } from '@odysseus/shared-schemas';
+import type { FlowCytometryPanelCard, PlateMap } from '@odysseus/shared-schemas';
 
 export interface PlateStain {
   id: string;
@@ -45,7 +45,7 @@ export function plateStains(panels: readonly FlowCytometryPanelCard[]): PlateSta
     });
 }
 
-export function stainedWellCounts(plates: readonly PlateMapCard[]): Map<string, number> {
+export function stainedWellCounts(plates: readonly PlateMap[]): Map<string, number> {
   return new Map(
     [...stainedSampleCounts(plates)].map(([stainId, byNoun]) => [
       stainId,
@@ -55,7 +55,7 @@ export function stainedWellCounts(plates: readonly PlateMapCard[]): Map<string, 
 }
 
 export function stainedSampleCounts(
-  plates: readonly PlateMapCard[]
+  plates: readonly PlateMap[]
 ): Map<string, Map<SampleNoun, number>> {
   const counts = new Map<string, Map<SampleNoun, number>>();
   for (const plateMap of plates) {
@@ -75,7 +75,7 @@ export interface StainedPlace {
   count: number;
 }
 
-export function stainedPlaces(plates: readonly PlateMapCard[]): Map<string, StainedPlace[]> {
+export function stainedPlaces(plates: readonly PlateMap[]): Map<string, StainedPlace[]> {
   const places = new Map<string, StainedPlace[]>();
   for (const card of plates) {
     const tabs = [
@@ -103,7 +103,7 @@ export function stainedPlaces(plates: readonly PlateMapCard[]): Map<string, Stai
 }
 
 export function stainWells(
-  card: PlateMapCard,
+  card: PlateMap,
   keys: Iterable<string>,
   stainId: string | undefined
 ): void {

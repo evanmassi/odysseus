@@ -1,4 +1,7 @@
+import { normalizePlateMap } from '@odysseus/shared-schemas';
+
 import { BOARD_COLUMNS } from '../cards/boardGeometry';
+import { cardsShowing } from '../cards/createCard';
 import { createId } from '../ids/createId';
 
 import { labwareOf, type LabwareType } from './labwareCatalog';
@@ -6,10 +9,24 @@ import { cardColumnsFor } from './labwareSizing';
 import { isWellFilled } from './wellSelection';
 
 import type { PlateMapTab } from './plateMapTabs';
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { PlateMap, Protocol } from '@odysseus/shared-schemas';
 
-export type Labware = Pick<PlateMapCard, 'plates' | 'otherLabware'>;
-type PlateFormat = PlateMapCard['plates'][number]['labware'];
+export type Labware = Pick<PlateMap, 'plates' | 'otherLabware'>;
+
+export const newPlateMap = (): PlateMap => ({
+  id: createId(),
+  title: '',
+  plates: [{ id: createId(), labware: '96', name: '' }],
+  otherLabware: [],
+  lines: [],
+  samples: {},
+  series: {},
+  counts: {},
+  amountNames: {},
+  stain: {},
+  stainedIn: {},
+});
+type PlateFormat = PlateMap['plates'][number]['labware'];
 
 const MOST_OF_A_KIND = 48;
 const ROW_LETTERS = 'ABCDEFGHIJKLMNOP';
@@ -74,31 +91,39 @@ function wellFits(labware: Labware, key: string): boolean {
   return position === '1' && !!set && Number(index) < set.count;
 }
 
-export const wellsLostTo = (card: PlateMapCard, labware: Labware): number =>
-  Object.keys(card.samples).filter(key => isWellFilled(card, key) && !wellFits(labware, key))
-    .length;
+export const wellsLostTo = (plateMap: PlateMap, labware: Labware): number =>
+  Object.keys(plateMap.samples).filter(
+    key => isWellFilled(plateMap, key) && !wellFits(labware, key)
+  ).length;
 
-export function applyLabware(card: PlateMapCard, labware: Labware): void {
-  const onlyFormatBefore = card.plates.length === 1 ? card.plates[0].labware : undefined;
-  card.plates = labware.plates;
-  card.otherLabware = labware.otherLabware;
-  for (const key of Object.keys(card.samples)) {
-    if (!wellFits(labware, key)) delete card.samples[key];
+const onlyFormatOf = (plateMap: PlateMap) =>
+  plateMap.plates.length === 1 ? plateMap.plates[0].labware : undefined;
+
+export function applyLabware(
+  draft: Pick<Protocol, 'cards' | 'plateMaps'>,
+  plateMapId: string,
+  labware: Labware
+): void {
+  const plateMap = draft.plateMaps.find(candidate => candidate.id === plateMapId);
+  if (!plateMap) return;
+  const formatBefore = onlyFormatOf(plateMap);
+  plateMap.plates = labware.plates;
+  plateMap.otherLabware = labware.otherLabware;
+  for (const key of Object.keys(plateMap.samples)) {
+    if (!wellFits(labware, key)) delete plateMap.samples[key];
   }
-  for (const key of Object.keys(card.stain)) {
-    if (!wellFits(labware, key)) delete card.stain[key];
+  for (const key of Object.keys(plateMap.stain)) {
+    if (!wellFits(labware, key)) delete plateMap.stain[key];
   }
-  for (const [key, position] of Object.entries(card.stainedIn)) {
-    if (!wellFits(labware, key) || !wellFits(labware, position)) delete card.stainedIn[key];
+  for (const [key, position] of Object.entries(plateMap.stainedIn)) {
+    if (!wellFits(labware, key) || !wellFits(labware, position)) delete plateMap.stainedIn[key];
   }
-  card.activeTab = Math.min(
-    card.activeTab,
-    card.plates.length + (card.otherLabware.length ? 1 : 0) - 1
-  );
-  const [onlyPlate] = card.plates;
-  if (card.plates.length === 1 && onlyPlate.labware !== onlyFormatBefore) {
-    card.w = cardColumnsFor(onlyPlate.labware);
-    card.x = Math.min(card.x, BOARD_COLUMNS - card.w);
+  normalizePlateMap(plateMap);
+  const format = onlyFormatOf(plateMap);
+  if (!format || format === formatBefore) return;
+  for (const plateCard of cardsShowing(draft.cards, plateMapId)) {
+    plateCard.w = cardColumnsFor(format);
+    plateCard.x = Math.min(plateCard.x, BOARD_COLUMNS - plateCard.w);
   }
 }
 
@@ -107,8 +132,8 @@ export const withoutPlate = (labware: Labware, plateId: string): Labware => ({
   otherLabware: labware.otherLabware,
 });
 
-type Plate = PlateMapCard['plates'][number];
-type Series = PlateMapCard['series'][string];
+type Plate = PlateMap['plates'][number];
+type Series = PlateMap['series'][string];
 
 const copyOfSeries = (series: Series): Series => ({
   ...series,
@@ -116,20 +141,20 @@ const copyOfSeries = (series: Series): Series => ({
   ...(series.prep && { prep: { ...series.prep } }),
 });
 
-export function duplicatePlateAsTab(card: PlateMapCard, plate: Plate): void {
+export function duplicatePlateAsTab(plateMap: PlateMap, plate: Plate): number {
   const copy: Plate = { ...plate, id: createId(), name: plate.name ? `${plate.name} copy` : '' };
-  card.plates.splice(card.plates.indexOf(plate) + 1, 0, copy);
+  plateMap.plates.splice(plateMap.plates.indexOf(plate) + 1, 0, copy);
   const freshSeries = new Map<string, string>();
   const seriesCopyOf = (seriesId: string) => {
     const known = freshSeries.get(seriesId);
     if (known) return known;
     const fresh = createId();
     freshSeries.set(seriesId, fresh);
-    card.series[fresh] = copyOfSeries(card.series[seriesId]);
+    plateMap.series[fresh] = copyOfSeries(plateMap.series[seriesId]);
     return fresh;
   };
   const prefix = `${plate.id}:`;
-  for (const [key, lines] of Object.entries(card.samples)) {
+  for (const [key, lines] of Object.entries(plateMap.samples)) {
     if (!key.startsWith(prefix)) continue;
     const copied = Object.fromEntries(
       Object.entries(lines).map(([lineId, entry]) => [
@@ -139,21 +164,21 @@ export function duplicatePlateAsTab(card: PlateMapCard, plate: Plate): void {
           : { ...entry, seriesId: seriesCopyOf(entry.seriesId) },
       ])
     );
-    card.samples[`${copy.id}:${key.slice(prefix.length)}`] = copied;
+    plateMap.samples[`${copy.id}:${key.slice(prefix.length)}`] = copied;
   }
   const copied = (key: string) => `${copy.id}:${key.slice(prefix.length)}`;
-  for (const [key, stainId] of Object.entries(card.stain)) {
-    if (key.startsWith(prefix)) card.stain[copied(key)] = stainId;
+  for (const [key, stainId] of Object.entries(plateMap.stain)) {
+    if (key.startsWith(prefix)) plateMap.stain[copied(key)] = stainId;
   }
-  for (const [key, position] of Object.entries(card.stainedIn)) {
-    if (key.startsWith(prefix)) card.stainedIn[copied(key)] = copied(position);
+  for (const [key, position] of Object.entries(plateMap.stainedIn)) {
+    if (key.startsWith(prefix)) plateMap.stainedIn[copied(key)] = copied(position);
   }
-  card.activeTab = card.plates.indexOf(copy);
+  return plateMap.plates.indexOf(copy);
 }
 
-export function duplicateOfTab(card: PlateMapCard, tab: PlateMapTab): PlateMapCard {
+export function duplicateOfTab(plateMap: PlateMap, tab: PlateMapTab): PlateMap {
   const renames = new Map<string, string>();
-  const copy = structuredClone(card);
+  const copy = structuredClone(plateMap);
   copy.id = createId();
   if (tab.kind === 'plate') {
     const plate = {
@@ -167,10 +192,10 @@ export function duplicateOfTab(card: PlateMapCard, tab: PlateMapTab): PlateMapCa
     delete copy.otherLabwareTabName;
   } else {
     copy.plates = [];
-    copy.otherLabwareTabName = card.otherLabwareTabName
-      ? `${card.otherLabwareTabName} copy`
+    copy.otherLabwareTabName = plateMap.otherLabwareTabName
+      ? `${plateMap.otherLabwareTabName} copy`
       : undefined;
-    copy.otherLabware = card.otherLabware.map(set => {
+    copy.otherLabware = plateMap.otherLabware.map(set => {
       const fresh = { ...set, id: createId() };
       renames.set(`${set.id}#`, `${fresh.id}#`);
       return fresh;
@@ -196,9 +221,5 @@ export function duplicateOfTab(card: PlateMapCard, tab: PlateMapTab): PlateMapCa
     })
   );
   copy.counts = {};
-  copy.activeTab = 0;
-  const fitsBeside = card.x + card.w * 2 <= BOARD_COLUMNS;
-  copy.x = fitsBeside ? card.x + card.w : card.x;
-  copy.y = fitsBeside ? card.y : card.y + card.h;
   return copy;
 }

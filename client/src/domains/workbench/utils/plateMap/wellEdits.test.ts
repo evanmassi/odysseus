@@ -1,4 +1,4 @@
-import { normalizePlateMap, type PlateMapCard } from '@odysseus/shared-schemas';
+import { normalizePlateMap, type PlateMap } from '@odysseus/shared-schemas';
 
 import {
   heldNames,
@@ -14,7 +14,7 @@ import {
   wellRows,
 } from './wellEdits';
 
-const plateMap = (content: Partial<PlateMapCard> = {}) =>
+const plateMap = (content: Partial<PlateMap> = {}) =>
   ({
     lines: [],
     samples: {},
@@ -25,9 +25,9 @@ const plateMap = (content: Partial<PlateMapCard> = {}) =>
     stain: {},
     stainedIn: {},
     ...content,
-  }) as PlateMapCard;
+  }) as PlateMap;
 
-const edit = (card: PlateMapCard, change: (draft: PlateMapCard) => void) => {
+const edit = (card: PlateMap, change: (draft: PlateMap) => void) => {
   change(card);
   normalizePlateMap(card);
   return card;

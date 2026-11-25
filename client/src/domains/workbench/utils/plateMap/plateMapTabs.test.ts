@@ -6,9 +6,9 @@ import {
   plateMapTabs,
 } from './plateMapTabs';
 
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { ShownPlateMap } from './shownPlateMap';
 
-const card = {
+const plateMap = {
   plates: [{ id: 'p1', labware: '6', name: '' }],
   otherLabware: [
     { id: 's1', labware: 'T75', count: 2 },
@@ -16,26 +16,26 @@ const card = {
     { id: 's3', labware: 'tube15', count: 2 },
   ],
   activeTab: 9,
-} as PlateMapCard;
+} as ShownPlateMap;
 
 describe('plate map tabs', () => {
   it('give each plate a tab and all other labware one shared tab', () => {
-    expect(plateMapTabs(card).map(tab => tab.id)).toEqual(['p1', 'otherLabware']);
-    expect(activeTabOf(card).kind).toBe('otherLabware');
-    expect(otherLabwareKinds(card)).toBe('Flasks & tubes');
+    expect(plateMapTabs(plateMap).map(tab => tab.id)).toEqual(['p1', 'otherLabware']);
+    expect(activeTabOf(plateMap).kind).toBe('otherLabware');
+    expect(otherLabwareKinds(plateMap)).toBe('Flasks & tubes');
   });
 
   it('names the card after what it holds unless it was renamed', () => {
-    const titled = (title: string, parts: Partial<PlateMapCard>) =>
-      labwareTitle({ ...card, title, ...parts } as PlateMapCard);
-    expect(titled('Plate map', { otherLabware: [] })).toBe('Plate map');
-    expect(titled('VESSEL MAP', { plates: [] })).toBe('Flasks & tubes');
-    expect(titled('Plate map', {})).toBe('Plates, flasks & tubes');
+    const titled = (title: string, parts: Partial<ShownPlateMap>) =>
+      labwareTitle({ ...plateMap, title, ...parts } as ShownPlateMap);
+    expect(titled('', { otherLabware: [] })).toBe('Plate map');
+    expect(titled(' ', { plates: [] })).toBe('Flasks & tubes');
+    expect(titled('', {})).toBe('Plates, flasks & tubes');
     expect(titled('Assay plate', { otherLabware: [] })).toBe('Assay plate');
   });
 
   it('lay a plate out row by row with lettered rows', () => {
-    const sheet = sheetOf(card, plateMapTabs(card)[0]);
+    const sheet = sheetOf(plateMap, plateMapTabs(plateMap)[0]);
     expect(sheet).toMatchObject({ isPlate: true, rows: 2, cols: 3 });
     expect(sheet.positions.map(position => position.key)).toEqual([
       'p1:A1',
@@ -48,7 +48,7 @@ describe('plate map tabs', () => {
   });
 
   it('number other labware on from earlier rows of the same kind', () => {
-    const sheet = sheetOf(card, plateMapTabs(card)[1]);
+    const sheet = sheetOf(plateMap, plateMapTabs(plateMap)[1]);
     expect(sheet.positions.map(({ key, label }) => [key, label])).toEqual([
       ['s1#0:1', 'F1'],
       ['s1#1:1', 'F2'],

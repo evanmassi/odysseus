@@ -21,16 +21,17 @@ const USUAL_VALUES: Readonly<Record<string, readonly SuggestionRow[]>> = {
   other: [suggested(VOLUME_PER_WELL)],
 };
 
-function hasPlateMapFor(protocol: Pick<Protocol, 'cards'>, material: MaterialItem) {
-  const plateMaps = protocol.cards.filter(card => card.type === 'plateMap');
+function hasPlateMapFor(protocol: Pick<Protocol, 'plateMaps'>, material: MaterialItem) {
+  const { plateMaps } = protocol;
   const key = normalizeMaterialKey(material.name);
   return (
-    plateMaps.some(card => normalizeMaterialKey(card.title).includes(key)) || plateMaps.length === 1
+    plateMaps.some(plateMap => normalizeMaterialKey(plateMap.title).includes(key)) ||
+    plateMaps.length === 1
   );
 }
 
 export function valueSuggestions(
-  protocol: Pick<Protocol, 'cards' | 'values'>,
+  protocol: Pick<Protocol, 'plateMaps' | 'values'>,
   valueRow: ValueRow,
   material: MaterialItem | undefined
 ): ValueSuggestion[] {

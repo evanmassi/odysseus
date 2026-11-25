@@ -49,6 +49,7 @@ const protocol = {
     ],
   },
   calculations: { items: [], materialSections: [] },
+  plateMaps: [],
 } as unknown as Protocol;
 
 function bioGroup(current: Protocol) {

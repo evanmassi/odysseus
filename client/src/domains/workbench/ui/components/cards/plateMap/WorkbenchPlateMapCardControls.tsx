@@ -1,7 +1,7 @@
 import { useShowCard } from '../../../../hooks/useShowCard';
 import { useUpdateCard } from '../../../../hooks/useUpdateCard';
-import { useWorkbenchStore } from '../../../../stores/workbenchStore';
-import { linkedPlateMapsOf } from '../../../../utils/cards/linkedPlateMaps';
+import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
+import { cardsShowing } from '../../../../utils/cards/createCard';
 
 import { WorkbenchPlateMapSideSwitch } from './WorkbenchPlateMapSideSwitch';
 import { WorkbenchPlatePlaceChip } from './WorkbenchPlatePlaceChip';
@@ -15,36 +15,34 @@ interface WorkbenchPlateMapCardControlsProps {
 export function WorkbenchPlateMapCardControls({ card }: WorkbenchPlateMapCardControlsProps) {
   const updateCard = useUpdateCard(card);
   const showCard = useShowCard();
-  const firstViewId = useWorkbenchStore(
-    state => linkedPlateMapsOf(state.protocol.cards, card.id)[0]?.id
+  const others = useWorkbenchData(state =>
+    cardsShowing(state.protocol.cards, card.shows)
+      .filter(other => other.id !== card.id)
+      .map(other => ({
+        id: other.id,
+        place:
+          other.page === card.page
+            ? 'this page'
+            : (state.protocol.pages.find(page => page.id === other.page)?.name ?? 'another page'),
+      }))
   );
-  const viewCount = useWorkbenchStore(
-    state => linkedPlateMapsOf(state.protocol.cards, card.id).length
-  );
-  const viewPlace = useWorkbenchStore(state => {
-    const [view] = linkedPlateMapsOf(state.protocol.cards, card.id);
-    if (!view) return undefined;
-    if (view.page === card.page) return 'this page';
-    return state.protocol.pages.find(page => page.id === view.page)?.name;
-  });
+  const [first] = others;
   return (
     <>
-      {firstViewId && viewPlace && (
+      {first && (
         <WorkbenchPlatePlaceChip
-          label={`also on ${viewPlace}${viewCount > 1 ? ` +${viewCount - 1}` : ''}`}
-          onShow={() => showCard(firstViewId)}
+          label={`also on ${first.place}${others.length > 1 ? ` +${others.length - 1}` : ''}`}
+          onShow={() => showCard(first.id)}
         />
       )}
-      {
-        <WorkbenchPlateMapSideSwitch
-          side={card.side}
-          onShow={side =>
-            updateCard(draft => {
-              draft.side = side;
-            })
-          }
-        />
-      }
+      <WorkbenchPlateMapSideSwitch
+        side={card.side}
+        onShow={side =>
+          updateCard(draft => {
+            draft.side = side;
+          })
+        }
+      />
     </>
   );
 }

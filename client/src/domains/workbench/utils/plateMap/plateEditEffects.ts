@@ -4,17 +4,14 @@ import { joinValueName } from '../values/valueNames';
 
 import { plateAmounts } from './plateMapNames';
 
-import type { Protocol, PlateMapCard } from '@odysseus/shared-schemas';
-
-const plateMaps = (protocol: Protocol) =>
-  protocol.cards.filter((card): card is PlateMapCard => card.type === 'plateMap');
+import type { Protocol } from '@odysseus/shared-schemas';
 
 export function removeValuesTwinnedByPlate(
   draft: Protocol,
   knownNames: ReadonlyMap<string, string>
 ): void {
   const newPlateNames = new Set(
-    plateMaps(draft).flatMap(plateMap =>
+    draft.plateMaps.flatMap(plateMap =>
       plateAmounts(plateMap)
         .filter(amount => knownNames.get(`${plateMap.id}:${amount.key}`) !== amount.name)
         .map(amount => nameKey(amount.name))

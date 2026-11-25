@@ -35,7 +35,7 @@ export function readProtocolFile(text: string): Protocol {
     );
   }
   const { protocol } = result.data;
-  for (const card of protocol.cards) if (card.type === 'plateMap') normalizePlateMap(card);
+  for (const plateMap of protocol.plateMaps) normalizePlateMap(plateMap);
   return protocol;
 }
 

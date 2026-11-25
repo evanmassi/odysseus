@@ -36,10 +36,11 @@ import type { DonorSummary } from '../../../../utils/materials/materialDonors';
 import type { WellSize } from '../../../../utils/plateMap/labwareSizing';
 import type { LineLayer, PlateIndicator } from '../../../../utils/plateMap/plateLayers';
 import type { ReplicatesShownAsOne } from '../../../../utils/plateMap/replicatesShownAsOne';
-import type { PlateLine, PlateMapCard } from '@odysseus/shared-schemas';
+import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
+import type { PlateLine } from '@odysseus/shared-schemas';
 
 interface WorkbenchPlateTableProps {
-  card: PlateMapCard;
+  card: ShownPlateMap;
   sheet: PlateMapSheet;
   colorLine: PlateLine | undefined;
   layers: readonly LineLayer[];

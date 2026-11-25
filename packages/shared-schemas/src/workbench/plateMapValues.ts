@@ -1,6 +1,6 @@
 import { normalizeMaterialKey } from './materialKey';
 
-import type { SampleEntry, PlateLine, PlateMapCard } from './protocolFileSchemas';
+import type { SampleEntry, PlateLine, PlateMap } from './protocolFileSchemas';
 
 type LineValue = PlateLine['values'][number];
 
@@ -38,15 +38,15 @@ export const lineValueOf = (
 ): LineValue | undefined =>
   cell?.valueId ? line.values.find(value => value.id === cell.valueId) : undefined;
 
-const cellsOn = (card: PlateMapCard, line: PlateLine) =>
-  Object.values(card.samples).map(lines => lines[line.id]);
+const cellsOn = (plateMap: PlateMap, line: PlateLine) =>
+  Object.values(plateMap.samples).map(lines => lines[line.id]);
 
-const hasSeries = (card: PlateMapCard, line: PlateLine) =>
-  cellsOn(card, line).some(cell => cell?.seriesId !== undefined);
+const hasSeries = (plateMap: PlateMap, line: PlateLine) =>
+  cellsOn(plateMap, line).some(cell => cell?.seriesId !== undefined);
 
-function varies(card: PlateMapCard, line: PlateLine): boolean {
-  if (hasSeries(card, line)) return true;
-  const cells = cellsOn(card, line).filter(isFilledEntry);
+function varies(plateMap: PlateMap, line: PlateLine): boolean {
+  if (hasSeries(plateMap, line)) return true;
+  const cells = cellsOn(plateMap, line).filter(isFilledEntry);
   const texts = new Set(
     cells.map(
       cell =>
@@ -56,10 +56,10 @@ function varies(card: PlateMapCard, line: PlateLine): boolean {
   return texts.size > 1;
 }
 
-export const colorLineOf = (card: PlateMapCard): PlateLine | undefined =>
-  card.lines.find(line => line.role === 'fill') ??
-  card.lines.find(line => line.role === 'auto' && hasSeries(card, line)) ??
-  card.lines.find(line => line.role === 'auto' && varies(card, line));
+export const colorLineOf = (plateMap: PlateMap): PlateLine | undefined =>
+  plateMap.lines.find(line => line.role === 'fill') ??
+  plateMap.lines.find(line => line.role === 'auto' && hasSeries(plateMap, line)) ??
+  plateMap.lines.find(line => line.role === 'auto' && varies(plateMap, line));
 
 function renameKeys(map: Record<string, string>, rename: (key: string) => string) {
   for (const key of Object.keys(map)) {
@@ -75,9 +75,9 @@ const AMOUNT_KEY_FIRST_VALUE_PART = 3;
 
 export const amountLinePrefix = (lineId: string): string => `${AMOUNT_KEY_LEAD}${lineId}:`;
 
-export function moveValueKeys(card: PlateMapCard, fromId: string, toId: string): void {
-  renameKeys(card.counts, key => (key === fromId ? toId : key));
-  renameKeys(card.amountNames, key =>
+export function moveValueKeys(plateMap: PlateMap, fromId: string, toId: string): void {
+  renameKeys(plateMap.counts, key => (key === fromId ? toId : key));
+  renameKeys(plateMap.amountNames, key =>
     key.startsWith(AMOUNT_KEY_LEAD)
       ? key
           .split(':')
@@ -90,24 +90,24 @@ export function moveValueKeys(card: PlateMapCard, fromId: string, toId: string):
 }
 
 function mergeValueInto(
-  card: PlateMapCard,
+  plateMap: PlateMap,
   line: PlateLine,
   from: LineValue,
   into: LineValue
 ): void {
-  for (const cell of cellsOn(card, line)) {
+  for (const cell of cellsOn(plateMap, line)) {
     if (cell?.valueId === from.id) cell.valueId = into.id;
   }
   into.color ??= from.color;
-  moveValueKeys(card, from.id, into.id);
+  moveValueKeys(plateMap, from.id, into.id);
   line.values.splice(line.values.indexOf(from), 1);
 }
 
-function mergeSameValues(card: PlateMapCard, line: PlateLine): void {
+function mergeSameValues(plateMap: PlateMap, line: PlateLine): void {
   const byKey = new Map<string, LineValue>();
   for (const value of [...line.values]) {
     const kept = byKey.get(plateValueKey(value.text));
-    if (kept) mergeValueInto(card, line, value, kept);
+    if (kept) mergeValueInto(plateMap, line, value, kept);
     else byKey.set(plateValueKey(value.text), value);
   }
 }
@@ -122,24 +122,24 @@ const sharesName = (a: PlateLine, b: PlateLine) => {
   return !!key && key === normalizeMaterialKey(b.name);
 };
 
-const holdsBoth = (card: PlateMapCard, a: PlateLine, b: PlateLine) =>
-  Object.values(card.samples).some(lines => lines[a.id] && lines[b.id]);
+const holdsBoth = (plateMap: PlateMap, a: PlateLine, b: PlateLine) =>
+  Object.values(plateMap.samples).some(lines => lines[a.id] && lines[b.id]);
 
-function findTwinLines(card: PlateMapCard): [PlateLine, PlateLine] | undefined {
-  for (const [index, kept] of card.lines.entries()) {
-    const twin = card.lines
+function findTwinLines(plateMap: PlateMap): [PlateLine, PlateLine] | undefined {
+  for (const [index, kept] of plateMap.lines.entries()) {
+    const twin = plateMap.lines
       .slice(index + 1)
       .find(
         other =>
-          (sharesName(kept, other) || sharesValue(kept, other)) && !holdsBoth(card, kept, other)
+          (sharesName(kept, other) || sharesValue(kept, other)) && !holdsBoth(plateMap, kept, other)
       );
     if (twin) return [kept, twin];
   }
   return undefined;
 }
 
-function mergeLineInto(card: PlateMapCard, from: PlateLine, into: PlateLine): void {
-  for (const lines of Object.values(card.samples)) {
+function mergeLineInto(plateMap: PlateMap, from: PlateLine, into: PlateLine): void {
+  for (const lines of Object.values(plateMap.samples)) {
     if (!lines[from.id]) continue;
     lines[into.id] = lines[from.id];
     delete lines[from.id];
@@ -148,54 +148,55 @@ function mergeLineInto(card: PlateMapCard, from: PlateLine, into: PlateLine): vo
   into.name ||= from.name;
   if (into.role === 'auto') into.role = from.role;
   into.ratioTo ??= from.ratioTo;
-  for (const line of card.lines) {
+  for (const line of plateMap.lines) {
     if (line.ratioTo === from.id) line.ratioTo = into.id;
   }
   if (into.ratioTo === into.id) delete into.ratioTo;
   const prefix = amountLinePrefix(from.id);
-  renameKeys(card.amountNames, key =>
+  renameKeys(plateMap.amountNames, key =>
     key.startsWith(prefix) ? `${amountLinePrefix(into.id)}${key.slice(prefix.length)}` : key
   );
-  card.lines.splice(card.lines.indexOf(from), 1);
+  plateMap.lines.splice(plateMap.lines.indexOf(from), 1);
 }
 
-export function pruneUnused(card: PlateMapCard): void {
-  for (const [key, lines] of Object.entries(card.samples)) {
+export function pruneUnused(plateMap: PlateMap): void {
+  for (const [key, lines] of Object.entries(plateMap.samples)) {
     for (const [lineId, cell] of Object.entries(lines)) {
       const { unit } = cell;
       if (!isFilledEntry(cell) && !unit) delete lines[lineId];
     }
-    if (!Object.keys(lines).length) delete card.samples[key];
+    if (!Object.keys(lines).length) delete plateMap.samples[key];
   }
-  for (const key of Object.keys(card.stainedIn)) {
-    if (!Object.values(card.samples[key] ?? {}).some(isFilledEntry)) delete card.stainedIn[key];
+  for (const key of Object.keys(plateMap.stainedIn)) {
+    if (!Object.values(plateMap.samples[key] ?? {}).some(isFilledEntry))
+      delete plateMap.stainedIn[key];
   }
-  const sampleEntries = Object.values(card.samples).flatMap(lines => Object.entries(lines));
+  const sampleEntries = Object.values(plateMap.samples).flatMap(lines => Object.entries(lines));
   const usedLines = new Set(sampleEntries.map(([lineId]) => lineId));
   const usedValues = new Set(sampleEntries.map(([, cell]) => cell.valueId));
   const usedSeries = new Set(sampleEntries.map(([, cell]) => cell.seriesId));
-  for (const seriesId of Object.keys(card.series)) {
-    if (!usedSeries.has(seriesId)) delete card.series[seriesId];
+  for (const seriesId of Object.keys(plateMap.series)) {
+    if (!usedSeries.has(seriesId)) delete plateMap.series[seriesId];
   }
-  card.lines = card.lines.filter(line => usedLines.has(line.id));
-  for (const line of card.lines) {
+  plateMap.lines = plateMap.lines.filter(line => usedLines.has(line.id));
+  for (const line of plateMap.lines) {
     if (line.ratioTo && !usedLines.has(line.ratioTo)) delete line.ratioTo;
   }
-  for (const line of card.lines)
+  for (const line of plateMap.lines)
     line.values = line.values.filter(value => usedValues.has(value.id));
 }
 
-export function unifyPlateValues(card: PlateMapCard): void {
-  for (let twins = findTwinLines(card); twins; twins = findTwinLines(card)) {
-    mergeLineInto(card, twins[1], twins[0]);
+export function unifyPlateValues(plateMap: PlateMap): void {
+  for (let twins = findTwinLines(plateMap); twins; twins = findTwinLines(plateMap)) {
+    mergeLineInto(plateMap, twins[1], twins[0]);
   }
-  for (const line of card.lines) mergeSameValues(card, line);
+  for (const line of plateMap.lines) mergeSameValues(plateMap, line);
 }
 
-function nextValueColor(card: PlateMapCard, text: string): string {
+function nextValueColor(plateMap: PlateMap, text: string): string {
   if (NEUTRAL_VALUE.test(text.trim())) return NEUTRAL_VALUE_COLOR;
   const uses = new Map<string, number>(VALUE_COLORS.map(color => [color, 0]));
-  for (const { color } of card.lines.flatMap(line => line.values)) {
+  for (const { color } of plateMap.lines.flatMap(line => line.values)) {
     const count = color === undefined ? undefined : uses.get(color);
     if (color !== undefined && count !== undefined) uses.set(color, count + 1);
   }
@@ -203,18 +204,18 @@ function nextValueColor(card: PlateMapCard, text: string): string {
   return VALUE_COLORS.find(color => uses.get(color) === fewest) ?? VALUE_COLORS[0];
 }
 
-export function normalizePlateMap(card: PlateMapCard): void {
-  pruneUnused(card);
-  unifyPlateValues(card);
-  const line = colorLineOf(card);
+export function normalizePlateMap(plateMap: PlateMap): void {
+  pruneUnused(plateMap);
+  unifyPlateValues(plateMap);
+  const line = colorLineOf(plateMap);
   if (!line) return;
-  for (const value of line.values) value.color ??= nextValueColor(card, value.text);
+  for (const value of line.values) value.color ??= nextValueColor(plateMap, value.text);
 }
 
-export function indicatorColorOf(card: PlateMapCard, value: LineValue | undefined): string {
+export function indicatorColorOf(plateMap: PlateMap, value: LineValue | undefined): string {
   if (value?.color) return value.color;
   if (!value) return BAND_COLORS[0];
-  const colorLine = colorLineOf(card);
-  const bandValues = card.lines.filter(line => line !== colorLine).flatMap(line => line.values);
+  const colorLine = colorLineOf(plateMap);
+  const bandValues = plateMap.lines.filter(line => line !== colorLine).flatMap(line => line.values);
   return BAND_COLORS[Math.max(0, bandValues.indexOf(value)) % BAND_COLORS.length];
 }

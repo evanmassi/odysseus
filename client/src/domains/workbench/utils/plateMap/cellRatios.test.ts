@@ -1,4 +1,4 @@
-import { normalizePlateMap, type PlateMapCard } from '@odysseus/shared-schemas';
+import { normalizePlateMap, type PlateMap } from '@odysseus/shared-schemas';
 
 import { calculateBoard } from '../formulas/boardCalculation';
 import { formatRatio } from '../formulas/quantities';
@@ -9,7 +9,7 @@ import { setRatioPartner } from './wellEdits';
 
 const empty = calculateBoard([]);
 
-const coCulture = (content: Partial<PlateMapCard> = {}) =>
+const coCulture = (content: Partial<PlateMap> = {}) =>
   ({
     lines: [
       { id: 't', name: '', role: 'auto', values: [{ id: 'tv', text: 'T cells' }] },
@@ -32,10 +32,10 @@ const coCulture = (content: Partial<PlateMapCard> = {}) =>
     stain: {},
     stainedIn: {},
     ...content,
-  }) as PlateMapCard;
+  }) as PlateMap;
 
-const lineOf = (card: PlateMapCard, id: string) => {
-  const line = card.lines.find(candidate => candidate.id === id);
+const lineOf = (plateMap: PlateMap, id: string) => {
+  const line = plateMap.lines.find(candidate => candidate.id === id);
   if (!line) throw new Error(`no line ${id}`);
   return line;
 };
@@ -72,37 +72,39 @@ describe('a ratio series', () => {
 
 describe('cells worked out from a ratio', () => {
   it('finds the only other counted cells and multiplies per well', () => {
-    const card = coCulture();
-    const tCells = lineOf(card, 't');
-    expect(ratioPartner(card, 'p:A1', tCells, empty)?.id).toBe('r');
-    expect(cellCount(card, 'p:A1', tCells, empty)).toBe(4e4);
-    expect(cellCount(card, 'p:A2', tCells, empty)).toBe(1e4);
-    expect(cellCount(card, 'p:A1', lineOf(card, 'r'), empty)).toBe(1e4);
+    const plateMap = coCulture();
+    const tCells = lineOf(plateMap, 't');
+    expect(ratioPartner(plateMap, 'p:A1', tCells, empty)?.id).toBe('r');
+    expect(cellCount(plateMap, 'p:A1', tCells, empty)).toBe(4e4);
+    expect(cellCount(plateMap, 'p:A2', tCells, empty)).toBe(1e4);
+    expect(cellCount(plateMap, 'p:A1', lineOf(plateMap, 'r'), empty)).toBe(1e4);
   });
 
   it('asks for the other cells when more than one could be meant, and uses a picked one', () => {
-    const card = coCulture();
-    card.lines.push({ id: 'k', name: '', role: 'auto', values: [{ id: 'kv', text: 'K562' }] });
-    card.samples['p:A1']['k'] = { valueId: 'kv', amount: '5e3', unit: 'cells' };
-    const tCells = lineOf(card, 't');
-    expect(ratioPartner(card, 'p:A1', tCells, empty)).toBeUndefined();
-    setRatioPartner(card, 't', 'k');
-    expect(cellCount(card, 'p:A1', tCells, empty)).toBe(2e4);
-    setRatioPartner(card, 't', '');
+    const plateMap = coCulture();
+    plateMap.lines.push({ id: 'k', name: '', role: 'auto', values: [{ id: 'kv', text: 'K562' }] });
+    plateMap.samples['p:A1']['k'] = { valueId: 'kv', amount: '5e3', unit: 'cells' };
+    const tCells = lineOf(plateMap, 't');
+    expect(ratioPartner(plateMap, 'p:A1', tCells, empty)).toBeUndefined();
+    setRatioPartner(plateMap, 't', 'k');
+    expect(cellCount(plateMap, 'p:A1', tCells, empty)).toBe(2e4);
+    setRatioPartner(plateMap, 't', '');
     expect(tCells.ratioTo).toBeUndefined();
   });
 
   it('sums up the editor row: choices, the automatic partner and the worked-out cells', () => {
-    const card = coCulture();
-    const tCells = lineOf(card, 't');
-    expect(ratioRow(card, ['p:A1'], tCells, empty)).toEqual({
+    const plateMap = coCulture();
+    const tCells = lineOf(plateMap, 't');
+    expect(ratioRow(plateMap, ['p:A1'], tCells, empty)).toEqual({
       choices: [{ lineId: 'r', label: 'Raji' }],
       chosenId: '',
       autoLabel: 'Raji',
       workedOut: '= 4.00E+4 cells',
     });
-    expect(ratioRow(card, ['p:A1', 'p:A2'], tCells, empty)?.workedOut).toBe('cells differ by well');
-    expect(ratioRow(card, ['p:A1'], lineOf(card, 'r'), empty)).toBeUndefined();
+    expect(ratioRow(plateMap, ['p:A1', 'p:A2'], tCells, empty)?.workedOut).toBe(
+      'cells differ by well'
+    );
+    expect(ratioRow(plateMap, ['p:A1'], lineOf(plateMap, 'r'), empty)).toBeUndefined();
   });
 
   it('drops a partner that is gone and follows a partner merged into another line', () => {

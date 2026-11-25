@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 9,
+  "version": 10,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "Cell viability dose response",
@@ -379,41 +379,10 @@
       ],
       "materialSections": []
     },
-    "cards": [
-      {
-        "id": "bw90g70",
-        "title": "Materials",
-        "page": "v2i5v7f",
-        "x": 0,
-        "y": 0,
-        "w": 12,
-        "h": 13,
-        "isCollapsed": false,
-        "type": "materials",
-        "foldedGroups": [],
-        "isSetAsideOpen": false
-      },
-      {
-        "id": "vd9y6g4",
-        "title": "Values",
-        "page": "v2i5v7f",
-        "x": 0,
-        "y": 50,
-        "w": 4,
-        "h": 16,
-        "isCollapsed": false,
-        "type": "values"
-      },
+    "plateMaps": [
       {
         "id": "vp955u6",
-        "title": "Vessel map",
-        "page": "v2i5v7f",
-        "x": 4,
-        "y": 13,
-        "w": 4,
-        "h": 13,
-        "isCollapsed": false,
-        "type": "plateMap",
+        "title": "",
         "plates": [
           {
             "id": "f70z5q2",
@@ -422,7 +391,6 @@
           }
         ],
         "otherLabware": [],
-        "activeTab": 0,
         "lines": [
           {
             "id": "586e6b95",
@@ -930,12 +898,50 @@
           }
         },
         "series": {},
-        "showsReplicatesAsOne": true,
         "counts": {},
         "amountNames": {},
-        "side": "assay",
         "stain": {},
         "stainedIn": {}
+      }
+    ],
+    "cards": [
+      {
+        "id": "bw90g70",
+        "title": "Materials",
+        "page": "v2i5v7f",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 13,
+        "isCollapsed": false,
+        "type": "materials",
+        "foldedGroups": [],
+        "isSetAsideOpen": false
+      },
+      {
+        "id": "vd9y6g4",
+        "title": "Values",
+        "page": "v2i5v7f",
+        "x": 0,
+        "y": 50,
+        "w": 4,
+        "h": 16,
+        "isCollapsed": false,
+        "type": "values"
+      },
+      {
+        "id": "vp955u6",
+        "page": "v2i5v7f",
+        "x": 4,
+        "y": 13,
+        "w": 4,
+        "h": 13,
+        "isCollapsed": false,
+        "type": "plateMap",
+        "shows": "vp955u6",
+        "side": "assay",
+        "activeTab": 0,
+        "showsReplicatesAsOne": true
       },
       {
         "id": "qlt5lkt",

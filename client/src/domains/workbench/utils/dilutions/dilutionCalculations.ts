@@ -5,7 +5,7 @@ import {
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
-import { firstCardIdOf } from '../cards/createCard';
+import { cardIdShowing, firstCardIdOf } from '../cards/createCard';
 import {
   nameKey,
   type BoardName,
@@ -112,16 +112,15 @@ const dimensionOf = (unit: string) => dimensionKey(unitScale(unit)?.dimension ??
 
 function seriesName(protocol: Protocol, run: DilutionRun, field: 'top' | 'dilutionFactor'): string {
   const [first] = run.members;
-  const plateMap = protocol.cards.find(card => card.id === first.plateId);
-  const amount =
-    plateMap?.type === 'plateMap'
-      ? plateAmounts(plateMap).find(
-          candidate =>
-            candidate.source.kind === 'series' &&
-            candidate.source.seriesId === first.seriesId &&
-            candidate.source.field === field
-        )
-      : undefined;
+  const plateMap = protocol.plateMaps.find(candidate => candidate.id === first.plateId);
+  const amount = plateMap
+    ? plateAmounts(plateMap).find(
+        candidate =>
+          candidate.source.kind === 'series' &&
+          candidate.source.seriesId === first.seriesId &&
+          candidate.source.field === field
+      )
+    : undefined;
   return amount?.name ?? run.series[field].trim();
 }
 
@@ -243,7 +242,7 @@ function runNames(
       name: busiest,
       count: Math.max(...run.replicatesByPoint.values()),
       workedOut: group,
-      originCardId: run.members[0].plateId,
+      originCardId: cardIdShowing(protocol, run.members[0].plateId),
     },
   ];
   const takenName = [

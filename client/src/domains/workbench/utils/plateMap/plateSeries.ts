@@ -9,7 +9,7 @@ import {
 import { amountUnit, readTypedAmount } from '../units/textAmounts';
 
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { PlateLine, PlateSeries, PlateMapCard } from '@odysseus/shared-schemas';
+import type { PlateLine, PlateSeries, PlateMap } from '@odysseus/shared-schemas';
 
 export type StepSeries = Extract<PlateSeries, { top: string }>;
 
@@ -85,7 +85,7 @@ export function pointAmount(series: PlateSeries, point: number, board: SolvedBoa
 }
 
 export function wellAmount(
-  card: PlateMapCard,
+  card: PlateMap,
   key: string,
   line: PlateLine,
   board: SolvedBoard

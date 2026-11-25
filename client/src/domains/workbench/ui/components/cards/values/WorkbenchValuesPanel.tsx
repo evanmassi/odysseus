@@ -87,7 +87,7 @@ import type { ValueCellView } from './WorkbenchValueCell';
 import type { ValueColumnActions } from './WorkbenchValueHeaderRow';
 import type { FillOffer, ValueRowActions } from './WorkbenchValueTableRow';
 import type { ValueSuggestion } from '../../../../utils/values/valueSuggestions';
-import type { Protocol } from '@odysseus/shared-schemas';
+import type { PlateMap, Protocol } from '@odysseus/shared-schemas';
 
 interface GeneralEdit {
   itemId: string;
@@ -122,9 +122,9 @@ function plateRemovalMessage(row: PlateValueRow): string {
   return `Remove the ${subject} dilution? Its wells keep the ${subject} label.`;
 }
 
-function sourceLines(cell: ValueCell, cards: Protocol['cards']): string[] {
+function sourceLines(cell: ValueCell, plateMaps: readonly PlateMap[]): string[] {
   const card = labwareTitleOf(
-    cards,
+    plateMaps,
     cell.linkedTo.kind === 'plate' ? cell.linkedTo.row.plateId : undefined
   );
   if (cell.origin === 'worked') return [];
@@ -150,7 +150,7 @@ function cellViewOf(
   used: string,
   isNamed: boolean,
   isNameTaken: boolean,
-  cards: Protocol['cards']
+  plateMaps: readonly PlateMap[]
 ): ValueCellView {
   const usageLine = usageTitle(used);
   const neededNote = neededNoteOf(cell.neededFor);
@@ -166,7 +166,7 @@ function cellViewOf(
       ...(neededNote ? [neededNote] : []),
       ...(cell.note ? [cell.note] : []),
       ...(mismatch ? [mismatch] : []),
-      ...sourceLines(cell, cards),
+      ...sourceLines(cell, plateMaps),
     ],
     isNeeded: !!neededNote,
     isEditable: cell.isEditable,
@@ -188,7 +188,7 @@ const columnSuggestion = (group: ValueTableGroup, column: ValueTableColumn): Val
 });
 
 export function WorkbenchValuesPanel() {
-  const protocol = useProtocolWith('plateMap');
+  const protocol = useProtocolWith();
   const board = useWorkbenchStore(state => state.board);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const memory = useMaterialMemoryStore(state => state.memory);
@@ -289,14 +289,14 @@ export function WorkbenchValuesPanel() {
                     usageText(cell.nameId),
                     namedIds.has(cell.nameId),
                     board.takenNameIds.has(cell.nameId),
-                    protocol.cards
+                    protocol.plateMaps
                   ),
                 ])
               ),
             ])
           )
         ),
-      [groups, usageText, namedIds, board.takenNameIds, protocol.cards]
+      [groups, usageText, namedIds, board.takenNameIds, protocol.plateMaps]
     )
   );
   const generalRows = useStructuralSharing(

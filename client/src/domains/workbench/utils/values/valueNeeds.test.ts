@@ -34,6 +34,7 @@ function needsFor(items: ProtocolValues['items']) {
     },
     values: { rows: [], items },
     calculations: { items: [], materialSections: [] },
+    plateMaps: [],
   } as unknown as Protocol;
   return valueNeeds(protocol, calculateBoard(collectBoardNames(protocol)));
 }

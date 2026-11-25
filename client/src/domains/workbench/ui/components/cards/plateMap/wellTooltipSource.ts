@@ -4,11 +4,11 @@ import type { SolvedBoard } from '../../../../utils/formulas/boardCalculation';
 import type { DonorSummary } from '../../../../utils/materials/materialDonors';
 import type { LineLayer } from '../../../../utils/plateMap/plateLayers';
 import type { PlateMapSheet } from '../../../../utils/plateMap/plateMapTabs';
+import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
 import type { PlateStain } from '../../../../utils/plateMap/stainSide';
-import type { PlateMapCard } from '@odysseus/shared-schemas';
 
 export interface WellTooltipSource {
-  card: PlateMapCard;
+  card: ShownPlateMap;
   sheet: PlateMapSheet;
   layers: readonly LineLayer[];
   board: SolvedBoard;

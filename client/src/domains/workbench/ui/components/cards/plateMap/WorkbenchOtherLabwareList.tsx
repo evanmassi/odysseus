@@ -16,10 +16,11 @@ import type { SolvedBoard } from '../../../../utils/formulas/boardCalculation';
 import type { DonorSummary } from '../../../../utils/materials/materialDonors';
 import type { LineLayer } from '../../../../utils/plateMap/plateLayers';
 import type { PlateMapSheet } from '../../../../utils/plateMap/plateMapTabs';
-import type { PlateLine, PlateMapCard } from '@odysseus/shared-schemas';
+import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
+import type { PlateLine } from '@odysseus/shared-schemas';
 
 interface WorkbenchOtherLabwareListProps {
-  card: PlateMapCard;
+  card: ShownPlateMap;
   sheet: PlateMapSheet;
   colorLine: PlateLine | undefined;
   layers: readonly LineLayer[];

@@ -7,7 +7,7 @@ import {
   plateValueKey,
   type SampleEntry,
   type PlateLine,
-  type PlateMapCard,
+  type PlateMap,
 } from '@odysseus/shared-schemas';
 
 import { createId } from '../ids/createId';
@@ -28,10 +28,10 @@ const sharedOf = (texts: readonly string[]) => {
   return { shared: distinct.size === 1 ? [...distinct][0] : '', isMixed: distinct.size > 1 };
 };
 
-const isOnWells = (card: PlateMapCard, keys: readonly string[], line: PlateLine) =>
+const isOnWells = (card: PlateMap, keys: readonly string[], line: PlateLine) =>
   keys.some(key => card.samples[key]?.[line.id]);
 
-export function wellRows(card: PlateMapCard, keys: readonly string[]): WellRow[] {
+export function wellRows(card: PlateMap, keys: readonly string[]): WellRow[] {
   return card.lines
     .filter(line => isOnWells(card, keys, line))
     .map(line => {
@@ -53,14 +53,14 @@ export function wellRows(card: PlateMapCard, keys: readonly string[]): WellRow[]
     });
 }
 
-export const startingLineId = (card: PlateMapCard, keys: readonly string[]): string | undefined =>
+export const startingLineId = (card: PlateMap, keys: readonly string[]): string | undefined =>
   wellRows(card, keys)[0]?.line?.id;
 
-export const linesOffWells = (card: PlateMapCard, keys: readonly string[]): PlateLine[] =>
+export const linesOffWells = (card: PlateMap, keys: readonly string[]): PlateLine[] =>
   card.lines.filter(line => line.name.trim() && !isOnWells(card, keys, line));
 
 export function lineNamed(
-  card: PlateMapCard,
+  card: PlateMap,
   keys: readonly string[],
   name: string
 ): PlateLine | undefined {
@@ -79,7 +79,7 @@ function valueOnLine(line: PlateLine, moved: PlateLine['values'][number]) {
 }
 
 function moveAmountNames(
-  card: PlateMapCard,
+  card: PlateMap,
   fromLineId: string,
   toLineId: string,
   movedValueIds: ReadonlySet<string>
@@ -96,7 +96,7 @@ function moveAmountNames(
 }
 
 export function moveWellsToLine(
-  card: PlateMapCard,
+  card: PlateMap,
   keys: readonly string[],
   fromId: string,
   toId: string
@@ -126,7 +126,7 @@ export function moveWellsToLine(
 }
 
 function writeCells(
-  card: PlateMapCard,
+  card: PlateMap,
   keys: readonly string[],
   lineId: string,
   change: (entry: SampleEntry) => void
@@ -143,7 +143,7 @@ function writeCells(
   }
 }
 
-function lineFor(card: PlateMapCard, lineId: string | undefined): PlateLine {
+function lineFor(card: PlateMap, lineId: string | undefined): PlateLine {
   const existing = card.lines.find(line => line.id === lineId);
   if (existing) return existing;
   const created: PlateLine = { id: lineId ?? createId(), name: '', values: [], role: 'auto' };
@@ -151,18 +151,13 @@ function lineFor(card: PlateMapCard, lineId: string | undefined): PlateLine {
   return created;
 }
 
-const isHeldOnlyBy = (
-  card: PlateMapCard,
-  line: PlateLine,
-  valueId: string,
-  keys: readonly string[]
-) =>
+const isHeldOnlyBy = (card: PlateMap, line: PlateLine, valueId: string, keys: readonly string[]) =>
   Object.keys(card.samples).every(
     key => keys.includes(key) || card.samples[key][line.id]?.valueId !== valueId
   );
 
 export function setWellsText(
-  card: PlateMapCard,
+  card: PlateMap,
   keys: readonly string[],
   lineId: string | undefined,
   text: string
@@ -190,7 +185,7 @@ export function setWellsText(
 }
 
 export function setWellsAmount(
-  card: PlateMapCard,
+  card: PlateMap,
   keys: readonly string[],
   lineId: string | undefined,
   amount: string
@@ -204,7 +199,7 @@ export function setWellsAmount(
 }
 
 export function setWellsUnit(
-  card: PlateMapCard,
+  card: PlateMap,
   keys: readonly string[],
   lineId: string | undefined,
   unit: string
@@ -215,11 +210,7 @@ export function setWellsUnit(
   });
 }
 
-export function removeLineFromWells(
-  card: PlateMapCard,
-  keys: readonly string[],
-  lineId: string
-): void {
+export function removeLineFromWells(card: PlateMap, keys: readonly string[], lineId: string): void {
   for (const key of keys) {
     const lines = card.samples[key];
     if (!lines) continue;
@@ -228,24 +219,24 @@ export function removeLineFromWells(
   }
 }
 
-export function recolorValue(card: PlateMapCard, valueId: string, color: string): void {
+export function recolorValue(card: PlateMap, valueId: string, color: string): void {
   const value = card.lines.flatMap(line => line.values).find(candidate => candidate.id === valueId);
   if (value) value.color = color;
 }
 
-export function renameLine(card: PlateMapCard, lineId: string, name: string): void {
+export function renameLine(card: PlateMap, lineId: string, name: string): void {
   const line = card.lines.find(candidate => candidate.id === lineId);
   if (line) line.name = name.trim();
 }
 
-export function setRatioPartner(card: PlateMapCard, lineId: string, partnerId: string): void {
+export function setRatioPartner(card: PlateMap, lineId: string, partnerId: string): void {
   const line = card.lines.find(candidate => candidate.id === lineId);
   if (!line) return;
   if (partnerId) line.ratioTo = partnerId;
   else delete line.ratioTo;
 }
 
-export function renameValue(card: PlateMapCard, valueId: string, text: string): void {
+export function renameValue(card: PlateMap, valueId: string, text: string): void {
   const value = card.lines.flatMap(line => line.values).find(candidate => candidate.id === valueId);
   if (value && text.trim()) value.text = text.trim();
 }
@@ -255,7 +246,7 @@ export interface HeldName {
   text: string;
 }
 
-export function heldNames(card: PlateMapCard, keys: readonly string[]): Map<string, HeldName> {
+export function heldNames(card: PlateMap, keys: readonly string[]): Map<string, HeldName> {
   const held = new Map<string, HeldName>();
   for (const row of wellRows(card, keys)) {
     if (row.line && row.value)
@@ -273,7 +264,7 @@ export interface NameElsewhere {
 const VESSEL_OF_KEY = /^[^:#]+/;
 
 export function nameElsewhere(
-  card: PlateMapCard,
+  card: PlateMap,
   lineId: string,
   valueId: string,
   keys: readonly string[]
@@ -297,7 +288,7 @@ export function nameElsewhere(
 }
 
 export function toggleIndicatorPart(
-  card: PlateMapCard,
+  card: PlateMap,
   lineId: string,
   part: NonNullable<PlateLine['hiddenIndicators']>[number]
 ): void {

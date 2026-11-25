@@ -21,7 +21,7 @@ const mixNames = (protocol: Pick<Protocol, 'values'>): string[] =>
   protocol.values.rows.flatMap(valueRow => ('mixName' in valueRow ? [valueRow.mixName] : []));
 
 export function plateNameOffers(
-  protocol: Pick<Protocol, 'cards' | 'ignoredSuggestions' | 'materials' | 'values'>
+  protocol: Pick<Protocol, 'ignoredSuggestions' | 'materials' | 'plateMaps' | 'values'>
 ): PlateNameOffer[] {
   const materials = listedMaterials(protocol);
   const mixes = mixNames(protocol);
@@ -31,8 +31,7 @@ export function plateNameOffers(
     .filter(key => key.length >= SHORTEST_MENTION);
   const ignored = new Set(protocol.ignoredSuggestions);
   const offers = new Map<string, PlateNameOffer>();
-  for (const plateMap of protocol.cards) {
-    if (plateMap.type !== 'plateMap') continue;
+  for (const plateMap of protocol.plateMaps) {
     for (const line of plateMap.lines) {
       for (const value of line.values) {
         const name = value.text.trim();

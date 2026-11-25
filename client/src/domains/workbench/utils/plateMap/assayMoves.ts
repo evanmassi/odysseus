@@ -2,10 +2,10 @@ import { forgetStainOf, isAtHome, stainSamples, stainPositionOf } from './stainL
 import { isWellFilled } from './wellSelection';
 
 import type { PlateMapSheet } from './plateMapTabs';
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { PlateMap } from '@odysseus/shared-schemas';
 
 export function moveAssayWells(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   cutKeys: ReadonlySet<string>,
   landing: readonly string[]

@@ -9,8 +9,8 @@ import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { useFitCardHeight } from '../../../hooks/useFitCardHeight';
 import { useUpdateCard } from '../../../hooks/useUpdateCard';
 import { useWorkbenchStore } from '../../../stores/workbenchStore';
+import { removalMessage } from '../../../utils/cards/cardRemoval';
 import { CARD_TYPES, defaultCardTitle } from '../../../utils/cards/cardTypes';
-import { removalMessage, removeCard } from '../../../utils/cards/linkedPlateMaps';
 import { focusOnMount } from '../../../utils/dom/focusOnMount';
 import { labwareKinds, labwareTitle } from '../../../utils/plateMap/plateMapTabs';
 
@@ -35,13 +35,11 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
   card,
 }: WorkbenchCardShellProps) {
   const updateCard = useUpdateCard(card);
-  const shownCard = useWorkbenchStore(state =>
-    card.type === 'linkedPlateMap'
-      ? state.protocol.cards.find(candidate => candidate.id === card.shows)
+  const plateMap = useWorkbenchStore(state =>
+    card.type === 'plateMap'
+      ? state.protocol.plateMaps.find(candidate => candidate.id === card.shows)
       : undefined
   );
-  const titled = shownCard ?? card;
-  const updateTitled = useUpdateCard(titled);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isConfirmingRemove, setIsConfirmingRemove] = useState(false);
@@ -54,8 +52,12 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
   const HeaderControls = CARD_HEADER_CONTROLS[card.type] as
     | ComponentType<{ card: ProtocolCard }>
     | undefined;
-  const automaticTitle = titled.type === 'plateMap' ? labwareKinds(titled) : cardType.label;
-  const shownTitle = titled.type === 'plateMap' ? labwareTitle(titled) : titled.title;
+  const automaticTitle = plateMap ? labwareKinds(plateMap) : cardType.label;
+  const shownTitle = plateMap
+    ? labwareTitle(plateMap)
+    : card.type === 'plateMap'
+      ? automaticTitle
+      : card.title;
   const hasOwnTitle = shownTitle.trim().toLowerCase() !== automaticTitle.toLowerCase();
 
   const toggleFold = () =>
@@ -72,16 +74,26 @@ export const WorkbenchCardShell = memo(function WorkbenchCardShell({
 
   const finishRename = (title: string) => {
     setIsRenaming(false);
-    updateTitled(draft => {
-      const typed = withGreekLetters(title.trim());
-      const isAutomatic = !typed || typed.toLowerCase() === automaticTitle.toLowerCase();
-      draft.title = isAutomatic ? defaultCardTitle(titled.type) : typed;
+    const typed = withGreekLetters(title.trim());
+    const isAutomatic = !typed || typed.toLowerCase() === automaticTitle.toLowerCase();
+    updateProtocol(draft => {
+      if (card.type === 'plateMap') {
+        const target = draft.plateMaps.find(candidate => candidate.id === card.shows);
+        if (target) target.title = isAutomatic ? '' : typed;
+        return;
+      }
+      const target = draft.cards.find(candidate => candidate.id === card.id);
+      if (target && target.type !== 'plateMap') {
+        target.title = isAutomatic ? defaultCardTitle(target.type) : typed;
+      }
     });
   };
 
   const removeThisCard = () => {
     setIsConfirmingRemove(false);
-    updateProtocol(draft => removeCard(draft, card.id));
+    updateProtocol(draft => {
+      draft.cards = draft.cards.filter(candidate => candidate.id !== card.id);
+    });
   };
   const removeMessage = useWorkbenchStore(state => removalMessage(state.protocol, card));
 

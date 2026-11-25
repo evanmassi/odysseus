@@ -1,4 +1,4 @@
-import { indicatorColorOf, lineValueOf, type PlateMapCard } from '@odysseus/shared-schemas';
+import { indicatorColorOf, lineValueOf, type PlateMap } from '@odysseus/shared-schemas';
 
 import { formatNumber } from '../formulas/quantities';
 import { findNamed } from '../materials/materialLookup';
@@ -44,7 +44,7 @@ function splitAmount(readable: string): { amount: string; unit: string } {
     : { amount: readable.slice(0, gap), unit: readable.slice(gap + 1) };
 }
 
-function indicatorOf(card: PlateMapCard, layer: LineLayer, key: string): WellIndicator | undefined {
+function indicatorOf(card: PlateMap, layer: LineLayer, key: string): WellIndicator | undefined {
   const value = lineValueOf(layer.line, card.samples[key]?.[layer.line.id]);
   const kind = indicatorKindOf(layer.role);
   if (!value || !kind) return undefined;
@@ -53,7 +53,7 @@ function indicatorOf(card: PlateMapCard, layer: LineLayer, key: string): WellInd
 }
 
 export function wellTooltipRows(
-  card: PlateMapCard,
+  card: PlateMap,
   key: string,
   layers: readonly LineLayer[],
   board: SolvedBoard,
@@ -98,7 +98,7 @@ const labelIn = (sheet: PlateMapSheet, key: string) =>
   sheet.positions.find(position => position.key === key)?.label ?? key;
 
 export function stainSideTooltipRows(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   key: string,
   layers: readonly LineLayer[],
@@ -127,7 +127,7 @@ export function stainSideTooltipRows(
 }
 
 export function stainedElsewhereRows(
-  card: PlateMapCard,
+  card: PlateMap,
   sheet: PlateMapSheet,
   key: string,
   stainNameOf: (stainId: string) => string | undefined

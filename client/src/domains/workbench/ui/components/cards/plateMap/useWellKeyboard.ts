@@ -22,7 +22,7 @@ import { useUpdatePlateMap } from './useUpdatePlateMap';
 import type { Confirmation } from './useConfirmation';
 import type { WellSelection } from './useWellSelection';
 import type { PlateMapSheet, PlateMapTab } from '../../../../utils/plateMap/plateMapTabs';
-import type { PlateMapCard } from '@odysseus/shared-schemas';
+import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
 
 interface FilledCheck {
   keys: readonly string[];
@@ -32,7 +32,7 @@ interface FilledCheck {
   apply: () => void;
 }
 
-type PlateMapSide = PlateMapCard['side'];
+type PlateMapSide = ShownPlateMap['side'];
 
 interface ClipboardMarks {
   tabId: string;
@@ -56,7 +56,7 @@ const ARROW_STEPS: Readonly<Record<string, readonly [number, number]>> = {
 };
 
 export function useWellKeyboard(
-  card: PlateMapCard,
+  card: ShownPlateMap,
   tab: PlateMapTab,
   sheet: PlateMapSheet,
   selection: WellSelection,
@@ -64,7 +64,7 @@ export function useWellKeyboard(
   onOpenEditor: (seedText?: string) => void,
   isStainSide: boolean
 ) {
-  const updatePlateMap = useUpdatePlateMap(card);
+  const updatePlateMap = useUpdatePlateMap(card.id);
   const clipboard = useRef<CopiedWell[]>([]);
   const [marks, setMarks] = useState<ClipboardMarks>();
   const side: PlateMapSide = isStainSide ? 'stain' : 'assay';

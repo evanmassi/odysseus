@@ -2,7 +2,7 @@ import {
   UNIT_REGISTRY,
   lineValueOf,
   type PlateLine,
-  type PlateMapCard,
+  type PlateMap,
 } from '@odysseus/shared-schemas';
 
 import { formatNumber, PAIR_NOTATION, readNumber, readPair } from '../formulas/quantities';
@@ -15,7 +15,7 @@ const isCellCountUnit = (unit: string) =>
   UNIT_REGISTRY.some(entry => entry.id === unit && entry.kind === 'cell-count');
 
 function typedCount(
-  card: PlateMapCard,
+  card: PlateMap,
   key: string,
   line: PlateLine,
   board: SolvedBoard
@@ -25,7 +25,7 @@ function typedCount(
 }
 
 export function ratioPartner(
-  card: PlateMapCard,
+  card: PlateMap,
   key: string,
   line: PlateLine,
   board: SolvedBoard
@@ -39,14 +39,14 @@ export function ratioPartner(
 }
 
 export const isRatioAt = (
-  card: PlateMapCard,
+  card: PlateMap,
   key: string,
   line: PlateLine,
   board: SolvedBoard
 ): boolean => wellAmount(card, key, line, board)?.unit === PAIR_NOTATION;
 
 export function cellCount(
-  card: PlateMapCard,
+  card: PlateMap,
   key: string,
   line: PlateLine,
   board: SolvedBoard
@@ -59,7 +59,7 @@ export function cellCount(
   return ratio !== undefined && partnerCount !== undefined ? ratio * partnerCount : undefined;
 }
 
-export function partnerName(card: PlateMapCard, key: string, partner: PlateLine): string {
+export function partnerName(card: PlateMap, key: string, partner: PlateLine): string {
   const text = lineValueOf(partner, card.samples[key]?.[partner.id])?.text.trim();
   return [text, partner.name.trim()].find(Boolean) ?? 'the other cells';
 }
@@ -77,7 +77,7 @@ export interface RatioRow {
 }
 
 export function ratioRow(
-  card: PlateMapCard,
+  card: PlateMap,
   keys: readonly string[],
   line: PlateLine,
   board: SolvedBoard

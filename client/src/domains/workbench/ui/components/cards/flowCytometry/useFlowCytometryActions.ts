@@ -126,10 +126,10 @@ export function useFlowCytometryActions(card: FlowCytometryPanelCard): FlowCytom
             if (candidate.type === 'flowCytometryPanel' && candidate.id === card.id) {
               candidate.stains = candidate.stains.filter(stain => stain.id !== stainId);
             }
-            if (candidate.type === 'plateMap') {
-              for (const [key, stained] of Object.entries(candidate.stain)) {
-                if (stained === stainId) delete candidate.stain[key];
-              }
+          }
+          for (const plateMap of draft.plateMaps) {
+            for (const [key, stained] of Object.entries(plateMap.stain)) {
+              if (stained === stainId) delete plateMap.stain[key];
             }
           }
         }),
