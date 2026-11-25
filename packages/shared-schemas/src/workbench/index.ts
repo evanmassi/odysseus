@@ -28,6 +28,7 @@ export {
 } from './protocolFileSchemas';
 
 export {
+  amountLinePrefix,
   indicatorColorOf,
   colorLineOf,
   isFilledEntry,

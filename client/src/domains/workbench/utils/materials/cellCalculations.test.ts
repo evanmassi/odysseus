@@ -70,7 +70,7 @@ function protocolWith(
 }
 
 const answer = (board: SolvedBoard, part: string) => {
-  const result = board.results.get(`cells:donor 1:${part}`);
+  const result = board.results.get(`cells:d1:${part}`);
   return result?.status === 'ok' && 'text' in result.output ? result.output.text : result;
 };
 
@@ -123,7 +123,7 @@ describe('cell math for a donor on the plate', () => {
 
     const short = calculate(protocolWith({ 'live-cells': '2e5' }, PLATING));
     expect(cellWarnings(short)).toEqual(
-      new Map([['cells:donor 1:left-over', ['Short by 1.30E+5 cells']]])
+      new Map([['cells:d1:left-over', ['Short by 1.30E+5 cells']]])
     );
   });
 
@@ -257,7 +257,7 @@ describe('cell math for cells diluted from a stock', () => {
   }
 
   const stockAnswer = (board: SolvedBoard, part: string) => {
-    const result = board.results.get(`cells:heat killed candida:${part}`);
+    const result = board.results.get(`cells:hkca:${part}`);
     return result?.status === 'ok' && 'text' in result.output ? result.output.text : result;
   };
 
@@ -268,8 +268,8 @@ describe('cell math for cells diluted from a stock', () => {
     expect(stockAnswer(board, 'suspension')).toBe('40 µL');
     expect(stockAnswer(board, 'stock')).toBe('0.08 µL');
     expect(stockAnswer(board, 'diluent')).toBe('39.9 µL');
-    expect(board.results.has('cells:heat killed candida:resuspend')).toBe(false);
-    expect(board.results.has('cells:heat killed candida:left-over')).toBe(false);
+    expect(board.results.has('cells:hkca:resuspend')).toBe(false);
+    expect(board.results.has('cells:hkca:left-over')).toBe(false);
   });
 });
 

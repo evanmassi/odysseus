@@ -146,14 +146,18 @@ export function workedCountsByKey(
 export const countValues = (subject: CountSubject): Readonly<Record<string, string>> =>
   subject.donor?.values ?? subject.material.values;
 
+type CellSubject = Pick<CountSubject, 'material' | 'donor'>;
+
+const cellSubjectId = ({ material, donor }: CellSubject) => donor?.id ?? material.id;
+
 export const countId = (subject: CountSubject, count: CellCount): string =>
-  `${subject.donor?.id ?? subject.material.id}:${CELL_COUNT_FIELDS[count].key}`;
+  `${cellSubjectId(subject)}:${CELL_COUNT_FIELDS[count].key}`;
 
 export const countName = (subject: CountSubject, count: CellCount): string =>
   joinValueName(subject.owner, labelOf(count));
 
-export const cellPartId = (subject: string, part: string): string =>
-  `cells:${nameKey(subject)}:${part}`;
+export const cellPartId = (subject: CellSubject, part: string): string =>
+  `cells:${cellSubjectId(subject)}:${part}`;
 
 export function countSubjects(protocol: Pick<Protocol, 'cards'>): CountSubject[] {
   const plated = platedCells(protocol);
@@ -200,7 +204,7 @@ export function cellCountNames(
     const { readings } = solveCounts(values);
     const workedOut: WorkedOutGroup | undefined = subject.isPlated
       ? {
-          key: cellPartId(subject.subject, 'group'),
+          key: cellPartId(subject, 'group'),
           subject: subject.subject,
           title: CELLS_TO_PREPARE,
           settingsCardId: materialsCardId,

@@ -70,11 +70,22 @@ function renameKeys(map: Record<string, string>, rename: (key: string) => string
   }
 }
 
+const AMOUNT_KEY_LEAD = 'a:';
+const AMOUNT_KEY_FIRST_VALUE_PART = 3;
+
+export const amountLinePrefix = (lineId: string): string => `${AMOUNT_KEY_LEAD}${lineId}:`;
+
 export function moveValueKeys(card: PlateMapCard, fromId: string, toId: string): void {
   renameKeys(card.counts, key => (key === fromId ? toId : key));
-  const suffix = `:${fromId}`;
   renameKeys(card.amountNames, key =>
-    key.endsWith(suffix) ? `${key.slice(0, -suffix.length)}:${toId}` : key
+    key.startsWith(AMOUNT_KEY_LEAD)
+      ? key
+          .split(':')
+          .map((part, index) =>
+            index >= AMOUNT_KEY_FIRST_VALUE_PART && part === fromId ? toId : part
+          )
+          .join(':')
+      : key
   );
 }
 
@@ -141,9 +152,9 @@ function mergeLineInto(card: PlateMapCard, from: PlateLine, into: PlateLine): vo
     if (line.ratioTo === from.id) line.ratioTo = into.id;
   }
   if (into.ratioTo === into.id) delete into.ratioTo;
-  const prefix = `a:${from.id}:`;
+  const prefix = amountLinePrefix(from.id);
   renameKeys(card.amountNames, key =>
-    key.startsWith(prefix) ? `a:${into.id}:${key.slice(prefix.length)}` : key
+    key.startsWith(prefix) ? `${amountLinePrefix(into.id)}${key.slice(prefix.length)}` : key
   );
   card.lines.splice(card.lines.indexOf(from), 1);
 }

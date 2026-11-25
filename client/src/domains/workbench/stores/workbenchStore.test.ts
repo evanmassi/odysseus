@@ -1,4 +1,6 @@
 import { createCard } from '../utils/cards/createCard';
+import { startDonors } from '../utils/materials/materialDonors';
+import { plateFollowsListRename } from '../utils/materials/renameFollowing';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
 import { moveValueToRow } from '../utils/values/valueEdits';
 
@@ -156,6 +158,93 @@ describe('workbenchStore', () => {
       });
       addPlate({ 'p:A1': { l: { valueId: 'd', amount: '5', unit: 'µM' } } });
       expect(cardOf('values').items.map(item => item.id)).toEqual(['v1']);
+    });
+  });
+
+  describe('renaming a donor', () => {
+    beforeEach(() =>
+      getState().updateProtocol(draft => {
+        const materials = draft.cards.find(card => card.type === 'materials');
+        if (materials?.type !== 'materials') return;
+        const pbmc = {
+          ...materials.items[0],
+          id: 'pbmc',
+          group: 'bio',
+          type: 'Primary cells',
+          name: 'PBMC',
+          shownFields: [],
+          values: {},
+          units: {},
+        };
+        startDonors(pbmc, [], []);
+        pbmc.donors?.rows.push({
+          id: 'donor-1',
+          name: 'Donor 1',
+          values: { 'live-cell-conc': '2000000' },
+          units: {},
+        });
+        materials.items.push(pbmc);
+        const plateMap = createCard('plateMap', {
+          page: draft.pages[0].id,
+          x: 0,
+          y: 0,
+          w: 6,
+          h: 6,
+        });
+        if (plateMap.type !== 'plateMap') return;
+        plateMap.plates = [{ id: 'p1', labware: '96', name: '' }];
+        plateMap.lines = [
+          { id: 'l', name: '', role: 'band', values: [{ id: 'd1', text: 'Donor 1' }] },
+        ];
+        const cells = { valueId: 'd1', amount: '100000', unit: 'cells' };
+        plateMap.samples = { 'p1:A1': { l: cells }, 'p1:A2': { l: cells } };
+        draft.cards.push(plateMap);
+      })
+    );
+
+    const renameDonor = (name: string) =>
+      getState().updateProtocol(draft => {
+        const materials = draft.cards.find(card => card.type === 'materials');
+        const donor =
+          materials?.type === 'materials'
+            ? materials.items.find(item => item.id === 'pbmc')?.donors?.rows[0]
+            : undefined;
+        if (!donor) return;
+        const from = donor.name;
+        donor.name = name;
+        plateFollowsListRename(draft, from, name);
+      });
+
+    it('carries the rename into a formula that uses its cell math', () => {
+      getState().updateProtocol(draft => {
+        const calculations = draft.cards.find(card => card.type === 'calculations');
+        if (calculations?.type === 'calculations')
+          calculations.items.push({
+            id: 'f2',
+            name: 'Spare cells',
+            formula: 'Donor 1 total needed * 2',
+            unit: 'auto',
+          });
+      });
+      expect(getState().board.results.get('f2')).toMatchObject({ status: 'ok' });
+      renameDonor('D1');
+      expect(cardOf('calculations').items[1].formula).toBe('D1 total needed * 2');
+      expect(getState().board.results.get('f2')).toMatchObject({ status: 'ok' });
+    });
+
+    it('keeps the name given to its amount on the plate', () => {
+      const amountId = [...getState().board.names.values()].find(
+        entry => entry.name === 'Donor 1 cells/well'
+      )?.id;
+      getState().updateProtocol(draft => {
+        const plateMap = draft.cards.find(card => card.type === 'plateMap');
+        if (plateMap?.type === 'plateMap' && amountId)
+          plateMap.amountNames[amountId.slice(plateMap.id.length + 1)] = 'Seeding';
+      });
+      const names = () => [...getState().board.names.values()].map(entry => entry.name);
+      expect(names()).toContain('Seeding');
+      renameDonor('D1');
+      expect(names()).toContain('Seeding');
     });
   });
 });

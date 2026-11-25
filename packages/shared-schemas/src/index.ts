@@ -663,6 +663,7 @@ export {
   PROTOCOL_FILE_FORMAT,
   PROTOCOL_FILE_VERSION,
   protocolFileSchema,
+  amountLinePrefix,
   indicatorColorOf,
   colorLineOf,
   isFilledEntry,

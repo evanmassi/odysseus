@@ -99,6 +99,35 @@ describe('editing wells', () => {
   });
 });
 
+describe('values that differ only in case or spacing', () => {
+  it('merge into one, and the amount names given to either follow the one kept', () => {
+    const aspirin = { valueId: 'a', amount: '5', unit: 'µM' };
+    const card = edit(
+      plateMap({
+        lines: [
+          {
+            id: 'd',
+            name: 'Drug',
+            role: 'auto',
+            values: [
+              { id: 'a', text: 'Aspirin' },
+              { id: 'b', text: ' aspirin' },
+            ],
+          },
+        ],
+        samples: { 'p:A1': { d: aspirin }, 'p:A2': { d: { ...aspirin, valueId: 'b' } } },
+        amountNames: { 'a:d:finalconc:b': 'Low dose', 'a:e:perwell:x:b': 'X in low dose' },
+      }),
+      () => undefined
+    );
+    expect(card.lines[0].values.map(value => value.id)).toEqual(['a']);
+    expect(card.amountNames).toEqual({
+      'a:d:finalconc:a': 'Low dose',
+      'a:e:perwell:x:a': 'X in low dose',
+    });
+  });
+});
+
 describe('names shared across the selection', () => {
   const twoPlates = () =>
     plateMap({
@@ -208,7 +237,7 @@ describe('putting wells on another line', () => {
         'p:N1': { n: { valueId: 'none', amount: '2', unit: 'µL' } },
         'p:O1': { n: { valueId: 'none', amount: '2', unit: 'µL' } },
       },
-      amountNames: { 'a:n:unstimulated-perwell': 'Medium per well' },
+      amountNames: { 'a:n:perwell:none': 'Medium per well' },
     });
 
   it('moves the label, amount and color, and carries a typed amount name', () => {
@@ -219,7 +248,9 @@ describe('putting wells on another line', () => {
     expect(card.samples['p:N1']).toEqual({
       s: { valueId: unstimulated?.id, amount: '2', unit: 'µL' },
     });
-    expect(card.amountNames).toEqual({ 'a:s:unstimulated-perwell': 'Medium per well' });
+    expect(card.amountNames).toEqual({
+      [`a:s:perwell:${unstimulated?.id}`]: 'Medium per well',
+    });
   });
 
   it('leaves the amount name behind while other wells still hold the label there', () => {
@@ -227,7 +258,7 @@ describe('putting wells on another line', () => {
     card.samples['p:O1']['s'] = { valueId: 'lps' };
     edit(card, draft => moveWellsToLine(draft, ['p:N1'], 'n', 's'));
     expect(card.lines).toHaveLength(2);
-    expect(card.amountNames).toEqual({ 'a:n:unstimulated-perwell': 'Medium per well' });
+    expect(card.amountNames).toEqual({ 'a:n:perwell:none': 'Medium per well' });
   });
 
   it('finds a line by name, ignoring lines the selected wells are already on', () => {

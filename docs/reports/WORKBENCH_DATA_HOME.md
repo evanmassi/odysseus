@@ -131,9 +131,10 @@ Six steps, each built, checked and committed on its own, each leaving the app fu
 **Every step's check:**
 
 - Typecheck, lint and client tests green.
-- Evan's two protocols give the same 122 answers before and after, compared by name
-  (`%TEMP%/data-home/answers.tmp.test.ts`, copied into `utils/protocolFile/` only to run and
-  removed after; the files are never copied into the repo). Nothing in the math changes in any
+- Evan's two protocols give the same 122 answers before and after, listed and sorted by name so
+  changed ids never show as differences (`%TEMP%/data-home/answers.tmp.test.ts`, copied into
+  `utils/protocolFile/` only to run and removed after; the baseline is
+  `%TEMP%/data-home/baseline.txt`; the files are never copied into the repo). Nothing in the math changes in any
   step, so a different answer is a bug in the step.
 - **A step that changes the file shape** changes the schema in place, bumps
   `PROTOCOL_FILE_VERSION`, and updates the one sample, `everyCard.json`. Evan's files are
@@ -166,23 +167,27 @@ Six steps, each built, checked and committed on its own, each leaving the app fu
 - **Checked:** typecheck and lint clean; 841 client tests (900 before, the version-chain tests
   gone); the two protocols' 122 answers identical before and after.
 
-### Step 1: every number gets an id that never changes (file change: amount names)
+### Step 1: every number gets an id that never changes (built 2026-11-24, no file change)
 
-Most numbers already have one. Two kinds build their id from a name, so a rename gives them a new
-one. Today's rename-following tracks by id, so a renamed donor most likely already leaves behind
-formulas that use its cell math (read from the code, not yet shown; the step starts with a test
-that shows it).
-
-- Cell math (`cellPartId` in `cellCounts.ts`): `cells:<subject name>:<part>` → keyed on the donor's
-  or material's id.
-- Plate amounts (`plateAmounts` in `plateMapNames.ts`): `a:<line>:<painted name>-<noun>` → keyed on
-  the painted value's id (`entry.valueId`). The custom names saved under these ids
-  (`amountNames`, also moved by `wellEdits.ts`) are re-keyed by the step's conversion. **Behavior to
-  check first:** grouping by id stops merging two painted values with the same text on one line;
-  confirm whether a line can hold two values with the same text.
-- Sweep every other id builder for a name inside it (`dilutionRuns`, `materialSampleCounts`,
-  recipe and flow ids read as id-based).
-- Tests: the donor-rename test; amount names survive a material rename.
+- **Shown first by tests** (`workbenchStore.test.ts`, "renaming a donor"): renaming a donor left
+  a formula using its cell math on the old name ("Donor 1 total needed \* 2" stayed), and threw
+  away the name given to its amount on the plate. Both fail before this step and pass after.
+- **Cell math:** `cellPartId` keys on the donor's or material's id (`cells:<id>:<part>`), through
+  one `cellSubjectId` shared with `countId`.
+- **Plate amounts:** keyed `a:<line>:<container>:<painted value id>`, plus `:<color value id>` for
+  a color variant. Shared-schemas owns the format: `amountLinePrefix` builds the lead for
+  `plateMapNames.ts`, `wellEdits.ts` and `mergeLineInto`; `moveValueKeys` renames a merged value's
+  id wherever it sits in a key; `moveAmountNames` moves names by value id. Within a line, values
+  whose text matches (case and spacing aside) are always merged, so the groups are today's; the
+  only difference is "Donor 1" and "Donor-1" on one line, which today shared an amount and now
+  get one each. Test: a merged value's amount names follow the value kept.
+- **No file change after all:** neither protocol nor any sample had custom amount names.
+- **Checked by name, by design, not changed here:** the diluent total's id
+  (`diluentNeedId`) is built from the diluent's name because the chosen diluent is saved as a
+  name (a series' `prep.diluent`, the protocol's `diluent`): that is a saved name reference, added
+  to step 4. A cocktail's id is its staining word plus its markers' and extras' ids: a different
+  mix is a different cocktail; retyping the staining word gives it a new id (known, left).
+- **Checked:** typecheck and lint clean; 844 client tests; the 122 answers identical.
 
 ### Step 2: data moves out of the cards (file change)
 
@@ -220,6 +225,9 @@ The protocol gains one home per kind of data; a card keeps only its window setti
 
 ### Step 4: formulas and steps point at the number (file change)
 
+- The chosen diluent (a series' `prep.diluent` and the protocol's `diluent`) points at its
+  material instead of its name, so the diluent total keeps one id through a rename (found in
+  step 1).
 - Saved formulas, `{…}` in steps, and a series' top dose or fold when it names a number, store the
   number's id with the name it had as a fallback; the editors keep showing and taking names.
 - Lookup: by id; if the id is gone or not found yet, by the fallback name (decision 4); a missing

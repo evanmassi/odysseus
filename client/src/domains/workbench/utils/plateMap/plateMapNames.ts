@@ -1,13 +1,14 @@
 import {
+  amountLinePrefix,
   colorLineOf,
   isFilledEntry,
   lineValueOf,
+  normalizeMaterialKey,
   unitScale,
   type MaterialItem,
   type PlateLine,
   type PlateSeries,
   type PlateMapCard,
-  normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
 import { cachedPerCard } from '../cards/cachedPerCard';
@@ -250,8 +251,9 @@ function amountsOnPlate(card: PlateMapCard): PlateAmount[] {
     const runs = new Map<string, { subject: string; keys: string[]; steps: Set<number> }>();
     for (const [key, lines] of Object.entries(card.samples)) {
       const entry = lines[line.id];
-      const subject = lineValueOf(line, entry)?.text.trim() ?? '';
-      if (!entry || !subject) continue;
+      const painted = lineValueOf(line, entry);
+      const subject = painted?.text.trim() ?? '';
+      if (!entry || !painted || !subject) continue;
       if (entry.seriesId !== undefined) {
         const run = runs.get(entry.seriesId) ?? { subject, keys: [], steps: new Set<number>() };
         runs.set(entry.seriesId, run);
@@ -260,7 +262,7 @@ function amountsOnPlate(card: PlateMapCard): PlateAmount[] {
       } else if ((entry.amount ?? '').trim()) {
         const unit = entry.unit ?? '';
         const noun = amountNoun(unit, labwareOf(labwareTypeAt(card, key)).kind);
-        const groupKey = `${normalizeMaterialKey(subject)}-${normalizeMaterialKey(noun)}`;
+        const groupKey = `${normalizeMaterialKey(noun)}:${painted.id}`;
         const amountGroup = plain.get(groupKey) ?? { subject, noun, cells: [] };
         plain.set(groupKey, amountGroup);
         amountGroup.cells.push({ key, amount: (entry.amount ?? '').trim(), unit });
@@ -268,7 +270,7 @@ function amountsOnPlate(card: PlateMapCard): PlateAmount[] {
     }
 
     for (const [groupKey, { subject, noun, cells }] of plain) {
-      const base = `a:${line.id}:${groupKey}`;
+      const base = `${amountLinePrefix(line.id)}${groupKey}`;
       const fromWells = (inWells: PlainCell[]) => ({
         subject,
         label: upperLead(noun),

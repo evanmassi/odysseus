@@ -60,7 +60,7 @@ function subjectNames(
   const materialOwners = [material.name.trim(), materialName];
   const owners = donor ? [subject] : [subject, ...materialOwners];
   const isSplit = placements.length > 1;
-  const id = (part: string) => cellPartId(subject, part);
+  const id = (part: string) => cellPartId(plated, part);
   const filled = (term: Term) => {
     const entry = findTerm(names, term, owners);
     return isFilled(entry) ? entry.name : undefined;

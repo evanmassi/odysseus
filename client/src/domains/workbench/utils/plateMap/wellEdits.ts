@@ -1,4 +1,5 @@
 import {
+  amountLinePrefix,
   isFilledEntry,
   lineValueOf,
   moveValueKeys,
@@ -77,20 +78,19 @@ function valueOnLine(line: PlateLine, moved: PlateLine['values'][number]) {
   return created;
 }
 
-function subjectsOn(card: PlateMapCard, line: PlateLine): Set<string> {
-  const texts = Object.values(card.samples).map(lines => lineValueOf(line, lines[line.id])?.text);
-  return new Set(texts.filter(text => text !== undefined).map(normalizeMaterialKey));
-}
-
-function moveAmountNames(card: PlateMapCard, from: PlateLine, toId: string, moved: Set<string>) {
-  const kept = subjectsOn(card, from);
-  const prefix = `a:${from.id}:`;
+function moveAmountNames(
+  card: PlateMapCard,
+  fromLineId: string,
+  toLineId: string,
+  movedValueIds: ReadonlySet<string>
+) {
+  const prefix = amountLinePrefix(fromLineId);
   for (const key of Object.keys(card.amountNames)) {
     if (!key.startsWith(prefix)) continue;
     const rest = key.slice(prefix.length);
-    const [subject] = rest.split('-');
-    if (!moved.has(subject) || kept.has(subject)) continue;
-    card.amountNames[`a:${toId}:${rest}`] ??= card.amountNames[key];
+    const [, valueId] = rest.split(':');
+    if (!movedValueIds.has(valueId)) continue;
+    card.amountNames[`${amountLinePrefix(toLineId)}${rest}`] ??= card.amountNames[key];
     delete card.amountNames[key];
   }
 }
@@ -105,25 +105,24 @@ export function moveWellsToLine(
   const to = card.lines.find(line => line.id === toId);
   if (!from || !to) return;
   const movedValues = new Map<string, string>();
-  const movedSubjects = new Set<string>();
   for (const key of keys) {
     const lines = card.samples[key];
     const entry = lines?.[fromId];
     if (!lines || !entry) continue;
     const value = lineValueOf(from, entry);
     const target = value && valueOnLine(to, value);
-    if (value && target) {
-      movedValues.set(value.id, target.id);
-      movedSubjects.add(normalizeMaterialKey(value.text));
-    }
+    if (value && target) movedValues.set(value.id, target.id);
     lines[toId] = target ? { ...entry, valueId: target.id } : entry;
     delete lines[fromId];
   }
   const stillHeld = new Set(Object.values(card.samples).map(lines => lines[fromId]?.valueId));
+  const moved = new Set<string>();
   for (const [fromValueId, toValueId] of movedValues) {
-    if (!stillHeld.has(fromValueId)) moveValueKeys(card, fromValueId, toValueId);
+    if (stillHeld.has(fromValueId)) continue;
+    moveValueKeys(card, fromValueId, toValueId);
+    moved.add(toValueId);
   }
-  moveAmountNames(card, from, toId, movedSubjects);
+  moveAmountNames(card, fromId, toId, moved);
 }
 
 function writeCells(

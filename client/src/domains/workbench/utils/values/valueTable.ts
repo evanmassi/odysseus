@@ -167,8 +167,7 @@ function missingCount(
   board: SolvedBoard,
   isKnown: (count: CellCount) => boolean
 ): CellCount | undefined {
-  const failed = (part: string) =>
-    board.results.get(cellPartId(subject.subject, part))?.status === 'error';
+  const failed = (part: string) => board.results.get(cellPartId(subject, part))?.status === 'error';
   if (failed('stock') && !isKnown('liveConcentration')) return 'liveConcentration';
   if (failed('resuspend') && !isKnown('liveCells')) return 'liveCells';
   return undefined;
@@ -214,7 +213,7 @@ function inheritedVolumeCell(
     : findTerm(board.names, VOLUME_PER_WELL, owners, noun);
   if (!subject.isPlated || volume?.kind !== 'value' || !volume.value.trim()) return [];
   const label = perLabwareKind(VOLUME_PER_WELL, noun).word;
-  const id = `${cellPartId(subject.subject, 'inherited')}:${label}`;
+  const id = `${cellPartId(subject, 'inherited')}:${label}`;
   return [
     {
       id,
@@ -672,7 +671,7 @@ export function buildValueTable(
     const donorName = subject.donor.name.trim();
     for (const noun of sampleNounsOf(board.names, [subject.subject])) {
       const wells = findTermOn(board.names, WELLS, [subject.subject], noun);
-      if (wells?.kind !== 'count' || !wells.id.startsWith(cellPartId(subject.subject, 'wells'))) {
+      if (wells?.kind !== 'count' || !wells.id.startsWith(cellPartId(subject, 'wells'))) {
         continue;
       }
       const row = subRowOf(owner, donorName);
