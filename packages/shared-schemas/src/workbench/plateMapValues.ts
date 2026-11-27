@@ -99,6 +99,7 @@ function mergeValueInto(
     if (cell?.valueId === from.id) cell.valueId = into.id;
   }
   into.color ??= from.color;
+  into.links ??= from.links;
   moveValueKeys(plateMap, from.id, into.id);
   line.values.splice(line.values.indexOf(from), 1);
 }
@@ -146,6 +147,7 @@ function mergeLineInto(plateMap: PlateMap, from: PlateLine, into: PlateLine): vo
   }
   into.values.push(...from.values);
   into.name ||= from.name;
+  into.links ??= from.links;
   if (into.role === 'auto') into.role = from.role;
   into.ratioTo ??= from.ratioTo;
   for (const line of plateMap.lines) {

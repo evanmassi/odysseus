@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 12;
+export const PROTOCOL_FILE_VERSION = 13;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -154,10 +154,25 @@ const sampleEntrySchema = z.object({
 export const LINE_ROLES = ['auto', 'fill', 'band', 'stripe', 'tag', 'caption', 'hover'] as const;
 const LINE_MARKS = ['outline', 'bracket'] as const;
 
+const materialLinkSchema = z.object({
+  materialId: id,
+  donorId: id.optional(),
+  name: z.string(),
+  shortName: z.string().optional(),
+});
+
 const plateLineSchema = z.object({
   id,
   name: z.string(),
-  values: z.array(z.object({ id, text: z.string(), color: z.string().optional() })),
+  links: z.array(materialLinkSchema).optional(),
+  values: z.array(
+    z.object({
+      id,
+      text: z.string(),
+      color: z.string().optional(),
+      links: z.array(materialLinkSchema).optional(),
+    })
+  ),
   role: z.enum(LINE_ROLES),
   hiddenIndicators: z.array(z.enum(LINE_MARKS)).optional(),
   ratioTo: z.string().optional(),
@@ -314,6 +329,7 @@ export type Stain = FlowCytometryPanel['stains'][number];
 export type Cytometer = z.infer<typeof cytometerSchema>;
 export type ProtocolFluor = z.infer<typeof protocolFluorSchema>;
 export type PlateLine = z.infer<typeof plateLineSchema>;
+export type MaterialLink = z.infer<typeof materialLinkSchema>;
 export type PlateSeries = z.infer<typeof seriesSchema>;
 export type SampleEntry = z.infer<typeof sampleEntrySchema>;
 export type Protocol = z.infer<typeof protocolSchema>;

@@ -697,6 +697,7 @@ export {
   type ProtocolFluor,
   type SampleEntry,
   type PlateLine,
+  type MaterialLink,
   type PlateSeries,
   type ProtocolFile,
 } from './workbench';

@@ -1,5 +1,6 @@
 import { materialNamed } from './materialLookup';
 import { linkPlateName, plateNameOffers, plateOfferKey } from './plateNameOffers';
+import { linkPlateNames } from './renameFollowing';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -17,7 +18,7 @@ const material = (id: string, name: string) => ({
 });
 
 function protocolWith(names: string[], ignored: string[] = []): Protocol {
-  return {
+  const protocol = {
     ignoredSuggestions: ignored,
     materials: {
       items: [material('m-raji', 'Raji-Luc'), material('m-stim', 'Stim X description')],
@@ -47,6 +48,8 @@ function protocolWith(names: string[], ignored: string[] = []): Protocol {
       },
     ],
   } as unknown as Protocol;
+  linkPlateNames(protocol);
+  return protocol;
 }
 
 describe('plate names offered to Materials', () => {
@@ -77,6 +80,7 @@ describe('plate names offered to Materials', () => {
   it('links a plate name to a listed material by putting the short name first', () => {
     const protocol = protocolWith(['STX']);
     linkPlateName(protocol, 'STX', 'm-stim');
+    linkPlateNames(protocol);
     expect(materialNamed(protocol, 'STX')?.name).toBe('STX (Stim X description)');
     expect(plateNameOffers(protocol)).toEqual([]);
   });

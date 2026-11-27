@@ -2,9 +2,12 @@ import { unitScale, type MaterialItem, type Protocol } from '@odysseus/shared-sc
 
 import { dimensionKey, readableAmount, readNumber } from '../formulas/quantities';
 import { isTherapeuticAntibodyName } from '../materials/materialGuesser';
-import { displayNameOf, materialNamed } from '../materials/materialLookup';
+import { displayNameOf } from '../materials/materialLookup';
+import { namedTarget } from '../materials/plateLinks';
 import { MOLECULAR_WEIGHT, STOCK_CONCENTRATION } from '../terms/termList';
 import { lowerLead } from '../values/valueNames';
+
+import type { DilutionRun } from './dilutionRuns';
 
 export const STOCK_FIELD = 'stock-concentration';
 export const WEIGHT_FIELD = 'molecular-weight';
@@ -56,14 +59,21 @@ const isLargeMolecule = (item: MaterialItem) =>
   LARGE_MOLECULE_TYPE.test(item.type) ||
   isTherapeuticAntibodyName(item.name);
 
-export function stockFor(
+export function runMaterial(
   protocol: Pick<Protocol, 'materials'>,
+  run: Pick<DilutionRun, 'links' | 'subject'>
+): MaterialItem | undefined {
+  const target = namedTarget(protocol, run, run.subject);
+  return target && !target.donor ? target.material : undefined;
+}
+
+export function stockFor(
+  material: MaterialItem | undefined,
   subject: string,
   seriesUnit: string,
   isRatio: boolean
 ): StockReading {
   if (isRatio) return { kind: 'undiluted' };
-  const material = materialNamed(protocol, subject);
   const stock = material && materialNumber(material, STOCK_FIELD);
   if (!material || !stock) {
     return {

@@ -8,7 +8,6 @@ import {
 } from '../formulas/boardCalculation';
 import { dimensionKey, FOLD_UNIT, RATIO_NOTATION, readNumber } from '../formulas/quantities';
 import { fieldName, materialFields } from '../materials/materialCatalog';
-import { materialNamed } from '../materials/materialLookup';
 import { plateAmounts } from '../plateMap/plateMapNames';
 import { stepSeriesUnit } from '../plateMap/plateSeries';
 import {
@@ -30,7 +29,7 @@ import { assaySetupTitleOf, GENERAL, joinValueName, lowerLead } from '../values/
 
 import { diluentChoice, diluentNeedId, runDiluents, type DiluentChoice } from './dilutionDiluents';
 import { dilutionRuns, runTags, type DilutionRun } from './dilutionRuns';
-import { STOCK_FIELD, stockFor, WEIGHT_FIELD } from './dilutionStock';
+import { runMaterial, STOCK_FIELD, stockFor, WEIGHT_FIELD } from './dilutionStock';
 
 export interface PrepSettings {
   roundTo: string;
@@ -134,11 +133,11 @@ function stockSource(
 ): StockSource {
   const seriesUnit = stepSeriesUnit(run.series);
   const isRatio = seriesUnit === RATIO_NOTATION;
-  const reading = stockFor(protocol, run.subject, seriesUnit, isRatio);
+  const material = runMaterial(protocol, run);
+  const reading = stockFor(material, run.subject, seriesUnit, isRatio);
   if (reading.kind === 'undiluted')
     return { formula: (volume, working) => `${volume} × ${working}` };
   if (reading.kind !== 'ready') return { problem: reading.issue };
-  const material = materialNamed(protocol, run.subject);
   const stock = material && fieldNameOf(material, STOCK_FIELD);
   if (!material || !stock || !names.has(nameKey(stock))) {
     return {

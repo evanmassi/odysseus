@@ -1,8 +1,7 @@
 import { normalizeMaterialKey } from '@odysseus/shared-schemas';
 
-import { findDonor, donorsIn } from './materialDonors';
-import { findMaterial, findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
-import { plateFollowsListRename } from './renameFollowing';
+import { findNamed, listedMaterials, nameWithoutNotes } from './materialLookup';
+import { namedTarget } from './plateLinks';
 
 import type { Protocol } from '@odysseus/shared-schemas';
 
@@ -26,7 +25,6 @@ export function plateNameOffers(
 ): PlateNameOffer[] {
   const materials = listedMaterials(protocol);
   const mixes = mixNames(protocol);
-  const matches = donorsIn(protocol);
   const materialKeys = materials
     .map(material => normalizeMaterialKey(material.name))
     .filter(key => key.length >= SHORTEST_MENTION);
@@ -46,8 +44,7 @@ export function plateNameOffers(
           !wellCount ||
           ignored.has(key) ||
           CONDITION_WORDS.test(name) ||
-          findMaterial(materials, name) !== undefined ||
-          findDonor(matches, name) !== undefined ||
+          namedTarget(protocol, value, name) !== undefined ||
           findNamed(mixes, name, mix => mix) !== undefined ||
           materialKeys.some(materialKey => nameKey.includes(materialKey));
         if (isSkipped) continue;
@@ -71,5 +68,4 @@ export function linkPlateName(draft: Protocol, name: string, materialId: string)
   const notes = notesAt < 0 ? '' : oldName.slice(notesAt + 1, oldName.lastIndexOf(')')).trim();
   const kept = [nameWithoutNotes(oldName), notes].filter(Boolean).join(', ');
   material.name = `${name.trim()} (${kept})`;
-  plateFollowsListRename(draft, oldName, material.name);
 }

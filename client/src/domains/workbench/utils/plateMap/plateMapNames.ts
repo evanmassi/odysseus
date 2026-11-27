@@ -19,7 +19,6 @@ import {
   RATIO_NOTATION,
   readNumber,
 } from '../formulas/quantities';
-import { nameWithoutNotes, shortNameOf } from '../materials/materialLookup';
 import {
   CELLS_PER_WELL,
   DILUTION_FACTOR,
@@ -366,24 +365,6 @@ export const plateMapCounts: (card: PlateMap) => readonly PlateMapCount[] =
 export const plateAmounts: (card: PlateMap) => readonly PlateAmount[] =
   cachedPerCard(amountsOnPlate);
 
-const wellTexts = cachedPerCard((card: PlateMap) =>
-  Object.entries(card.samples).map(([key, lines]) => ({
-    noun: labwareOf(labwareTypeAt(card, key)).kind,
-    text: card.lines
-      .map(line => lineValueOf(line, lines[line.id])?.text ?? '')
-      .join(' | ')
-      .toLowerCase(),
-  }))
-);
-
-function mentionPattern(name: string): RegExp {
-  const escaped = name
-    .trim()
-    .toLowerCase()
-    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`(^|[^a-z0-9])${escaped}($|[^a-z0-9])`);
-}
-
 export function materialWellCounts(
   cards: readonly PlateMap[],
   materials: readonly MaterialItem[]
@@ -401,21 +382,17 @@ export function materialSampleCounts(
   materials: readonly MaterialItem[]
 ): Map<MaterialItem, Map<SampleNoun, number>> {
   const counts = new Map<MaterialItem, Map<SampleNoun, number>>();
-  const patterns = materials.map(material => ({
-    material,
-    names: [
-      material.name,
-      nameWithoutNotes(material.name),
-      shortNameOf(material),
-      ...(material.donors?.rows.map(donor => donor.name) ?? []),
-    ]
-      .filter(Boolean)
-      .map(mentionPattern),
-  }));
+  const byId = new Map(materials.map(material => [material.id, material]));
   for (const card of cards) {
-    for (const { noun, text } of wellTexts(card)) {
-      for (const { material, names } of patterns) {
-        if (!names.some(name => name.test(text))) continue;
+    for (const [key, lines] of Object.entries(card.samples)) {
+      const noun = labwareOf(labwareTypeAt(card, key)).kind;
+      const linked = card.lines.flatMap(line =>
+        (lineValueOf(line, lines[line.id])?.links ?? []).flatMap(link => {
+          const material = byId.get(link.materialId);
+          return material ? [material] : [];
+        })
+      );
+      for (const material of new Set(linked)) {
         const byNoun = counts.get(material) ?? new Map<SampleNoun, number>();
         byNoun.set(noun, (byNoun.get(noun) ?? 0) + 1);
         counts.set(material, byNoun);

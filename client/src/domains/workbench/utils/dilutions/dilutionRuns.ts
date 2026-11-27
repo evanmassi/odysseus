@@ -1,5 +1,6 @@
 import {
   lineValueOf,
+  type MaterialLink,
   type Protocol,
   type PlateMap,
   normalizeMaterialKey,
@@ -21,6 +22,7 @@ export interface DilutionRun {
   places: string[];
   series: StepSeries;
   subject: string;
+  links: MaterialLink[] | undefined;
   color: string | undefined;
   replicatesByPoint: Map<number, number>;
 }
@@ -47,6 +49,7 @@ const runsOnPlate = cachedPerCard((plateMap: PlateMap): PlateRun[] =>
         plateIds: new Set<string>(),
         series,
         subject: value?.text.trim() ?? '',
+        links: value?.links,
         color: value?.color,
         replicatesByPoint: new Map<number, number>(),
       };

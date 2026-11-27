@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 12,
+  "version": 13,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "T cell killing assay",
@@ -562,11 +562,27 @@
             "values": [
               {
                 "id": "kn7b9z1",
-                "text": "Raji-Luc + T cells"
+                "text": "Raji-Luc + T cells",
+                "links": [
+                  {
+                    "materialId": "mqtbxit",
+                    "name": "Raji-Luc"
+                  },
+                  {
+                    "materialId": "vugju7i",
+                    "name": "T cells"
+                  }
+                ]
               },
               {
                 "id": "dzo7p52",
-                "text": "Raji-Luc only"
+                "text": "Raji-Luc only",
+                "links": [
+                  {
+                    "materialId": "mqtbxit",
+                    "name": "Raji-Luc"
+                  }
+                ]
               },
               {
                 "id": "annvt07",
@@ -578,16 +594,34 @@
           {
             "id": "0eqn3yg",
             "name": "Compound X",
+            "links": [
+              {
+                "materialId": "1bfkegd",
+                "name": "Compound X"
+              }
+            ],
             "values": [
               {
                 "id": "jdjdox2",
                 "text": "Compound X",
-                "color": "#f0b35b"
+                "color": "#f0b35b",
+                "links": [
+                  {
+                    "materialId": "1bfkegd",
+                    "name": "Compound X"
+                  }
+                ]
               },
               {
                 "id": "cochomc",
                 "text": "DMSO",
-                "color": "#8fd3e8"
+                "color": "#8fd3e8",
+                "links": [
+                  {
+                    "materialId": "gtshkqg",
+                    "name": "DMSO"
+                  }
+                ]
               },
               {
                 "id": "9daea02f",
@@ -935,26 +969,26 @@
     "cards": [
       {
         "id": "85fqukl",
-        "title": "Materials",
         "page": "faa6w4g",
         "x": 0,
         "y": 0,
         "w": 12,
         "h": 12,
         "isCollapsed": false,
+        "title": "Materials",
         "type": "materials",
         "foldedGroups": [],
         "isSetAsideOpen": false
       },
       {
         "id": "c3std70",
-        "title": "Values",
         "page": "faa6w4g",
         "x": 0,
         "y": 90,
         "w": 12,
         "h": 34,
         "isCollapsed": false,
+        "title": "Values",
         "type": "values"
       },
       {
@@ -973,35 +1007,35 @@
       },
       {
         "id": "4md9dro",
-        "title": "Calculations",
         "page": "faa6w4g",
         "x": 0,
         "y": 50,
         "w": 12,
         "h": 40,
         "isCollapsed": false,
+        "title": "Calculations",
         "type": "calculations"
       },
       {
         "id": "nm7d852",
-        "title": "Steps",
         "page": "faa6w4g",
         "x": 0,
         "y": 27,
         "w": 8,
         "h": 15,
         "isCollapsed": false,
+        "title": "Steps",
         "type": "procedure"
       },
       {
         "id": "tk16ubj",
-        "title": "Flow diagram",
         "page": "faa6w4g",
         "x": 0,
         "y": 42,
         "w": 12,
         "h": 8,
         "isCollapsed": false,
+        "title": "Flow diagram",
         "type": "flowDiagram"
       }
     ],

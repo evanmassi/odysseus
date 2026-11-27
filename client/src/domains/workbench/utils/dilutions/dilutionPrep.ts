@@ -28,7 +28,7 @@ import {
   type SharedPrepKey,
 } from './dilutionCalculations';
 import { diluentChoice } from './dilutionDiluents';
-import { stockFor, type StockReading } from './dilutionStock';
+import { runMaterial, stockFor, type StockReading } from './dilutionStock';
 import { dialNumber, pipetteFor, shortNumber, type PipetteUse } from './pipettes';
 
 import type { DilutionRun } from './dilutionRuns';
@@ -201,7 +201,7 @@ export function dilutionPrep(
     isRatio ? top.value * dilutionFactor ** point : top.value / dilutionFactor ** point;
   const workingConcAt = (point: number) =>
     isRatio ? inWell(point) / strength : inWell(point) * strength;
-  const stock = stockFor(protocol, run.subject, unit, isRatio);
+  const stock = stockFor(runMaterial(protocol, run), run.subject, unit, isRatio);
   const warnings: PrepWarning[] = [];
   const warn = (line: PrepLine, text: string) => warnings.push({ line, text });
   if (isRatio && top.value / strength < 1) {

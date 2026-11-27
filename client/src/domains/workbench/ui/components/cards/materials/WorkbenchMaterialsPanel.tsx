@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { withGreekLetters } from '@odysseus/shared-schemas';
 import { FlaskConical } from 'lucide-react';
@@ -74,7 +74,6 @@ import {
 } from '../../../../utils/materials/materialSectionFields';
 import { fieldSuggestions } from '../../../../utils/materials/materialSuggestions';
 import { plateNameOffers } from '../../../../utils/materials/plateNameOffers';
-import { plateFollowsListRename } from '../../../../utils/materials/renameFollowing';
 import { materialWellCounts } from '../../../../utils/plateMap/plateMapNames';
 import {
   acceptStepReadings,
@@ -229,13 +228,6 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
     [updateProtocol]
   );
 
-  const nameAtStart = useRef<{ itemId: string; name: string }>();
-  const enterCell = useCallback((cell: MaterialCell) => {
-    if (cell.key !== NAME_CELL) return;
-    const item = materialsById(useWorkbenchStore.getState().protocol).get(cell.itemId);
-    nameAtStart.current = item && { itemId: cell.itemId, name: item.name };
-  }, []);
-
   const finishCell = useCallback(
     (cell: MaterialCell) => {
       if (cell.key === LOT_FIELD) {
@@ -248,11 +240,8 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
           if (name !== typed) item.values[cell.key] = name;
         });
       } else if (cell.key === NAME_CELL) {
-        const started =
-          nameAtStart.current?.itemId === cell.itemId ? nameAtStart.current : undefined;
-        updateItem(cell.itemId, (item, draft) => {
+        updateItem(cell.itemId, item => {
           item.name = withGreekLetters(item.name);
-          if (started) plateFollowsListRename(draft, started.name, item.name);
         });
       } else {
         updateItem(cell.itemId, item => {
@@ -264,7 +253,7 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
     },
     [updateItem, catalog, memory.fluors]
   );
-  const editing = useMaterialCellEditing(cellOrder, enterCell, finishCell);
+  const editing = useMaterialCellEditing(cellOrder, finishCell);
   const isEditingCell = editing.cell !== undefined;
 
   useEffect(() => {
@@ -376,10 +365,9 @@ export function WorkbenchMaterialsPanel({ card }: WorkbenchMaterialsPanelProps) 
       updateDonor(itemId, donorId, donor => {
         donor.name = name;
       }),
-    finishRename: (itemId, donorId, from) =>
-      updateDonor(itemId, donorId, (donor, draft) => {
+    finishRename: (itemId, donorId) =>
+      updateDonor(itemId, donorId, donor => {
         donor.name = withGreekLetters(donor.name.trim());
-        plateFollowsListRename(draft, from, donor.name);
       }),
     write: (itemId, donorId, key, value) =>
       updateItem(itemId, item => {

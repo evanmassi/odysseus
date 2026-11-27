@@ -1,6 +1,10 @@
+import { produce } from 'immer';
+
+import { linkPlateNames } from '../materials/renameFollowing';
+
 import { materialWellCounts, plateAmounts, plateMapCounts } from './plateMapNames';
 
-import type { MaterialItem, PlateLine, PlateMap } from '@odysseus/shared-schemas';
+import type { MaterialItem, PlateLine, PlateMap, Protocol } from '@odysseus/shared-schemas';
 
 const plateMap = (content: Partial<PlateMap>): PlateMap => ({
   id: 'map',
@@ -127,6 +131,13 @@ describe('twin series on different plates', () => {
 });
 
 describe('material well counts', () => {
+  const wellCountOf = (card: PlateMap, material: MaterialItem) => {
+    const unlinked = { materials: { items: [material], customGroups: [] }, plateMaps: [card] };
+    const protocol = produce(unlinked as unknown as Protocol, linkPlateNames);
+    const [linked] = protocol.materials.items;
+    return materialWellCounts(protocol.plateMaps, [linked]).get(linked);
+  };
+
   it('count wells by the short name in front of a note in parentheses', () => {
     const card = plateMap({
       lines: [line('stim', ['STX', 'None'])],
@@ -137,11 +148,13 @@ describe('material well counts', () => {
       },
     });
     const stimMaterial = {
+      id: 'stim',
       name: 'STX (stim X description)',
       shownFields: [],
       values: {},
+      isSetAside: false,
     } as unknown as MaterialItem;
-    expect(materialWellCounts([card], [stimMaterial]).get(stimMaterial)).toBe(2);
+    expect(wellCountOf(card, stimMaterial)).toBe(2);
   });
 
   it('count wells by the material short name', () => {
@@ -150,10 +163,12 @@ describe('material well counts', () => {
       samples: { 'p1:A1': { media: { valueId: 'ImmunoCult XF' } } },
     });
     const medium = {
+      id: 'medium',
       name: 'ImmunoCult™-XF T Cell Expansion Medium',
       shownFields: ['short-name'],
       values: { 'short-name': 'ImmunoCult XF' },
+      isSetAside: false,
     } as unknown as MaterialItem;
-    expect(materialWellCounts([card], [medium]).get(medium)).toBe(1);
+    expect(wellCountOf(card, medium)).toBe(1);
   });
 });

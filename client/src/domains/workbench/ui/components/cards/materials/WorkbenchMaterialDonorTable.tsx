@@ -37,7 +37,7 @@ export interface DonorTableActions {
   add: (itemId: string, names: readonly string[]) => void;
   recall: (itemId: string, knownDonor: KnownDonor) => void;
   rename: (itemId: string, donorId: string, name: string) => void;
-  finishRename: (itemId: string, donorId: string, from: string) => void;
+  finishRename: (itemId: string, donorId: string) => void;
   write: (itemId: string, donorId: string, key: string, value: string) => void;
   remove: (itemId: string, donorId: string) => void;
   toggleField: (itemId: string, key: string) => void;
@@ -144,7 +144,6 @@ export const WorkbenchMaterialDonorTable = memo(function WorkbenchMaterialDonorT
 }: WorkbenchMaterialDonorTableProps) {
   const [draft, setDraft] = useState('');
   const [fieldQuery, setFieldQuery] = useState<string>();
-  const nameAtStart = useRef('');
   const fieldButtonRef = useRef<HTMLButtonElement>(null);
   const swatchOf = usePlateSwatches();
   const columns = donorColumns(donors);
@@ -265,15 +264,10 @@ export const WorkbenchMaterialDonorTable = memo(function WorkbenchMaterialDonorT
                               aria-label={`Name in ${donors.label}`}
                               spellCheck={false}
                               className={`${FIELD} w-28 font-semibold`}
-                              onFocus={() => {
-                                nameAtStart.current = donor.name;
-                              }}
                               onChange={event =>
                                 actions.rename(item.id, donor.id, event.target.value)
                               }
-                              onBlur={() =>
-                                actions.finishRename(item.id, donor.id, nameAtStart.current)
-                              }
+                              onBlur={() => actions.finishRename(item.id, donor.id)}
                             />
                           </span>
                         </span>

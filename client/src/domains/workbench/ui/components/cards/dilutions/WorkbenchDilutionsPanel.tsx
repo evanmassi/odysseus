@@ -151,9 +151,7 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
             diluentPlaceholder={readReference(protocol.diluent).name || DILUENT_HINT}
             diluentChoices={diluentChoices}
             onSharedChange={(field, value) =>
-              updateProtocol(draft =>
-                setSharedPrepValue(draft, run.subject, field, value, card.page)
-              )
+              updateProtocol(draft => setSharedPrepValue(draft, run, field, value, card.page))
             }
             onRoundToChange={value =>
               updateProtocol(draft =>

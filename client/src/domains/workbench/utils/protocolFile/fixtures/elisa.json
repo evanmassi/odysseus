@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 12,
+  "version": 13,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "IL-6 sandwich ELISA",
@@ -832,26 +832,26 @@
     "cards": [
       {
         "id": "c4wnnas",
-        "title": "Materials",
         "page": "mqd21pe",
         "x": 0,
         "y": 0,
         "w": 12,
         "h": 13,
         "isCollapsed": false,
+        "title": "Materials",
         "type": "materials",
         "foldedGroups": [],
         "isSetAsideOpen": false
       },
       {
         "id": "cj5twwa",
-        "title": "Values",
         "page": "mqd21pe",
         "x": 0,
         "y": 33,
         "w": 4,
         "h": 20,
         "isCollapsed": false,
+        "title": "Values",
         "type": "values"
       },
       {
@@ -870,35 +870,35 @@
       },
       {
         "id": "pf5sqja",
-        "title": "Calculations",
         "page": "mqd21pe",
         "x": 8,
         "y": 33,
         "w": 4,
         "h": 20,
         "isCollapsed": false,
+        "title": "Calculations",
         "type": "calculations"
       },
       {
         "id": "uec3wqr",
-        "title": "Steps",
         "page": "mqd21pe",
         "x": 0,
         "y": 22,
         "w": 5,
         "h": 13,
         "isCollapsed": false,
+        "title": "Steps",
         "type": "procedure"
       },
       {
         "id": "7w7pao1",
-        "title": "Flow diagram",
         "page": "mqd21pe",
         "x": 0,
         "y": 35,
         "w": 12,
         "h": 7,
         "isCollapsed": false,
+        "title": "Flow diagram",
         "type": "flowDiagram"
       }
     ],

@@ -4,7 +4,6 @@ import { showPlateMap } from '../utils/cards/createCard';
 import { referenceParts } from '../utils/formulas/nameReferences';
 import { linkReferences } from '../utils/formulas/referenceLinks';
 import { startDonors } from '../utils/materials/materialDonors';
-import { plateFollowsListRename } from '../utils/materials/renameFollowing';
 import { newPlateMap } from '../utils/plateMap/plateMapEdits';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
 import { moveValueToRow } from '../utils/values/valueEdits';
@@ -192,10 +191,7 @@ describe('workbenchStore', () => {
     const renameDonor = (name: string) =>
       getState().updateProtocol(draft => {
         const donor = draft.materials.items.find(item => item.id === 'pbmc')?.donors?.rows[0];
-        if (!donor) return;
-        const from = donor.name;
-        donor.name = name;
-        plateFollowsListRename(draft, from, name);
+        if (donor) donor.name = name;
       });
 
     it('carries the rename into a formula that uses its cell math', () => {

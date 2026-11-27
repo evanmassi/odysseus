@@ -6,11 +6,13 @@ import { SHORT_NAME_FIELD } from './materialCatalog';
 
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
-export const nameWithoutNotes = (name: string): string =>
-  name
-    .replace(/\([^)]*\)/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+const INNERMOST_NOTE = /\([^()]*\)/;
+
+export function nameWithoutNotes(name: string): string {
+  let bare = name;
+  while (INNERMOST_NOTE.test(bare)) bare = bare.replace(INNERMOST_NOTE, ' ');
+  return bare.replace(/\s+/g, ' ').trim();
+}
 
 const withoutNotes = (name: string) => normalizeMaterialKey(nameWithoutNotes(name));
 

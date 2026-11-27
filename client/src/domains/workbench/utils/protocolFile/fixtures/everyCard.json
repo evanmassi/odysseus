@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 12,
+  "version": 13,
   "savedAt": "2026-11-22T12:00:00.000Z",
   "protocol": {
     "title": "Safety net protocol",
@@ -370,11 +370,24 @@
               {
                 "id": "cells-a",
                 "text": "Cell line A",
-                "color": "#86b6dc"
+                "color": "#86b6dc",
+                "links": [
+                  {
+                    "materialId": "mat-cells",
+                    "name": "Cell line A"
+                  }
+                ]
               },
               {
                 "id": "cells-donor-1",
-                "text": "Donor 1"
+                "text": "Donor 1",
+                "links": [
+                  {
+                    "materialId": "mat-pbmc",
+                    "donorId": "donor-1",
+                    "name": "Donor 1"
+                  }
+                ]
               }
             ],
             "role": "band",
@@ -387,7 +400,13 @@
               {
                 "id": "drug-x",
                 "text": "Drug X",
-                "color": "#6fa8e8"
+                "color": "#6fa8e8",
+                "links": [
+                  {
+                    "materialId": "mat-drug",
+                    "name": "Drug X"
+                  }
+                ]
               }
             ],
             "role": "fill"
@@ -398,7 +417,14 @@
             "values": [
               {
                 "id": "effectors-donor-2",
-                "text": "Donor 2"
+                "text": "Donor 2",
+                "links": [
+                  {
+                    "materialId": "mat-pbmc",
+                    "donorId": "donor-2",
+                    "name": "Donor 2"
+                  }
+                ]
               }
             ],
             "role": "auto",
@@ -592,59 +618,59 @@
     "cards": [
       {
         "id": "card-materials",
-        "title": "Materials",
         "page": "page-setup",
         "x": 0,
         "y": 0,
         "w": 12,
         "h": 10,
         "isCollapsed": false,
+        "title": "Materials",
         "type": "materials",
         "foldedGroups": ["kits"],
         "isSetAsideOpen": true
       },
       {
         "id": "card-values",
-        "title": "Values",
         "page": "page-setup",
         "x": 6,
         "y": 10,
         "w": 6,
         "h": 6,
         "isCollapsed": false,
+        "title": "Values",
         "type": "values"
       },
       {
         "id": "card-calculations",
-        "title": "Calculations",
         "page": "page-setup",
         "x": 0,
         "y": 16,
         "w": 6,
         "h": 4,
         "isCollapsed": false,
+        "title": "Calculations",
         "type": "calculations"
       },
       {
         "id": "card-procedure",
-        "title": "Procedure",
         "page": "page-setup",
         "x": 6,
         "y": 16,
         "w": 6,
         "h": 4,
         "isCollapsed": false,
+        "title": "Procedure",
         "type": "procedure"
       },
       {
         "id": "card-flow-diagram",
-        "title": "Flow diagram",
         "page": "page-setup",
         "x": 0,
         "y": 20,
         "w": 6,
         "h": 4,
         "isCollapsed": false,
+        "title": "Flow diagram",
         "type": "flowDiagram"
       },
       {
@@ -677,13 +703,13 @@
       },
       {
         "id": "card-dilutions",
-        "title": "Dilutions",
         "page": "page-plates",
         "x": 0,
         "y": 8,
         "w": 6,
         "h": 4,
         "isCollapsed": false,
+        "title": "Dilutions",
         "type": "dilutions"
       },
       {

@@ -2,6 +2,7 @@ import { produce } from 'immer';
 
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
+import { linkPlateNames } from '../materials/renameFollowing';
 import { setPrepSetting } from '../plateMap/seriesEdits';
 
 import { diluentUses, runDiluents } from './dilutionDiluents';
@@ -48,7 +49,7 @@ function protocolWith(
       ])
     )
   );
-  return {
+  const protocol = {
     pages: [{ id: 'page', name: 'Setup', steps: [] }],
     materials: { items: materials, customGroups: [] },
     values: { items: values.map((line, index) => ({ id: `v${index}`, ...line })), rows: [] },
@@ -93,6 +94,8 @@ function protocolWith(
     ],
     diluent: '',
   } as unknown as Protocol;
+  linkPlateNames(protocol);
+  return protocol;
 }
 
 const doseSeries: PlateSeries = {
@@ -263,8 +266,9 @@ describe('dilution prep', () => {
       value: '20',
       edit: { kind: 'source', source: { kind: 'plate' } },
     });
+    const [run] = dilutionRuns(protocol);
     const written = produce(protocol, draft =>
-      setSharedPrepValue(draft, 'Drug X', volumePerWell, '25', 'page')
+      setSharedPrepValue(draft, run, volumePerWell, '25', 'page')
     );
     expect(written.plateMaps[0].samples['p:A1']['vol']).toMatchObject({ amount: '25', unit: 'µL' });
     expect(prepFor(written).shared.volumePerWell).toMatchObject({ value: '25' });
@@ -373,7 +377,7 @@ describe('dilution prep as calculations', () => {
 
 describe('stock lookup', () => {
   it('asks for a stock, then for a molecular weight in the unit that suits the material', () => {
-    expect(stockFor(protocolWith(doseSeries, []), 'Drug X', 'nM', false)).toMatchObject({
+    expect(stockFor(undefined, 'Drug X', 'nM', false)).toMatchObject({
       kind: 'ask',
       need: 'stock',
       issue: 'Drug X is not in Materials yet.',
@@ -383,9 +387,11 @@ describe('stock lookup', () => {
       { 'stock-concentration': '10' },
       { 'stock-concentration': 'mg/mL' }
     );
-    expect(
-      stockFor(protocolWith(doseSeries, [massStock]), 'Nivolumab (BMS)', 'nM', false)
-    ).toMatchObject({ kind: 'ask', need: 'weight', unit: 'kDa' });
+    expect(stockFor(massStock, 'Nivolumab', 'nM', false)).toMatchObject({
+      kind: 'ask',
+      need: 'weight',
+      unit: 'kDa',
+    });
   });
 
   it('crosses mass and molar through the molecular weight', () => {
@@ -394,7 +400,7 @@ describe('stock lookup', () => {
       { 'stock-concentration': '10', 'molecular-weight': '150' },
       { 'stock-concentration': 'mg/mL', 'molecular-weight': 'kDa' }
     );
-    const stock = stockFor(protocolWith(doseSeries, [weighed]), 'Nivolumab', 'nM', false);
+    const stock = stockFor(weighed, 'Nivolumab', 'nM', false);
     expect(stock.kind === 'ready' && Math.round(stock.inSeriesUnit)).toBe(66667);
   });
 });
@@ -417,9 +423,10 @@ describe('dilution edits', () => {
   it('edits the shared number in Values, or adds it where the math looks', () => {
     const protocol = protocolWith(doseSeries, [drugStock], SHARED_PREP.slice(0, 1));
     const before = prepFor(protocol);
-    setSharedPrepValue(protocol, 'Drug X', before.shared.totalWellVolume, '100', 'page');
-    setSharedPrepValue(protocol, 'Drug X', before.shared.volumePerWell, '25', 'page');
-    setSharedPrepValue(protocol, 'Drug X', before.shared.extra, '', 'page');
+    const [run] = dilutionRuns(protocol);
+    setSharedPrepValue(protocol, run, before.shared.totalWellVolume, '100', 'page');
+    setSharedPrepValue(protocol, run, before.shared.volumePerWell, '25', 'page');
+    setSharedPrepValue(protocol, run, before.shared.extra, '', 'page');
     const { values } = protocol;
     expect(values.rows).toEqual([{ id: expect.any(String), materialId: 'Drug X' }]);
     expect(values.items).toEqual([
@@ -440,7 +447,7 @@ describe('dilution edits', () => {
     const protocol = protocolWith(doseSeries, [drugStock], []);
     protocol.cards = protocol.cards.filter(card => card.type !== 'values');
     const { totalWellVolume } = prepFor(protocol).shared;
-    setSharedPrepValue(protocol, 'Drug X', totalWellVolume, '80', 'page');
+    setSharedPrepValue(protocol, dilutionRuns(protocol)[0], totalWellVolume, '80', 'page');
     expect(valuesOf(protocol)).toEqual([
       { id: expect.any(String), name: 'Total well vol.', value: '80', unit: 'µL' },
     ]);

@@ -10,7 +10,7 @@ import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { createId } from '../../../../utils/ids/createId';
-import { isSameBareName } from '../../../../utils/materials/renameFollowing';
+import { nameChangeOf } from '../../../../utils/materials/renameFollowing';
 import { ratioRow } from '../../../../utils/plateMap/cellRatios';
 import { MIXED_LABWARE_WORDS, wordsForTypes } from '../../../../utils/plateMap/labwareCatalog';
 import { seriesSummary } from '../../../../utils/plateMap/plateSeries';
@@ -240,12 +240,10 @@ export function WorkbenchWellEditorPanel({
         const edit = (change: (draft: PlateMap) => void) => writeRow(target, change);
         const form = openSeries?.lineId === lineId ? openSeries : undefined;
         const started = draft ? undefined : startedNames.get(lineId);
-        const elsewhere =
-          started && row.text && !isSameBareName(started.text, row.text)
+        const sharedName =
+          started && nameChangeOf(started, row.text)
             ? nameElsewhere(card, lineId, started.valueId, keyList)
             : undefined;
-        const sharedName =
-          elsewhere && !isSameBareName(elsewhere.text, row.text) ? elsewhere : undefined;
         return (
           <div key={`row-${lineId}`} className="flex flex-col gap-2">
             <WorkbenchWellLineRow

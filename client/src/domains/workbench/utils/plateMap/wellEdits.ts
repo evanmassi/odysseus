@@ -5,6 +5,7 @@ import {
   moveValueKeys,
   normalizeMaterialKey,
   plateValueKey,
+  type MaterialLink,
   type SampleEntry,
   type PlateLine,
   type PlateMap,
@@ -73,7 +74,7 @@ export function lineNamed(
 function valueOnLine(line: PlateLine, moved: PlateLine['values'][number]) {
   const found = line.values.find(value => plateValueKey(value.text) === plateValueKey(moved.text));
   if (found) return found;
-  const created = { id: createId(), text: moved.text, color: moved.color };
+  const created = { id: createId(), text: moved.text, color: moved.color, links: moved.links };
   line.values.push(created);
   return created;
 }
@@ -244,13 +245,18 @@ export function renameValue(card: PlateMap, valueId: string, text: string): void
 export interface HeldName {
   valueId: string;
   text: string;
+  links: MaterialLink[] | undefined;
 }
 
 export function heldNames(card: PlateMap, keys: readonly string[]): Map<string, HeldName> {
   const held = new Map<string, HeldName>();
   for (const row of wellRows(card, keys)) {
     if (row.line && row.value)
-      held.set(row.line.id, { valueId: row.value.id, text: row.value.text });
+      held.set(row.line.id, {
+        valueId: row.value.id,
+        text: row.value.text,
+        links: row.value.links,
+      });
   }
   return held;
 }

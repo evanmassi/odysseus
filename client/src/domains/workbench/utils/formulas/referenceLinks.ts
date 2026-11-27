@@ -1,3 +1,5 @@
+import { linkPlateNames } from '../materials/renameFollowing';
+
 import { findReferenced, type BoardName, type SolvedBoard } from './boardCalculation';
 import { linkedReference, linkNames } from './formulaScopes';
 import { readReference, referenceParts, referenceText } from './nameReferences';
@@ -27,6 +29,7 @@ function keepMaterialName(draft: Protocol, owner: { materialId?: string; materia
 }
 
 export function linkReferences(draft: Protocol, board: SolvedBoard): void {
+  linkPlateNames(draft);
   for (const item of draft.calculations.items) {
     item.formula = linkNames(item.formula, board);
     keepMaterialName(draft, item);

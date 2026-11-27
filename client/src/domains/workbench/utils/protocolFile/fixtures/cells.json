@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 12,
+  "version": 13,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "Cell viability dose response",
@@ -908,26 +908,26 @@
     "cards": [
       {
         "id": "bw90g70",
-        "title": "Materials",
         "page": "v2i5v7f",
         "x": 0,
         "y": 0,
         "w": 12,
         "h": 13,
         "isCollapsed": false,
+        "title": "Materials",
         "type": "materials",
         "foldedGroups": [],
         "isSetAsideOpen": false
       },
       {
         "id": "vd9y6g4",
-        "title": "Values",
         "page": "v2i5v7f",
         "x": 0,
         "y": 50,
         "w": 4,
         "h": 16,
         "isCollapsed": false,
+        "title": "Values",
         "type": "values"
       },
       {
@@ -946,35 +946,35 @@
       },
       {
         "id": "qlt5lkt",
-        "title": "Calculations",
         "page": "v2i5v7f",
         "x": 8,
         "y": 13,
         "w": 4,
         "h": 15,
         "isCollapsed": false,
+        "title": "Calculations",
         "type": "calculations"
       },
       {
         "id": "31np0ed",
-        "title": "Steps",
         "page": "v2i5v7f",
         "x": 0,
         "y": 26,
         "w": 7,
         "h": 14,
         "isCollapsed": false,
+        "title": "Steps",
         "type": "procedure"
       },
       {
         "id": "snkgxdt",
-        "title": "Flow diagram",
         "page": "v2i5v7f",
         "x": 0,
         "y": 42,
         "w": 12,
         "h": 8,
         "isCollapsed": false,
+        "title": "Flow diagram",
         "type": "flowDiagram"
       }
     ],

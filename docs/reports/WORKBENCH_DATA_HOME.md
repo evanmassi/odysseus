@@ -1,8 +1,8 @@
 # Workbench: Where the Data Lives
 
 Design for moving the workbench's saved data out of cards and into the protocol, so a card only
-shows and edits it. Started 2026-11-24 with Evan. Built: steps 0 to 5; next 6 and 7. Step 7 (painted
-wells point at their material) added 2026-11-25.
+shows and edits it. Started 2026-11-24 with Evan. Built: steps 0 to 5 and 7; next 6. Step 7 (painted
+wells point at their material) added 2026-11-25, built 2026-11-26.
 
 ## Why
 
@@ -524,36 +524,77 @@ Raised while weighing what of the workbench another lab could reuse. **Decided 2
     the cell count); tags replace reading names in the math, not recognizing what is typed.
 - Then W114 step 5 resumes.
 
-### Step 7: painted wells point at their material (file change)
+### Step 7: painted names point at their material (built 2026-11-26, file version 13)
 
 Added 2026-11-25 after Evan renamed "Risankizumab (anti-IL-23p19)" to "Risankizumab" in step 4's
-check (see step 4, "Found by Evan in the app"). Not yet designed in detail; built before or with
-step 6.
+check (see step 4, "Found by Evan in the app").
 
-- **The gap.** Step 4 made formulas and steps point at a number by id; a painted well still finds
-  its material by matching its text (`findMaterial`, `materialSampleCounts`). Every well holds its
-  own copy of the name, so a rename has to be copied onto the plate by text rules
-  (`renameFollowing.ts`), and any case the rules miss leaves the plate on the old name. The patch
-  in step 4 covers the case Evan hit, not the class.
-- **It reaches the math.** The dilution prep takes the painted text as its subject
-  (`run.subject`) and looks up `<subject> vol./well` by it, so the lookups depend on the well
-  text matching the material's name exactly; cell math and well counts read painted names the
-  same way.
-- **Proposal.** A painted value keeps its material by id, the way Values rows do; its text is only
-  what is shown and typed, notes included. Typing a name that matches a material links it, as
-  recognizing works today; text that names no material ("Medium only", "Targets only") stays
-  text. A rename then needs no copying, and the math finds the material through the link: this is
-  the plate's half of step 6's "owner by id".
-- **What it replaces.** The plate-following rules in `renameFollowing.ts` (material to plate, and
-  plate to material) become reading through the link; what is left of that file is decided when
-  the step is built.
-- **Open, asked when this step comes:** how a well's own notes sit beside a linked name, and what
-  a well shows when its material is removed (decision 4 suggests: its last name, waiting by name).
+- **The gap.** Step 4 made formulas and steps point at a number by id; a painted name still found
+  its material by matching its text (`findMaterial`, `materialSampleCounts`), so a rename was copied
+  onto the plate by text rules (`plateFollowsListRename`, called from four places) and any case the
+  rules missed left the plate on the old name.
+- **Correction.** The name is not copied into every well: a plate line keeps a short list of
+  values (`{ id, text, color }`) and each well points at one by `valueId`. The link sits on that
+  value, once, and on a line named for a material.
+- **Evan's files.** Every painted name is one material by its whole name, one by its short name
+  (HKCA), one donor (the six D-numbers), or plain text. The cytotox sample paints co-culture wells
+  ("Raji-Luc + T cells"), which name two materials, so a name keeps every material it mentions.
+- **Decided 2026-11-26 (Evan):** renaming a name on the plate renames the material everywhere, the
+  Materials card and every plate map following; the old exception (only when no other well used
+  the name) is gone. If the new name is another material or donor, the name points at that one
+  instead.
+- **Settled without asking (from decision 4 and the doc's open points):** a removed material's
+  wells keep its last name and link again when a material with that name appears; a well's own
+  notes in brackets stay its own and only the name in front follows; text naming no material stays
+  text.
+
+**Built:**
+
+- **Schema:** plate lines and their values gain `links` (`MaterialLink`: `materialId`, `donorId`
+  for a donor, `name`, the name as last seen, and `shortName`, the material's short name as last seen), merged with the value or line in
+  `normalizePlateMap`. File version 13.
+- **`utils/materials/plateLinks.ts`:** `mentionsFinder` (every listed material, by whole, bare or
+  short name, and every donor a text mentions, as the well counts matched before), `linkedTo` (a
+  link's material and donor now) and `namedTarget` (among a name's links, the one the whole name
+  is, for the math that needs exactly one material).
+- **The pass:** `linkPlateNames` in `renameFollowing.ts`, run first in `linkReferences` (the
+  store's reconcile and on open). For each line name and value: when a linked material or donor
+  has a new name, the mention in the text follows (the whole name, the full name inside a longer
+  text, or the bare name with the well's notes kept; a changed short name the same way, and the
+  full name when the short name is cleared), then the links are taken afresh from what
+  the text mentions. A name retyped to something else simply links to what it now names.
+- **Plate to material:** `renamePlateValue` (the legend) and `followWellEdit` (the well editor,
+  when no well still shows the old entry) rename the material or donor the old name was, unless
+  the new name already is one.
+- **Readers:** well counts (`materialSampleCounts`) count the linked materials; plated cells, the
+  dilution stock (`runMaterial`, `stockFor` now taking the material) and the "add to Materials"
+  offers read `namedTarget`. The Values table rows and calculation sections still file by the
+  painted text, which is now always current; step 6 moves them to ids with the rest of the owner
+  lookups.
+- **Deleted:** `plateFollowsListRename`, `materialFollowsPlateRename` and their name lookups;
+  the name-at-start bookkeeping in the Materials, donor and Values cards (and the Materials cell
+  editor's enter callback that only served it); the well counts' text matching (`wellTexts`).
+- **Found by Evan in the app (2026-11-26):** renaming "Ustekinumab (anti-IL-12/23p40)" to
+  "Ustekinumab" on some wells made a new legend entry, offered no "Rename everywhere", and left the
+  material alone: the offer and the rename both treated "same name without brackets" as the well's
+  own notes changing. One check (`nameChangeOf`) now drives both: a plate holding the material's
+  whole name renames it to exactly the new text (unless only a bracketed note was added), one
+  holding the short name changes the short name, and one holding the name plus its own notes
+  changes the name in front.
+- **Closed on the way:** a plate painted with a short name never followed a change to it (before
+  step 7 either); asked by Evan, now it does.
+- **Fixed on the way:** `nameWithoutNotes` left "STX )" for a name with notes inside notes; it
+  now removes the innermost brackets first.
+- **Checked:** typecheck and lint clean; 876 client tests (`renameFollowing.test.ts` rewritten:
+  linking, following with notes, whole names, line names, two materials in one name, removal and
+  return, donors, short names, merging, the legend and well-editor renames); the four samples and Evan's two
+  protocols converted through the app's own pass (v12 copies in `Old versions/Version 12`); the
+  122 answers identical, read straight from the files and opened through the store.
 
 **Order:** 0 clears the old-version code so every later step changes one file shape. 1 is small
 and independent. 2 is the foundation, 3 makes it visible, 4 and 5 build on it, and 6 builds on
-1, 4 and 5. 7 builds on 4 and comes before or with 6, since 6's lookups by owner need the plate's
-subject to be a material, not a text.
+1, 4 and 5. 7 builds on 4 and comes before 6, since 6's lookups by owner need the plate's
+subject to be a material, not a text (built 2026-11-26).
 
 ## Code standards for this work
 
