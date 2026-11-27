@@ -6,7 +6,6 @@ import {
   fieldName,
   fieldUnit,
   materialFields,
-  materialValueId,
   UNIT_PER_ITEM,
 } from '../materials/materialCatalog';
 import { writeMaterialField } from '../materials/materialItems';
@@ -297,34 +296,4 @@ export function restoreValues(draft: Protocol, removed: RemovedValues): void {
       ? values.items.indexOf(last) + 1
       : values.items.length;
   values.items.splice(at, 0, removed.item);
-}
-
-export type ValueSource =
-  | { kind: 'item'; itemId: string }
-  | { kind: 'material'; materialId: string; field: FieldDefinition };
-
-export function valueSourceOf(
-  protocol: Pick<Protocol, 'materials' | 'values'>,
-  entryId: string
-): ValueSource | undefined {
-  const item = protocol.values.items.find(
-    candidate => candidate.id === entryId && 'name' in candidate
-  );
-  if (item) return { kind: 'item', itemId: item.id };
-  for (const material of materialsById(protocol).values()) {
-    const field = materialFields(material).find(
-      definition => materialValueId(material.id, definition.key) === entryId
-    );
-    if (field) return { kind: 'material', materialId: material.id, field };
-  }
-  return undefined;
-}
-
-export function writeValueSource(draft: Protocol, source: ValueSource, value: string): void {
-  if (source.kind === 'item') {
-    setValueAmount(draft, source.itemId, value);
-    return;
-  }
-  const material = materialsById(draft).get(source.materialId);
-  if (material) writeMaterialField(material, source.field, value);
 }

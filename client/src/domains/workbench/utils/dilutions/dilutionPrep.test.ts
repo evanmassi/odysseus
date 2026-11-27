@@ -1,8 +1,11 @@
+import { produce } from 'immer';
+
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
+import { setPrepSetting } from '../plateMap/seriesEdits';
 
 import { diluentUses, runDiluents } from './dilutionDiluents';
-import { recordOnMaterial, setPrepSetting, setSharedPrepValue } from './dilutionEdits';
+import { recordOnMaterial, setSharedPrepValue } from './dilutionEdits';
 import { dilutionPrep } from './dilutionPrep';
 import { dilutionRuns, type DilutionRun } from './dilutionRuns';
 import { stockFor } from './dilutionStock';
@@ -237,6 +240,34 @@ describe('dilution prep', () => {
     expect(own.shared.totalWellVolume).toMatchObject({ value: '80', isAssaySetup: true });
     expect(shared.strength).toBe('4×');
     expect(own.strength).toBe('4×');
+  });
+
+  it('edits a vol./well typed on the plate where it is saved', () => {
+    const protocol = produce(
+      protocolWith({ ...doseSeries }, [drugStock], [SHARED_PREP[0], SHARED_PREP[2]]),
+      draft => {
+        const [plateMap] = draft.plateMaps;
+        plateMap.lines.push({
+          id: 'vol',
+          name: '',
+          role: 'auto',
+          values: [{ id: 'w', text: 'Drug X' }],
+        });
+        for (const lines of Object.values(plateMap.samples)) {
+          lines['vol'] = { valueId: 'w', amount: '20', unit: 'µL' };
+        }
+      }
+    );
+    const { volumePerWell } = prepFor(protocol).shared;
+    expect(volumePerWell).toMatchObject({
+      value: '20',
+      edit: { kind: 'source', source: { kind: 'plate' } },
+    });
+    const written = produce(protocol, draft =>
+      setSharedPrepValue(draft, 'Drug X', volumePerWell, '25', 'page')
+    );
+    expect(written.plateMaps[0].samples['p:A1']['vol']).toMatchObject({ amount: '25', unit: 'µL' });
+    expect(prepFor(written).shared.volumePerWell).toMatchObject({ value: '25' });
   });
 
   it('makes exactly enough when no extra is set anywhere', () => {

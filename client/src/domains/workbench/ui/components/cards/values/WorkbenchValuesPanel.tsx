@@ -42,14 +42,7 @@ import {
   type RemovedValues,
   type ValueRowTarget,
 } from '../../../../utils/values/valueEdits';
-import {
-  columnUnit,
-  fillBlanks,
-  fillTargets,
-  slotRoute,
-  writeCellUnit,
-  writeCellValue,
-} from '../../../../utils/values/valueFill';
+import { columnUnit, fillBlanks, fillTargets, slotRoute } from '../../../../utils/values/valueFill';
 import { ASSAY_SETUP_TITLE, GENERAL } from '../../../../utils/values/valueNames';
 import { neededForText, valueNeeds } from '../../../../utils/values/valueNeeds';
 import {
@@ -57,9 +50,11 @@ import {
   routedValueGuess,
   rowValueGuess,
 } from '../../../../utils/values/valueRouting';
+import { writeValueSource, writeValueSourceUnit } from '../../../../utils/values/valueSources';
 import { valueSuggestions } from '../../../../utils/values/valueSuggestions';
 import {
   buildValueTable,
+  cellSource,
   type ValueCell,
   type ValueTableColumn,
   type ValueTableGroup,
@@ -124,12 +119,10 @@ function plateRemovalMessage(row: PlateValueRow): string {
 }
 
 function sourceLines(cell: ValueCell, plateMaps: readonly PlateMap[]): string[] {
-  const card = labwareTitleOf(
-    plateMaps,
-    cell.linkedTo.kind === 'plate' ? cell.linkedTo.row.plateId : undefined
-  );
+  const source = cellSource(cell);
+  const card = labwareTitleOf(plateMaps, source?.kind === 'plate' ? source.row.plateId : undefined);
   if (cell.origin === 'worked') return [];
-  if (cell.linkedTo.kind === 'recipe') return ['Changing it here changes the recipe in Materials'];
+  if (source?.kind === 'recipe') return ['Changing it here changes the recipe in Materials'];
   if (!cell.isEditable) return [`Counted from ${card}`];
   if (cell.origin === 'plate') return [`Changing it here changes ${card}`];
   if (cell.origin === 'materials') return ['Changing it here changes Materials'];
@@ -142,9 +135,10 @@ const neededNoteOf = (neededFor: readonly string[]) =>
   neededFor.length ? neededForText(neededFor) : '';
 
 const typedItemIds = (cells: readonly ValueCell[]) =>
-  cells.flatMap(cell =>
-    cell.linkedTo.kind === 'item' && cell.origin === 'typed' ? [cell.linkedTo.itemId] : []
-  );
+  cells.flatMap(cell => {
+    const source = cellSource(cell);
+    return source?.kind === 'item' && cell.origin === 'typed' ? [source.itemId] : [];
+  });
 
 function cellViewOf(
   cell: ValueCell,
@@ -470,13 +464,19 @@ export function WorkbenchValuesPanel() {
       edit(draft => fillBlanks(draft, targets, cell.value, cell.unit));
       setFillOfferCellId(undefined);
     },
-    onValueChange: (cell, value) => edit(draft => writeCellValue(draft, cell, value)),
-    onUnitChange: (cell, unit) => edit(draft => writeCellUnit(draft, cell, unit)),
+    onValueChange: (cell, value) => {
+      const source = cellSource(cell);
+      if (source) edit(draft => writeValueSource(draft, source, value));
+    },
+    onUnitChange: (cell, unit) => {
+      const source = cellSource(cell);
+      if (source) edit(draft => writeValueSourceUnit(draft, source, unit));
+    },
     onRemoveCell: cell => {
-      const { linkedTo: source } = cell;
-      if (source.kind === 'item') {
+      const source = cellSource(cell);
+      if (source?.kind === 'item') {
         remove(draft => removeValue(draft, source.itemId));
-      } else if (source.kind === 'plate') {
+      } else if (source?.kind === 'plate') {
         setEditingCellId(undefined);
         setRemovingPlateRow(source.row);
       }

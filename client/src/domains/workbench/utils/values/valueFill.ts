@@ -1,11 +1,7 @@
-import { CELL_COUNT_FIELDS } from '../materials/materialCatalog';
-import { writeDonorField } from '../materials/materialDonors';
-import { writeMaterialField } from '../materials/materialItems';
-import { editRecipeEntry } from '../materials/materialRecipe';
-
-import { setPlateRowUnit, setPlateRowValue } from './plateValueRows';
-import { addRoutedValue, materialsById, setValueAmount, setValueUnit } from './valueEdits';
+import { addRoutedValue } from './valueEdits';
 import { joinValueName } from './valueNames';
+import { writeValueSource, writeValueSourceUnit } from './valueSources';
+import { cellSource } from './valueTable';
 
 import type { RoutedValue } from './valueRouting';
 import type { ValueCell, ValueTableColumn, ValueTableGroup, ValueTableRow } from './valueTable';
@@ -55,39 +51,6 @@ export function fillTargets(group: ValueTableGroup, key: string): FillTarget[] {
   });
 }
 
-type CountSource = Extract<ValueCell['linkedTo'], { kind: 'count' }>;
-
-function writeCount(draft: Protocol, { materialId, donorId, count }: CountSource, value: string) {
-  const material = materialsById(draft).get(materialId);
-  const field = CELL_COUNT_FIELDS[count];
-  if (!material) return;
-  if (!donorId) {
-    writeMaterialField(material, field, value);
-    return;
-  }
-  const donor = material.donors?.rows.find(row => row.id === donorId);
-  if (material.donors && donor) writeDonorField(material.donors, donor, field.key, value);
-}
-
-export function writeCellValue(draft: Protocol, cell: ValueCell, value: string): void {
-  const link = cell.linkedTo;
-  if (link.kind === 'item') setValueAmount(draft, link.itemId, value);
-  else if (link.kind === 'count') writeCount(draft, link, value);
-  else if (link.kind === 'plate') setPlateRowValue(draft, link.row, value);
-  else if (link.kind === 'recipe') {
-    editRecipeEntry(draft, link.materialId, link.entryId, { amount: value });
-  }
-}
-
-export function writeCellUnit(draft: Protocol, cell: ValueCell, unit: string): void {
-  const link = cell.linkedTo;
-  if (link.kind === 'item') setValueUnit(draft, link.itemId, unit);
-  else if (link.kind === 'plate') setPlateRowUnit(draft, link.row, unit);
-  else if (link.kind === 'recipe') {
-    editRecipeEntry(draft, link.materialId, link.entryId, { unit });
-  }
-}
-
 export function fillBlanks(
   draft: Protocol,
   targets: readonly FillTarget[],
@@ -103,9 +66,11 @@ export function fillBlanks(
       continue;
     }
     const { cell } = target;
-    writeCellValue(draft, cell, value);
+    const source = cellSource(cell);
+    if (!source) continue;
+    writeValueSource(draft, source, value);
     if (cell.units === undefined || cell.units.includes(unit)) {
-      writeCellUnit(draft, cell, unit);
+      writeValueSourceUnit(draft, source, unit);
     }
   }
 }

@@ -36,8 +36,11 @@ import { nameWithoutNotes } from './materialLookup';
 
 import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
+export const recipeAmountId = (mixId: string, entryId: string): string =>
+  `${mixId}:recipe:${entryId}`;
+
 export const recipeFinalId = (mixId: string, entryId: string): string =>
-  `${mixId}:recipe:${entryId}:final`;
+  `${recipeAmountId(mixId, entryId)}:final`;
 
 export const mixFinalId = (mixId: string): string => `${mixId}:recipe:final`;
 
@@ -170,7 +173,7 @@ function mixNames(
     const inMix = mixConcentrationName(mixName, ingredient);
     inputs.push({
       kind: 'value',
-      id: `${mix.id}:recipe:${entry.id}`,
+      id: recipeAmountId(mix.id, entry.id),
       name: inMix,
       value: entry.amount,
       unit: entry.unit,

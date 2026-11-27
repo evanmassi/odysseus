@@ -1,7 +1,7 @@
 # Workbench: Where the Data Lives
 
 Design for moving the workbench's saved data out of cards and into the protocol, so a card only
-shows and edits it. Started 2026-11-24 with Evan. Built: steps 0 to 4; next 5. Step 7 (painted
+shows and edits it. Started 2026-11-24 with Evan. Built: steps 0 to 5; next 6 and 7. Step 7 (painted
 wells point at their material) added 2026-11-25.
 
 ## Why
@@ -452,7 +452,7 @@ line's own name and a rename made somewhere other than the Materials card; anyth
   store tests, a plate line following, whole-name wells following); the 122 answers identical, both read straight from the
   files and opened through the store with every name linked.
 
-### Step 5: one address book (no file change)
+### Step 5: one address book (built 2026-11-25, no file change)
 
 - One lookup from a number's id to where it is saved and how to write it: `ValueSource`,
   `valueSourceOf` and `writeValueSource` move out of `valueEdits.ts` into
@@ -462,6 +462,25 @@ line's own name and a rename made somewhere other than the Materials card; anyth
   cell links keep only what is about showing (`need`, `worked`, `wells`). Dilutions gains plate
   numbers. The old dispatch is deleted.
 - Tests: one per kind of number, written and read back through the lookup.
+
+**Built:**
+
+- **`utils/values/valueSources.ts`:** `ValueSource` is a Values item, a Materials field, a donor's
+  cell count, a plate count or amount, a recipe amount, or a series' Round to. `valueSourceOf`
+  finds it from a number's board id; `writeValueSource` and `writeValueSourceUnit` write it. The
+  ids it matches come from the same builders the board uses (`materialValueId`, `countId`,
+  `recipeAmountId`, now shared by the board and the Values table, and `prepRoundToId`).
+- **Values:** a cell's link is `{ kind: 'saved', source }` or one of the showing-only links
+  (`need`, `worked`, `wells`); the table builds the source it already knows (`countSource` for
+  counts), and `cellSource` reads it. `writeCellValue`, `writeCellUnit` and `writeCount` in
+  `valueFill.ts` are deleted; typing, filling blanks and removing go through the source.
+- **Dilutions:** a shared prep field whose number comes from the plate (a vol./well typed on the
+  wells) is now edited in place instead of read only; Round to writes through the lookup.
+  `setPrepSetting` moved to `plateMap/seriesEdits.ts`, its natural home, which also keeps the
+  lookup clear of an import cycle with `dilutionEdits.ts`.
+- **Checked:** typecheck and lint clean; 870 client tests (new: `valueSources.test.ts`, seven
+  kinds written and read back, and a dilution editing a plate vol./well); the 122 answers
+  identical apart from the names of Evan's Risankizumab rename.
 
 ### Step 6: the built-in math reads what kind of number a value is, not its name (file change)
 

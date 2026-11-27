@@ -13,8 +13,8 @@ import {
   TOTAL_WELL_VOLUME,
   VOLUME_PER_WELL,
 } from '../terms/termList';
-import { valueSourceOf, type ValueSource } from '../values/valueEdits';
 import { lowerLead } from '../values/valueNames';
+import { valueSourceOf, type ValueSource } from '../values/valueSources';
 
 import {
   ownPrepValueName,

@@ -9,9 +9,22 @@ import { pointAmount } from './plateSeries';
 
 import type { PlateMapSheet } from './plateMapTabs';
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { PlateSeries, PlateMap } from '@odysseus/shared-schemas';
+import type { PlateSeries, PlateMap, Protocol } from '@odysseus/shared-schemas';
 
 type Direction = PlateSeries['direction'];
+
+type SeriesPrepKey = keyof NonNullable<PlateSeries['prep']>;
+
+export function setPrepSetting(
+  draft: Protocol,
+  plateId: string,
+  seriesId: string,
+  key: SeriesPrepKey,
+  value: string
+): void {
+  const series = draft.plateMaps.find(plateMap => plateMap.id === plateId)?.series[seriesId];
+  if (series) series.prep = { ...series.prep, [key]: value };
+}
 
 export interface SeriesForm {
   lineId: string;

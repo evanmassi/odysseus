@@ -7,9 +7,9 @@ import { collectBoardNames } from '../formulas/boardNames';
 import { DILUTION_FACTOR_NOTATION } from '../formulas/quantities';
 
 import { materialsById } from './valueEdits';
-import { writeCellValue } from './valueFill';
 import { valueNeeds } from './valueNeeds';
-import { buildValueTable, type ValueTableGroup } from './valueTable';
+import { isCellCountSource, writeValueSource } from './valueSources';
+import { buildValueTable, cellSource, type ValueCell, type ValueTableGroup } from './valueTable';
 
 import type {
   MaterialItem,
@@ -157,6 +157,11 @@ const cellsByLabel = (group: ValueTableGroup, rowName: string) =>
       .find(row => row.name === rowName)!
       .cells.map(cell => [cell.label, `${cell.value}${cell.unit ? ` ${cell.unit}` : ''}`])
   );
+
+const isCountCell = (cell: ValueCell) => {
+  const source = cellSource(cell);
+  return source !== undefined && isCellCountSource(source);
+};
 
 describe('the values table', () => {
   const groups = tableFor([killingPlate], mainValues);
@@ -491,7 +496,7 @@ describe('plate names and needed values in the values table', () => {
     const cell = rowNamed(table, 'Biological material', 'T cells').cells.find(
       candidate => candidate.label === 'Volume per well'
     );
-    expect(cell?.linkedTo).toEqual({ kind: 'item', itemId: 't-vol' });
+    expect(cell?.linkedTo).toEqual({ kind: 'saved', source: { kind: 'item', itemId: 't-vol' } });
     expect(cell?.neededFor.length).toBeGreaterThan(0);
   });
 });
@@ -552,10 +557,8 @@ describe('cells on the values table', () => {
       isEditable: true,
       note: 'Worked out: Total cell conc. × Viability = 2.00E+6 cells/mL × 90%',
       linkedTo: {
-        kind: 'count',
-        materialId: 'm-raji',
-        donorId: undefined,
-        count: 'liveConcentration',
+        kind: 'saved',
+        source: { kind: 'material', materialId: 'm-raji', field: { key: 'live-cell-conc' } },
       },
     });
     expect(cellOf(bio, 'Raji', 'Vol.')?.workedValue).toBeUndefined();
@@ -583,7 +586,7 @@ describe('cells on the values table', () => {
       ['D2', true],
       ['D3', true],
     ]);
-    expect(rowOf(bio, 'T cells').cells.some(cell => cell.linkedTo.kind === 'count')).toBe(false);
+    expect(rowOf(bio, 'T cells').cells.some(isCountCell)).toBe(false);
     expect(cellOf(bio, 'D1', 'Live cells')?.value).toBe('9e6');
     expect(cellOf(bio, 'D3', 'Viability')?.value).toBe('80');
   });
@@ -674,16 +677,15 @@ describe('cells on the values table', () => {
 
   it('gives a material that is not cells no counts', () => {
     const bio = cellTable([material('m-lenti', 'GFP lentivirus', 'bio', 'Virus or vector')]);
-    expect(rowOf(bio, 'GFP lentivirus').cells.some(cell => cell.linkedTo.kind === 'count')).toBe(
-      false
-    );
+    expect(rowOf(bio, 'GFP lentivirus').cells.some(isCountCell)).toBe(false);
   });
 
   it('writes a typed count back to the donor in Materials', () => {
     const protocol = protocolOf([cellPlate], plating, [donors]);
     const cell = cellOf(groupNamed(tableOf(protocol), 'Biological material'), 'D2', 'Vol.');
     const written = produce(protocol, draft => {
-      if (cell) writeCellValue(draft, cell, '2');
+      const source = cell && cellSource(cell);
+      if (source) writeValueSource(draft, source, '2');
     });
     const [item] = written.materials.items;
     expect(item.donors?.rows[1].values['volume']).toBe('2');

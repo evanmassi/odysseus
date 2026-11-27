@@ -150,7 +150,7 @@ type CellSubject = Pick<CountSubject, 'material' | 'donor'>;
 
 const cellSubjectId = ({ material, donor }: CellSubject) => donor?.id ?? material.id;
 
-export const countId = (subject: CountSubject, count: CellCount): string =>
+export const countId = (subject: CellSubject, count: CellCount): string =>
   `${cellSubjectId(subject)}:${CELL_COUNT_FIELDS[count].key}`;
 
 export const countName = (subject: CountSubject, count: CellCount): string =>

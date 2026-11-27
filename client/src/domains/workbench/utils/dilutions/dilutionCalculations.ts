@@ -98,7 +98,7 @@ const INTERMEDIATE_LINES: ReadonlySet<PrepLine> = new Set([
 
 export const prepLineId = (run: DilutionRun, line: PrepLine): string => `${run.key}:prep:${line}`;
 
-const prepRoundToId = (run: DilutionRun): string => `${run.key}:prep:roundTo`;
+export const prepRoundToId = (run: DilutionRun): string => `${run.key}:prep:roundTo`;
 
 const MASS_CONCENTRATION = dimensionKey({ mass: 1, volume: -1 });
 

@@ -7,12 +7,7 @@ import { useProtocolOutsidePages } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { ownDiluent, runDiluents } from '../../../../utils/dilutions/dilutionDiluents';
-import {
-  recordOnMaterial,
-  setPrepSetting,
-  setSharedPrepValue,
-  type SeriesPrepKey,
-} from '../../../../utils/dilutions/dilutionEdits';
+import { recordOnMaterial, setSharedPrepValue } from '../../../../utils/dilutions/dilutionEdits';
 import { dilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
 import { dilutionRuns, type DilutionRun } from '../../../../utils/dilutions/dilutionRuns';
 import { STOCK_FIELD, WEIGHT_FIELD } from '../../../../utils/dilutions/dilutionStock';
@@ -26,7 +21,9 @@ import {
   shortNameOf,
 } from '../../../../utils/materials/materialLookup';
 import { materialKnowledge } from '../../../../utils/materials/materialMemory';
+import { setPrepSetting } from '../../../../utils/plateMap/seriesEdits';
 import { assaySetupTitleOf } from '../../../../utils/values/valueNames';
+import { writeValueSource } from '../../../../utils/values/valueSources';
 import { CARD_ICONS } from '../../board/cardIcons';
 import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
 import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
@@ -81,10 +78,10 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
     });
   };
 
-  const setOnMembers = (run: DilutionRun, key: SeriesPrepKey, value: string) =>
+  const setRunDiluent = (run: DilutionRun, diluent: string) =>
     updateProtocol(draft => {
       for (const member of run.members) {
-        setPrepSetting(draft, member.plateId, member.seriesId, key, value);
+        setPrepSetting(draft, member.plateId, member.seriesId, 'diluent', diluent);
       }
     });
 
@@ -158,8 +155,12 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
                 setSharedPrepValue(draft, run.subject, field, value, card.page)
               )
             }
-            onRoundToChange={value => setOnMembers(run, 'roundTo', value)}
-            onDiluentChange={diluent => setOnMembers(run, 'diluent', diluent)}
+            onRoundToChange={value =>
+              updateProtocol(draft =>
+                writeValueSource(draft, { kind: 'roundTo', members: run.members }, value)
+              )
+            }
+            onDiluentChange={diluent => setRunDiluent(run, diluent)}
             onDiluentDone={() => listDiluent(ownDiluent(run))}
             onStockSave={(value, unit) => {
               if (prep.kind !== 'ready' || prep.stock.kind !== 'ask') return;

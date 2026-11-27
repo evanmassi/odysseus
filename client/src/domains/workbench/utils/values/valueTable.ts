@@ -50,6 +50,7 @@ import {
   finalConcentrationName,
   mixConcentrationName,
   mixFinalId,
+  recipeAmountId,
   recipeFinalId,
   recipePlacements,
   type RecipePlacement,
@@ -76,6 +77,7 @@ import {
 import { canRemovePlateRow, plateValueRows, type PlateValueRow } from './plateValueRows';
 import { linkedValueOf, valueRowName } from './valueEdits';
 import { assaySetupTitleOf, columnKey, joinValueName, lowerLead } from './valueNames';
+import { countSource, isCellCountSource, type ValueSource } from './valueSources';
 
 import type { ValueNeed } from './valueNeeds';
 import type { RoutedValue } from './valueRouting';
@@ -83,13 +85,13 @@ import type { RoutedValue } from './valueRouting';
 export type ValueOrigin = 'typed' | 'plate' | 'materials' | 'worked';
 
 export type ValueCellLink =
-  | { kind: 'item'; itemId: string }
-  | { kind: 'plate'; row: PlateValueRow }
+  | { kind: 'saved'; source: ValueSource }
   | { kind: 'wells' }
-  | { kind: 'recipe'; materialId: string; entryId: string }
   | { kind: 'need'; routed: RoutedValue }
-  | { kind: 'count'; materialId: string; donorId: string | undefined; count: CellCount }
   | { kind: 'worked' };
+
+export const cellSource = ({ linkedTo }: ValueCell): ValueSource | undefined =>
+  linkedTo.kind === 'saved' ? linkedTo.source : undefined;
 
 export interface ValueCell {
   id: string;
@@ -263,12 +265,7 @@ function countCells(subject: CountSubject, board: SolvedBoard): ValueCell[] {
       note: mismatch ?? (worked ? `Worked out: ${countWorking(solved, count)}` : ''),
       neededFor: count === missing ? needer : NOT_NEEDED,
       origin: 'materials',
-      linkedTo: {
-        kind: 'count',
-        materialId: subject.material.id,
-        donorId: subject.donor?.id,
-        count,
-      },
+      linkedTo: { kind: 'saved', source: countSource(subject, count) },
       ...(worked && { workedValue: countNumberText(count, worked.value) }),
       ...(mismatch && { isMismatched: true }),
     };
@@ -369,7 +366,9 @@ function orderColumns(rows: readonly ValueTableRow[]): ValueTableColumn[] {
       at: columns.size,
     };
     column.origins.add(cell.origin);
-    if (cell.linkedTo.kind === 'count') column.isCount = true;
+    if (cell.linkedTo.kind === 'saved' && isCellCountSource(cell.linkedTo.source)) {
+      column.isCount = true;
+    }
     columns.set(cell.columnKey, column);
   }
   return [...columns]
@@ -524,7 +523,7 @@ export function buildValueTable(
         note: '',
         neededFor: NOT_NEEDED,
         origin: 'materials',
-        linkedTo: { kind: 'item', itemId: item.id },
+        linkedTo: { kind: 'saved', source: { kind: 'item', itemId: item.id } },
       });
       continue;
     }
@@ -544,7 +543,7 @@ export function buildValueTable(
         : '',
       neededFor: NOT_NEEDED,
       origin: 'typed',
-      linkedTo: { kind: 'item', itemId: item.id },
+      linkedTo: { kind: 'saved', source: { kind: 'item', itemId: item.id } },
     });
   }
 
@@ -630,7 +629,7 @@ export function buildValueTable(
         ...plateCellFields(row, labwareTitle(plateMap)),
         neededFor: NOT_NEEDED,
         origin: 'plate',
-        linkedTo: { kind: 'plate', row },
+        linkedTo: { kind: 'saved', source: { kind: 'plate', row } },
       });
     }
   }
@@ -690,7 +689,7 @@ export function buildValueTable(
       subRow.cells.push(
         {
           id: `${row.id}:recipe:${entry.id}`,
-          nameId: `${material.id}:recipe:${entry.id}`,
+          nameId: recipeAmountId(material.id, entry.id),
           columnKey: columnKey(MIX_CONCENTRATION.word),
           label: MIX_CONCENTRATION.word,
           fullName: mixConcentrationName(row.name, ingredientName),
@@ -702,7 +701,10 @@ export function buildValueTable(
           note: '',
           neededFor: NOT_NEEDED,
           origin: 'materials',
-          linkedTo: { kind: 'recipe', materialId: material.id, entryId: entry.id },
+          linkedTo: {
+            kind: 'saved',
+            source: { kind: 'recipe', materialId: material.id, entryId: entry.id },
+          },
         },
         ...placements.map(placement =>
           workedCell(

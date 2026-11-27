@@ -1,23 +1,11 @@
 import { materialFields } from '../materials/materialCatalog';
 import { showMaterialField, writeMaterialField } from '../materials/materialItems';
 import { ensureMaterial, materialNamed } from '../materials/materialLookup';
-import { addNamedValue, writeValueSource } from '../values/valueEdits';
+import { addNamedValue } from '../values/valueEdits';
+import { writeValueSource } from '../values/valueSources';
 
 import type { SharedPrepField } from './dilutionPrep';
-import type { MaterialItem, PlateSeries, Protocol } from '@odysseus/shared-schemas';
-
-export type SeriesPrepKey = keyof NonNullable<PlateSeries['prep']>;
-
-export function setPrepSetting(
-  draft: Protocol,
-  plateId: string,
-  seriesId: string,
-  key: SeriesPrepKey,
-  value: string
-): void {
-  const series = draft.plateMaps.find(plateMap => plateMap.id === plateId)?.series[seriesId];
-  if (series) series.prep = { ...series.prep, [key]: value };
-}
+import type { MaterialItem, Protocol } from '@odysseus/shared-schemas';
 
 export function recordOnMaterial(
   draft: Protocol,
