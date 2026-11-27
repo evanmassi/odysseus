@@ -6,7 +6,9 @@ import {
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
+import { dilutionRuns, runTags } from '../dilutions/dilutionRuns';
 import { STOCK_FIELD } from '../dilutions/dilutionStock';
+import { seriesNumbers } from '../dilutions/seriesNumbers';
 import {
   calculationAnswerText,
   type BoardName,
@@ -77,7 +79,7 @@ import { countSource, isCellCountSource, type ValueSource } from './valueSources
 import type { ValueNeed } from './valueNeeds';
 import type { RoutedValue } from './valueRouting';
 
-export type ValueOrigin = 'typed' | 'plate' | 'materials' | 'worked';
+export type ValueOrigin = 'typed' | 'plate' | 'materials' | 'dilutions' | 'worked';
 
 export type ValueCellLink =
   | { kind: 'saved'; source: ValueSource }
@@ -153,7 +155,13 @@ interface RowDraft extends ValueTableRow {
 
 const MIX_GROUP = { key: 'mix', label: 'Mixes' };
 const PLATE_GROUP_KEY = 'supplies';
-const ORIGIN_RANK: Record<ValueOrigin, number> = { typed: 0, plate: 1, materials: 2, worked: 3 };
+const ORIGIN_RANK: Record<ValueOrigin, number> = {
+  typed: 0,
+  plate: 1,
+  dilutions: 1,
+  materials: 2,
+  worked: 3,
+};
 const NOT_NEEDED: readonly string[] = [];
 const COUNT_RANK = -1;
 const SHOWN_COUNTS: readonly CellCount[] = CELL_COUNTS.filter(count => count !== 'totalCells');
@@ -308,14 +316,11 @@ function plateCellFields(row: PlateValueRow, cardTitle: string) {
       note: count.count === count.tally ? '' : `Typed in; ${cardTitle} counts ${count.tally}`,
     };
   }
-  const from = source.amount.source;
-  const isFixedUnit =
-    from.kind === 'points' || (from.kind === 'series' && from.field === 'dilutionFactor');
   return {
     value: source.amount.value,
     unit: source.amount.unit,
-    units: isFixedUnit ? [] : undefined,
-    isEditable: from.kind !== 'points',
+    units: undefined,
+    isEditable: true,
     canRemove,
     note: '',
   };
@@ -545,7 +550,7 @@ export function buildValueTable(
 
   const platesBySubject = new Map<string, Set<string>>();
   const plateRowsByPlate = plates.map(plateMap => {
-    const plateRows = plateValueRows(plateMap, protocol.series);
+    const plateRows = plateValueRows(plateMap);
     for (const row of plateRows) {
       const key = normalizeMaterialKey(plateSubject(row).subject);
       if (key) platesBySubject.set(key, (platesBySubject.get(key) ?? new Set()).add(plateMap.id));
@@ -626,6 +631,47 @@ export function buildValueTable(
         neededFor: NOT_NEEDED,
         origin: 'plate',
         linkedTo: { kind: 'saved', source: { kind: 'plate', row } },
+      });
+    }
+  }
+
+  const runs = dilutionRuns(protocol);
+  const runTagsByKey = runTags(runs);
+  for (const run of runs) {
+    const tag = runTagsByKey.get(run.key);
+    if (tag === undefined) continue;
+    const material = findMaterial(listedMaterials, run.subject);
+    const owner =
+      (material && rowForMaterial(material)) ??
+      findNamed(mixRows, run.subject, candidate => candidate.name) ??
+      draftRow(`series:${run.key}`, run.subject, PLATE_GROUP_KEY, {
+        valueRow: undefined,
+        material: undefined,
+        status: 'current',
+      });
+    const target = tag ? subRowOf(owner, `series${tag}`) : owner;
+    for (const number of seriesNumbers(run, tag)) {
+      const isCount = number.field === 'points' || number.field === 'replicates';
+      const isTypedOver =
+        isCount && number.counted !== undefined && String(number.counted) !== number.value;
+      target.cells.push({
+        id: number.id,
+        nameId: number.id,
+        columnKey: columnKey(number.term.word),
+        label: number.term.word,
+        fullName: number.name,
+        value: number.value,
+        unit: number.unit,
+        units: number.field === 'top' ? undefined : [],
+        isEditable: true,
+        canRemove: false,
+        note: isTypedOver ? `Typed in; ${run.places.join(', ')} counts ${number.counted}` : '',
+        neededFor: NOT_NEEDED,
+        origin: 'dilutions',
+        linkedTo: {
+          kind: 'saved',
+          source: { kind: 'series', seriesIds: run.seriesIds, field: number.field },
+        },
       });
     }
   }

@@ -18,6 +18,7 @@ export interface SeriesRef {
 
 export interface DilutionRun {
   key: string;
+  seriesIds: string[];
   members: SeriesRef[];
   places: string[];
   series: StepSeries;
@@ -27,7 +28,7 @@ export interface DilutionRun {
   replicatesByPoint: Map<number, number>;
 }
 
-interface PlacedRun extends Omit<DilutionRun, 'key' | 'members' | 'places'> {
+interface PlacedRun extends Omit<DilutionRun, 'key' | 'seriesIds' | 'members' | 'places'> {
   ref: SeriesRef;
   place: string;
 }
@@ -88,17 +89,43 @@ const sameSourceKey = ({ subject, series }: PlacedRun) =>
     readReference(series.dilutionFactor).id ?? dilutionFactorOf(series.dilutionFactor),
   ].join('|');
 
-export function dilutionRuns(protocol: Pick<Protocol, 'plateMaps' | 'series'>): DilutionRun[] {
-  const plates = protocol.plateMaps;
+function unpaintedRuns(
+  protocol: Pick<Protocol, 'materials' | 'series'>,
+  painted: ReadonlySet<string>
+): DilutionRun[] {
+  return Object.entries(protocol.series).flatMap(([seriesId, series]) => {
+    if (painted.has(seriesId) || !('top' in series)) return [];
+    const material = protocol.materials.items.find(item => item.id === series.materialId);
+    const subject = material?.name.trim() ?? '';
+    return [
+      {
+        key: seriesId,
+        seriesIds: [seriesId],
+        members: [],
+        places: [],
+        series,
+        subject,
+        links: material ? [{ materialId: material.id, name: subject }] : undefined,
+        color: undefined,
+        replicatesByPoint: new Map<number, number>(),
+      },
+    ];
+  });
+}
+
+export function dilutionRuns(
+  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'series'>
+): DilutionRun[] {
   const pooled = new Map<string, DilutionRun>();
-  for (const placed of placedRuns(plates, protocol.series)) {
+  for (const placed of placedRuns(protocol.plateMaps, protocol.series)) {
     const { ref, place, ...run } = placed;
     const key = sameSourceKey(placed);
     const existing = pooled.get(key);
     if (!existing) {
       pooled.set(key, {
         ...run,
-        key: `${ref.plateId}:${ref.seriesId}`,
+        key: ref.seriesId,
+        seriesIds: [ref.seriesId],
         members: [ref],
         places: [place],
         replicatesByPoint: new Map(run.replicatesByPoint),
@@ -106,12 +133,15 @@ export function dilutionRuns(protocol: Pick<Protocol, 'plateMaps' | 'series'>): 
       continue;
     }
     existing.members.push(ref);
+    if (!existing.seriesIds.includes(ref.seriesId)) existing.seriesIds.push(ref.seriesId);
     if (!existing.places.includes(place)) existing.places.push(place);
     for (const [point, wells] of run.replicatesByPoint) {
       existing.replicatesByPoint.set(point, (existing.replicatesByPoint.get(point) ?? 0) + wells);
     }
   }
-  return [...pooled.values()];
+  const runs = [...pooled.values()];
+  const painted = new Set(runs.flatMap(run => run.seriesIds));
+  return [...runs, ...unpaintedRuns(protocol, painted)];
 }
 
 export function runTags(runs: readonly DilutionRun[]): Map<string, string> {

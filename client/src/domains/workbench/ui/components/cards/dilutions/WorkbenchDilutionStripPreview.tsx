@@ -60,6 +60,7 @@ const MONO_CHARACTER = 0.6;
 const ROW_GAP = 15;
 const FALLBACK_COLOR = 'hsl(var(--primary))';
 const HALO = 'fill-foreground stroke-background font-mono font-bold';
+const UNUSED_OPACITY = 0.4;
 
 const widthOf = (vessel: Vessel, height: number) => height * vessel.aspect;
 
@@ -92,7 +93,9 @@ export function WorkbenchDilutionStripPreview({
   const vialCenter = VIAL_X + widthOf(VIAL, VIAL_HEIGHT) / 2;
   const hasStockIssue = prep.stock.kind === 'ask' || prep.stock.kind === 'problem';
   const rowsBelow = prep.isUneven ? 4 : 3;
-  const width = tubeX(prep.points.length) + 10;
+  const missing = Math.max(0, (prep.platePoints ?? 0) - prep.points.length);
+  const isUnused = (index: number) => prep.platePoints !== undefined && index >= prep.platePoints;
+  const width = tubeX(prep.points.length + missing) + 10;
   const height = BASE + 20 + rowsBelow * ROW_GAP;
   const maskId = (vessel: 'tube' | 'vial', part: 'inside' | 'outline') =>
     `${svgId}-${vessel}-${part}`;
@@ -257,7 +260,8 @@ export function WorkbenchDilutionStripPreview({
         const center = centerOf(TUBE, x, TUBE_HEIGHT);
         const tint = seriesTint(lastPoint ? index / lastPoint : 0);
         return (
-          <g key={point.point}>
+          <g key={point.point} opacity={isUnused(index) ? UNUSED_OPACITY : undefined}>
+            {isUnused(index) && <title>Not used on the plate</title>}
             {vessel(
               TUBE,
               'tube',
@@ -298,6 +302,24 @@ export function WorkbenchDilutionStripPreview({
                 {point.wells}
               </text>
             )}
+          </g>
+        );
+      })}
+      {Array.from({ length: missing }, (_, offset) => {
+        const index = prep.points.length + offset;
+        const x = tubeX(index);
+        return (
+          <g key={`missing-${index}`}>
+            <title>Used on the plate, but no tube is made</title>
+            {vessel(TUBE, 'tube', x, TUBE_HEIGHT, 0, 0, 'fill-warning-text')}
+            <text
+              x={centerOf(TUBE, x, TUBE_HEIGHT)}
+              y={rowY(0)}
+              fontSize={11}
+              className="fill-warning-text"
+            >
+              {index + 1}
+            </text>
           </g>
         );
       })}

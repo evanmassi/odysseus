@@ -45,6 +45,7 @@ const ORIGIN_MARK: Partial<
 > = {
   plate: { icon: CARD_ICONS.plateMap, note: 'Read from the labware' },
   materials: { icon: CARD_ICONS.materials, note: 'Read from Materials' },
+  dilutions: { icon: CARD_ICONS.dilutions, note: 'Read from Dilutions' },
 };
 
 function ColumnHeading({

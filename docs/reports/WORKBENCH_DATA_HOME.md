@@ -732,6 +732,47 @@ plan's Resume here, with the sweep that found this and the rest).
     Converted by `%TEMP%/data-home/convert-v16.mjs` (stops on any id two plate maps share; none
     did); Evan's files copied first to `Old versions/Version 15`; 122 answers identical, read
     straight from the files, opened through the store and linked.
+- **8b split in two (2026-11-27):** 8b-1 the series owns its numbers, 8b-2 the Dilutions card.
+- **Decided 2026-11-27 (Evan):** a series' numbers drop the plate from their names: "Risankizumab
+  top conc. on P1 - Flat bottom" becomes "Risankizumab top conc." (Evan: "cleaner ... relates to
+  the thing I'm diluting"). A second series of the same drug is numbered the way prep lines
+  already are ("Drug X top conc. 2", a "series 2" row in Values), replacing the plate's "in
+  Jurkat" / "on Copy" tags.
+- **8b-1 as built (2026-11-27, file version 17):** each series (each pooled run) has its own
+  Top conc., Dil. factor, Points and Replicates (`seriesNumbers.ts`, ids `series:<id>:<field>`),
+  generated beside the prep and always on the board, even when a scientist's own formula takes a
+  prep line's name. Points and Replicates are counted from the plate unless typed on the series
+  (`points`, `replicates`, saved strings; clearing one goes back to the plate's count), so the
+  prep, its summary and the tube strip read `runCounts`, and Diluent total reads
+  `Diluent per point × (Points − 1)`. The plate no longer makes its own series numbers: its named
+  amounts are only well amounts again, so `plateAmounts` and `plateValueRows` take the plate
+  alone. Values shows the four numbers on the drug's row from the series (origin `dilutions`,
+  "Read from Dilutions", "Changing it here changes the dilution"), Replicates now among them; the
+  address book gains a `series` source, so they edit in place in Values and in workings. Removing
+  a whole dilution from Values goes (8b-2 puts Remove on the Dilutions card). Converted by
+  `%TEMP%/data-home/convert-v17.tmp.test.ts` (the app's own runs map each old
+  `<plate>:s:<series>:<field>` and `<run>:prep:busiest` id to the series' id; one procedure step
+  in Evan's Nov 5 file moved, now reading "Risankizumab dil. factor"); v16 copies in
+  `Old versions/Version 16`; 122 answers identical read and opened.
+- **8b-2 as built (2026-11-27, still file version 17, built before 8b-1 was committed):** a series
+  saves its material (`materialId`), set on the card when started and kept from the plate's link
+  for a painted one (`linkSeriesMaterials`, in the reference pass), so a series no plate holds is
+  still named for its drug. `dilutionRuns` adds every series no plate holds as its own run, and a
+  run's key is now its series' id (was plate + series, so its prep lines would have changed id the
+  moment it was painted); a run carries `seriesIds` and every write goes through them.
+  `dropUnpaintedSeries` is gone: clearing a series' wells leaves it on the Dilutions card, "not on
+  a plate". With no plate and no typed Points or Replicates the prep says "Type how many points and
+  replicates this series has, or paint it on a plate." The card: "+ New dilution" picks a material
+  or types a new one (the Flow panel's pick, moved to `board/WorkbenchMaterialPick`), starting a
+  blank series (`startSeries`); each series gets a Series row (`WorkbenchDilutionSeriesRow`: Top
+  conc. in Values' amount box, Dil. factor, Points, Replicates), a count read from the plate shown
+  with the plate mark and typed over on click, a typed one with ↺ back to the plate's count; the
+  tube strip draws a tube the plate doesn't use faint and a point the plate uses with no tube as an
+  empty amber tube (hover says which), from `platePoints` on the prep; Remove (red, beside the
+  name, "permanently removed" warning) deletes the series and clears its wells
+  (`removeSeriesEverywhere`). The settings boxes moved into `WorkbenchDilutionSetting`, shared by
+  both rows. The v17 converter also moves prep references to the series key; it was re-run from the
+  v16 originals, moving 5 references in Evan's Nov 5 procedure step.
 
 ## Code standards for this work
 

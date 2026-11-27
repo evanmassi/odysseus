@@ -9,6 +9,8 @@ import { linkOwner } from '../materials/plateLinks';
 import { seriesDilutionFactor, seriesTop } from '../plateMap/plateSeries';
 import {
   DILUTION_FACTOR,
+  POINTS,
+  REPLICATES,
   TOP_AMOUNT,
   TOP_POSITION,
   TOTAL_WELL_VOLUME,
@@ -31,6 +33,7 @@ import {
 import { diluentChoice } from './dilutionDiluents';
 import { runMaterial, stockFor, type StockReading } from './dilutionStock';
 import { dialNumber, pipetteFor, shortNumber, type PipetteUse } from './pipettes';
+import { plateCounts, runCounts } from './seriesNumbers';
 
 import type { DilutionRun } from './dilutionRuns';
 
@@ -73,6 +76,7 @@ export type DilutionPrep =
       kind: 'ready';
       strength: string;
       points: PrepPoint[];
+      platePoints: number | undefined;
       isUneven: boolean;
       transferText: string;
       stockText: string | undefined;
@@ -157,7 +161,7 @@ export function dilutionPrep(
   const settings = prepSettingsOf(run);
   const dilutionFactor = seriesDilutionFactor(run.series, board);
   const top = seriesTop(run.series, board);
-  const pointCount = Math.max(...run.replicatesByPoint.keys()) + 1;
+  const pointCount = runCounts(run).points;
   const isRatio = run.series.unit === RATIO_NOTATION;
   const unit = top?.unit ?? '';
   const show = (value: number) =>
@@ -165,7 +169,9 @@ export function dilutionPrep(
   const summary = [
     top ? show(top.value) : readReference(run.series.top).name || '?',
     `1:${shortNumber(dilutionFactor || 0)}`,
-    `${pointCount} ${pointCount === 1 ? 'point' : 'points'}`,
+    pointCount === undefined
+      ? '? points'
+      : `${pointCount} ${pointCount === 1 ? 'point' : 'points'}`,
   ].join(' · ');
   const base = {
     settings,
@@ -178,7 +184,14 @@ export function dilutionPrep(
     return {
       ...base,
       kind: 'problem',
-      problem: `Give this series a ${lowerLead(TOP_AMOUNT.word)} with a unit, and a ${lowerLead(DILUTION_FACTOR.word)}, with its Dilution button.`,
+      problem: `Give this series a ${lowerLead(TOP_AMOUNT.word)} with a unit, and a ${lowerLead(DILUTION_FACTOR.word)}.`,
+    };
+  }
+  if (pointCount === undefined || runCounts(run).replicates === undefined) {
+    return {
+      ...base,
+      kind: 'problem',
+      problem: `Type how many ${lowerLead(POINTS.word)} and ${lowerLead(REPLICATES.word)} this series has, or paint it on a plate.`,
     };
   }
   const added = sharedMicroliters(protocol, board, run, 'volumePerWell');
@@ -267,6 +280,7 @@ export function dilutionPrep(
     kind: 'ready',
     strength: `${shortNumber(strength)}×`,
     points,
+    platePoints: plateCounts(run).points,
     isUneven: new Set(run.replicatesByPoint.values()).size > 1,
     transferText: dialed('series', transfer),
     stockText: rawStock === undefined ? undefined : dialed('stock', rawStock),

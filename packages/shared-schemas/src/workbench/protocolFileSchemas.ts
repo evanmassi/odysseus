@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 16;
+export const PROTOCOL_FILE_VERSION = 17;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -148,6 +148,9 @@ const seriesSchema = z.union([
     dilutionFactor: z.string(),
     direction: z.enum(SERIES_DIRECTIONS),
     prep: seriesPrepSchema.optional(),
+    points: z.string().optional(),
+    replicates: z.string().optional(),
+    materialId: z.string().optional(),
   }),
 ]);
 

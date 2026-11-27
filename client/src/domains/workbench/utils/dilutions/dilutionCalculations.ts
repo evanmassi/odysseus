@@ -11,13 +11,12 @@ import {
 import { dimensionKey, FOLD_UNIT, RATIO_NOTATION, readNumber } from '../formulas/quantities';
 import { fieldName, materialFields } from '../materials/materialCatalog';
 import { linkOwner } from '../materials/plateLinks';
-import { plateAmounts } from '../plateMap/plateMapNames';
 import { stepSeriesUnit } from '../plateMap/plateSeries';
+import { boardKind } from '../terms/savedTerms';
 import {
   DILUENT_IN_TOP,
   EXTRA,
   MOLECULAR_WEIGHT,
-  REPLICATES,
   ROUND_TO,
   STOCK_CONCENTRATION,
   TOP_VOLUME,
@@ -33,6 +32,7 @@ import { assaySetupTitleOf, GENERAL, joinValueName, lowerLead } from '../values/
 import { diluentChoice, diluentNeedId, runDiluents, type DiluentChoice } from './dilutionDiluents';
 import { dilutionRuns, runTags, type DilutionRun } from './dilutionRuns';
 import { runMaterial, STOCK_FIELD, stockFor, WEIGHT_FIELD } from './dilutionStock';
+import { isTypedCount, seriesNumbers, type SeriesField } from './seriesNumbers';
 
 export interface PrepSettings {
   roundTo: string;
@@ -106,20 +106,6 @@ const MASS_CONCENTRATION = dimensionKey({ mass: 1, volume: -1 });
 
 const dimensionOf = (unit: string) => dimensionKey(unitScale(unit)?.dimension ?? {});
 
-function seriesName(protocol: Protocol, run: DilutionRun, field: 'top' | 'dilutionFactor'): string {
-  const [first] = run.members;
-  const plateMap = protocol.plateMaps.find(candidate => candidate.id === first.plateId);
-  const amount = plateMap
-    ? plateAmounts(plateMap, protocol.series).find(
-        candidate =>
-          candidate.source.kind === 'series' &&
-          candidate.source.seriesId === first.seriesId &&
-          candidate.source.field === field
-      )
-    : undefined;
-  return amount?.name ?? run.series[field].trim();
-}
-
 function fieldNameOf(material: MaterialItem, key: string): string | undefined {
   const definition = materialFields(material).find(candidate => candidate.key === key);
   return definition && fieldName(material, definition);
@@ -192,17 +178,19 @@ function runNames(
   const wellVolume = shared('totalWellVolume');
   const extra = shared('extra');
   const roundTo = named(ROUND_TO_LABEL);
-  const top = seriesName(protocol, run, 'top');
-  const fold = seriesName(protocol, run, 'dilutionFactor');
-  const busiest = named(lowerLead(REPLICATES.word));
-  const pointCount = Math.max(...run.replicatesByPoint.keys()) + 1;
+  const numbers = seriesNumbers(run, tag);
+  const numberName = (field: SeriesField) => numbers.find(number => number.field === field)?.name;
+  const top = numberName('top') ?? run.series.top.trim();
+  const fold = numberName('dilutionFactor') ?? run.series.dilutionFactor.trim();
+  const replicates = numberName('replicates');
+  const points = numberName('points');
   const roundsTo = (readNumber(settings.roundTo) ?? 0) > 0 ? roundTo : '1 µL';
   const stock = stockSource(protocol, run, names);
   const hasStock = 'formula' in stock;
 
   const formulas: Record<PrepLine, string> = {
     strength: `${wellVolume} ÷ ${volume}`,
-    needed: `${busiest} × ${volume}${extra ? ` × (1 + ${extra})` : ''}`,
+    needed: `${replicates} × ${volume}${extra ? ` × (1 + ${extra})` : ''}`,
     transfer: `round up(${line('needed')} ÷ (${fold} − 1), ${roundsTo})`,
     diluent: `${line('transfer')} × (${fold} − 1)`,
     topVolume: `${line('transfer')} + ${line('diluent')}`,
@@ -210,8 +198,8 @@ function runNames(
     stock: hasStock ? stock.formula(line('topVolume'), line('topWorking')) : '',
     topDiluent: `${line('topVolume')} − ${line('stock')}`,
     diluentTotal: hasStock
-      ? `${line('topDiluent')} + ${line('diluent')} × ${pointCount - 1}`
-      : `${line('diluent')} × ${pointCount}`,
+      ? `${line('topDiluent')} + ${line('diluent')} × (${points} − 1)`
+      : `${line('diluent')} × ${points}`,
   };
   const units: Partial<Record<PrepLine, string>> = {
     strength: FOLD_UNIT,
@@ -223,6 +211,35 @@ function runNames(
     title: `Dilution prep for ${run.places.join(', ')}`,
     settings: { type: 'dilutions' },
   };
+  const seriesInputs = numbers
+    .filter(number => !names.has(nameKey(number.name)))
+    .map((number): BoardName => {
+      const kindOf = tag ? undefined : boardKind({ key: number.term.key }, owner);
+      const isCounted =
+        (number.field === 'points' || number.field === 'replicates') &&
+        !isTypedCount(run, number.field) &&
+        number.counted !== undefined;
+      return isCounted
+        ? {
+            kind: 'count',
+            id: number.id,
+            name: number.name,
+            count: Number(number.value),
+            workedOut: group,
+            origin: { type: 'plateMap', shows: run.members[0]?.plateId ?? '' },
+            ...(kindOf && { kindOf }),
+          }
+        : {
+            kind: 'value',
+            id: number.id,
+            name: number.name,
+            value: number.value,
+            unit: number.unit,
+            workedOut: group,
+            origin: { type: 'dilutions' },
+            ...(kindOf && { kindOf }),
+          };
+    });
   const inputs: BoardName[] = [
     {
       kind: 'value',
@@ -232,14 +249,6 @@ function runNames(
       unit: 'µL',
       workedOut: group,
       origin: { type: 'dilutions' },
-    },
-    {
-      kind: 'count',
-      id: `${run.key}:prep:busiest`,
-      name: busiest,
-      count: Math.max(...run.replicatesByPoint.values()),
-      workedOut: group,
-      origin: { type: 'plateMap', shows: run.members[0].plateId },
     },
   ];
   const takenName = [
@@ -263,7 +272,7 @@ function runNames(
         ...(gap ?? (key === 'stock' && !hasStock && { problem: stock.problem })),
       })
     );
-  return takenName ? lines : [...inputs, ...lines];
+  return takenName ? [...seriesInputs, ...lines] : [...seriesInputs, ...inputs, ...lines];
 }
 
 interface DiluentUse {

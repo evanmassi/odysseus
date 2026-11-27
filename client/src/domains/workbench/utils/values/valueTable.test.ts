@@ -193,6 +193,7 @@ describe('the values table', () => {
       'Top conc.': '10 µM',
       'Dil. factor': `3 ${DILUTION_FACTOR_NOTATION}`,
       Points: '2',
+      Replicates: '1',
       'Stock conc.': '10 mM',
     });
     expect(cellsByLabel(chem, 'DMSO')).toEqual({ Wells: '1' });
@@ -208,6 +209,7 @@ describe('the values table', () => {
       'Top conc.',
       'Dil. factor',
       'Points',
+      'Replicates',
       'Stock conc.',
     ]);
   });
@@ -374,8 +376,9 @@ describe('the values table', () => {
       },
     });
     const chem = groupNamed(tableFor([twins], mainValues), 'Chemicals & proteins');
-    expect(chem.rows.map(row => row.name)).toEqual(['Drug X', 'in Raji', 'in Jurkat']);
-    expect(cellsByLabel(chem, 'in Jurkat')).toMatchObject({ 'Top conc.': '1 µM' });
+    expect(chem.rows.map(row => row.name)).toEqual(['Drug X', 'series 2']);
+    expect(cellsByLabel(chem, 'Drug X')).toMatchObject({ 'Top conc.': '10 µM' });
+    expect(cellsByLabel(chem, 'series 2')).toMatchObject({ 'Top conc.': '1 µM' });
   });
 
   it('splits a drug on two plates into a row per plate', () => {

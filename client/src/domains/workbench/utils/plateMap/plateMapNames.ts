@@ -8,26 +8,17 @@ import {
   type MaterialItem,
   type PlateLine,
   type PlateMap,
-  type Protocol,
   type ProtocolSeries,
 } from '@odysseus/shared-schemas';
 
-import { cachedPerCard, cachedPerCardWith } from '../cards/cachedPerCard';
-import {
-  DILUTION_FACTOR_NOTATION,
-  dimensionKey,
-  PAIR_NOTATION,
-  RATIO_NOTATION,
-  readNumber,
-} from '../formulas/quantities';
+import { cachedPerCard } from '../cards/cachedPerCard';
+import { dimensionKey, PAIR_NOTATION, RATIO_NOTATION, readNumber } from '../formulas/quantities';
 import {
   CELLS_PER_WELL,
-  DILUTION_FACTOR,
   FINAL_CONCENTRATION,
   MASS_PER_WELL,
   perLabwareKind,
   type SampleNoun,
-  POINTS,
   TOP_AMOUNT,
   TOP_CONCENTRATION,
   TOP_DILUTION,
@@ -36,7 +27,6 @@ import {
   WELLS_USED,
   type Term,
 } from '../terms/termList';
-import { readTypedAmount } from '../units/textAmounts';
 import { lowerLead, upperLead } from '../values/valueNames';
 
 import {
@@ -46,8 +36,7 @@ import {
   wordsForTypes,
   type LabwareType,
 } from './labwareCatalog';
-import { plateNameOf } from './plateMapTabs';
-import { dilutionFactorOf, stepSeriesUnit } from './plateSeries';
+import { stepSeriesUnit } from './plateSeries';
 
 type LineValue = PlateLine['values'][number];
 
@@ -63,10 +52,11 @@ export interface PlateMapCount {
   painted?: LineValue;
 }
 
-export type PlateAmountSource =
-  | { kind: 'wells'; lineId: string; keys: string[] }
-  | { kind: 'series'; seriesId: string; field: 'top' | 'dilutionFactor' }
-  | { kind: 'points'; seriesId: string };
+export interface PlateAmountSource {
+  kind: 'wells';
+  lineId: string;
+  keys: string[];
+}
 
 export interface PlateAmount {
   key: string;
@@ -105,8 +95,6 @@ const PER_LABWARE_KIND_TERMS = new Map([
   [dimensionKey({ count: 1 }), CELLS_PER_WELL],
   [dimensionKey({ mass: 1 }), MASS_PER_WELL],
 ]);
-
-const STARTS_WITH_NUMBER = /^\s*[-+]?\.?\d/;
 
 export const seriesTopTerm = (notation: string, unit: string): Term =>
   notation === RATIO_NOTATION
@@ -242,7 +230,7 @@ interface PlainCell {
 const isSameAmount = (cells: PlainCell[]) =>
   new Set(cells.map(cell => `${cell.amount}|${cell.unit}`)).size === 1;
 
-function amountsOnPlate(card: PlateMap, seriesById: Protocol['series']): PlateAmount[] {
+function amountsOnPlate(card: PlateMap): PlateAmount[] {
   const amounts: PlateAmount[] = [];
   const add = (amount: Omit<PlateAmount, 'name'>) => {
     const typedName = card.amountNames[amount.key]?.trim();
@@ -255,14 +243,6 @@ function amountsOnPlate(card: PlateMap, seriesById: Protocol['series']): PlateAm
   const colorLine = colorLineOf(card);
   const colorValueAt = (key: string) =>
     colorLine ? lineValueOf(colorLine, card.samples[key]?.[colorLine.id]) : undefined;
-  const soleValueOn = (other: PlateLine, keys: string[]) => {
-    const values = new Set(keys.map(key => lineValueOf(other, card.samples[key]?.[other.id])));
-    return values.size === 1 ? [...values][0] : undefined;
-  };
-  const solePlate = (keys: string[]) => {
-    const plateIds = new Set(keys.map(key => key.split(':')[0]));
-    return plateIds.size === 1 ? card.plates.find(plate => plateIds.has(plate.id)) : undefined;
-  };
 
   for (const line of card.lines) {
     const plain = new Map<
@@ -275,26 +255,12 @@ function amountsOnPlate(card: PlateMap, seriesById: Protocol['series']): PlateAm
         cells: PlainCell[];
       }
     >();
-    const runs = new Map<
-      string,
-      { subject: string; painted: LineValue; keys: string[]; steps: Set<number> }
-    >();
     for (const [key, lines] of Object.entries(card.samples)) {
       const entry = lines[line.id];
       const painted = lineValueOf(line, entry);
       const subject = painted?.text.trim() ?? '';
       if (!entry || !painted || !subject) continue;
-      if (entry.seriesId !== undefined) {
-        const run = runs.get(entry.seriesId) ?? {
-          subject,
-          painted,
-          keys: [],
-          steps: new Set<number>(),
-        };
-        runs.set(entry.seriesId, run);
-        run.keys.push(key);
-        run.steps.add(entry.seriesPoint ?? 0);
-      } else if ((entry.amount ?? '').trim()) {
+      if (entry.seriesId === undefined && (entry.amount ?? '').trim()) {
         const unit = entry.unit ?? '';
         const term = amountTerm(unit, labwareOf(labwareTypeAt(card, key)).kind);
         const noun = amountNoun(unit, term);
@@ -337,72 +303,6 @@ function amountsOnPlate(card: PlateMap, seriesById: Protocol['series']): PlateAm
         }
       }
     }
-
-    const dilutionRuns = [...runs.entries()].flatMap(([seriesId, run]) => {
-      const series = seriesById[seriesId];
-      return series && 'top' in series ? [{ seriesId, series, ...run }] : [];
-    });
-    for (const run of dilutionRuns) {
-      const { seriesId, series, subject, painted, steps } = run;
-      const twins = dilutionRuns.filter(
-        other => normalizeMaterialKey(other.subject) === normalizeMaterialKey(subject)
-      );
-      const isApart = (marks: readonly unknown[]) =>
-        marks.every(Boolean) && new Set(marks).size === twins.length;
-      const twinValues = [colorLine, ...card.lines]
-        .filter((other): other is PlateLine => !!other && other.id !== line.id)
-        .map(other => twins.map(twin => soleValueOn(other, twin.keys)))
-        .find(isApart);
-      const twinPlates = twins.map(twin => solePlate(twin.keys));
-      const index = twins.indexOf(run);
-      const value = twinValues?.[index];
-      const plate = twinPlates[index];
-      const tag =
-        twins.length < 2
-          ? ''
-          : value
-            ? ` in ${value.text.trim()}`
-            : plate && isApart(twinPlates)
-              ? ` on ${plateNameOf(card, plate)}`
-              : ` ${index + 1}`;
-      const top = seriesTopTerm(series.unit, stepSeriesUnit(series));
-      const shared = { subject, variant: tag.trim(), painted };
-      const termOf = (term: Term) => (tag ? {} : { term: { key: term.key } });
-      if (STARTS_WITH_NUMBER.test(series.top)) {
-        add({
-          key: `s:${seriesId}:top`,
-          automaticName: `${subject} ${lowerLead(top.word)}${tag}`,
-          label: top.word,
-          ...shared,
-          ...termOf(top),
-          value: readTypedAmount(series.top)?.value ?? series.top.trim(),
-          unit: stepSeriesUnit(series),
-          source: { kind: 'series', seriesId, field: 'top' },
-        });
-      }
-      if (STARTS_WITH_NUMBER.test(series.dilutionFactor)) {
-        add({
-          key: `s:${seriesId}:dilutionFactor`,
-          automaticName: `${subject} ${lowerLead(DILUTION_FACTOR.word)}${tag}`,
-          label: DILUTION_FACTOR.word,
-          ...shared,
-          ...termOf(DILUTION_FACTOR),
-          value: String(dilutionFactorOf(series.dilutionFactor)),
-          unit: DILUTION_FACTOR_NOTATION,
-          source: { kind: 'series', seriesId, field: 'dilutionFactor' },
-        });
-      }
-      add({
-        key: `s:${seriesId}:points`,
-        automaticName: `${subject} ${lowerLead(POINTS.word)}${tag}`,
-        label: POINTS.word,
-        ...shared,
-        ...termOf(POINTS),
-        value: String(steps.size),
-        unit: '',
-        source: { kind: 'points', seriesId },
-      });
-    }
   }
   return amounts;
 }
@@ -410,10 +310,8 @@ function amountsOnPlate(card: PlateMap, seriesById: Protocol['series']): PlateAm
 export const plateMapCounts: (card: PlateMap) => readonly PlateMapCount[] =
   cachedPerCard(countLabware);
 
-export const plateAmounts: (
-  card: PlateMap,
-  seriesById: Protocol['series']
-) => readonly PlateAmount[] = cachedPerCardWith(amountsOnPlate);
+export const plateAmounts: (card: PlateMap) => readonly PlateAmount[] =
+  cachedPerCard(amountsOnPlate);
 
 export function materialWellCounts(
   cards: readonly PlateMap[],

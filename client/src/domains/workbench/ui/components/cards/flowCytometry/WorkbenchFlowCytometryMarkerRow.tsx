@@ -8,6 +8,7 @@ import { dilutionFactor } from '../../../../utils/flowCytometry/flowCytometryPan
 import { RATIO_NOTATION } from '../../../../utils/formulas/quantities';
 import { CONJUGATE_FIELD } from '../../../../utils/materials/conjugateConflicts';
 import { AMOUNT_FIELD } from '../../../../utils/materials/materialCatalog';
+import { WorkbenchMaterialPick } from '../../board/WorkbenchMaterialPick';
 import { TREE_BRANCH_INDENT, WorkbenchTreeRail } from '../../board/WorkbenchTreeRail';
 import { WorkbenchConjugateField } from '../../fluors/WorkbenchConjugateField';
 
@@ -21,7 +22,6 @@ import {
   SUB_LIT_ROW,
   SUB_LIT_ROW_EDGE,
 } from './flowCytometryTableStyles';
-import { WorkbenchFlowCytometryAddMarker } from './WorkbenchFlowCytometryAddMarker';
 import { WorkbenchFlowCytometryTextCell } from './WorkbenchFlowCytometryTextCell';
 
 import type { FlowCytometryActions } from './useFlowCytometryActions';
@@ -141,12 +141,12 @@ export function WorkbenchFlowCytometryMarkerRow({
   const secondaryName = secondaryMaterial?.name.trim() ?? 'removed from Materials';
 
   const secondaryPicker = (canClear: boolean) => (
-    <WorkbenchFlowCytometryAddMarker
+    <WorkbenchMaterialPick
       label="Secondary"
       newLabel="New secondary…"
       example="SA-PE"
-      markerOptions={secondaryPick.options}
-      onAdd={materialId => {
+      options={secondaryPick.options}
+      onPick={materialId => {
         setIsPickingSecondary(false);
         actions.setSecondary(row.id, materialId, secondaryPick.detectorFor);
       }}

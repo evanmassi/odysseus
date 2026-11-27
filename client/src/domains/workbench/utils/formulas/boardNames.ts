@@ -119,7 +119,7 @@ function plateMapNames(protocol: Protocol, plateMap: PlateMap): BoardName[] {
       kindOf: boardKind(count.term, ownerOf(count.painted, count.subject)),
     })
   );
-  const amounts = plateAmounts(plateMap, protocol.series).map(
+  const amounts = plateAmounts(plateMap).map(
     (amount): BoardName => ({
       kind: 'value',
       id: `${plateMap.id}:${amount.key}`,

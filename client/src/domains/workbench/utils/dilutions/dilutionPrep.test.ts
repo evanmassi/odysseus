@@ -2,8 +2,14 @@ import { produce } from 'immer';
 
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
+import { linkReferences } from '../formulas/referenceLinks';
 import { linkPlateNames } from '../materials/renameFollowing';
-import { setPrepSetting } from '../plateMap/seriesEdits';
+import {
+  removeSeries,
+  removeSeriesEverywhere,
+  setPrepSetting,
+  startSeries,
+} from '../plateMap/seriesEdits';
 import { keepRecognizedTerms } from '../terms/savedTerms';
 
 import { diluentUses, runDiluents } from './dilutionDiluents';
@@ -137,9 +143,8 @@ describe('dilution prep', () => {
     expect(runs[0].places).toEqual(['Assay plate · Plate 1', 'Assay plate copy · Plate 1']);
     expect(runs[0].replicatesByPoint.get(0)).toBe(6);
     expect(dilutionRuns(protocol)[0].replicatesByPoint.get(0)).toBe(6);
-    expect(dilutionRuns({ plateMaps: [plateMap], series: protocol.series })[0].places).toEqual([
-      'Plate 1',
-    ]);
+    const alone = { ...protocol, plateMaps: [plateMap] };
+    expect(dilutionRuns(alone)[0].places).toEqual(['Plate 1']);
   });
 
   it('finds each dilution series on the plates with its most replicated point', () => {
@@ -348,7 +353,7 @@ describe('dilution prep as calculations', () => {
     expect(stock).toMatchObject({
       kind: 'calculation',
       formula: 'Drug X top vol. × Drug X top working conc. ÷ Drug X stock conc.',
-      workedOut: { key: 'map:s', subject: 'Drug X' },
+      workedOut: { key: 's', subject: 'Drug X' },
     });
     const result = stock && board.results.get(stock.id);
     expect(result?.status === 'ok' && result.output).toEqual({ text: '14.4 µL' });
@@ -364,6 +369,35 @@ describe('dilution prep as calculations', () => {
     weighed.type = 'Antibody';
     const result = prepFor(protocolWith(doseSeries, [weighed]));
     expect(result.kind === 'ready' && result.stockText).toBe('2.16 µL');
+  });
+
+  it("names the series' own numbers for the drug, not the plate, counting from the plate", () => {
+    const board = calculateBoard(collectBoardNames(protocolWith(doseSeries, [drugStock])));
+    expect(board.names.get('drug x top conc.')).toMatchObject({ value: '300', unit: 'nM' });
+    expect(board.names.get('drug x dil. factor')).toMatchObject({ value: '3' });
+    expect(board.names.get('drug x points')).toMatchObject({ kind: 'count', count: 4 });
+    expect(board.names.get('drug x replicates')).toMatchObject({ kind: 'count', count: 3 });
+    expect(board.names.get('drug x diluent total')).toMatchObject({
+      formula: 'Drug X diluent in top + Drug X diluent per point × (Drug X points − 1)',
+    });
+  });
+
+  it('lets a typed Points or Replicates win over what the plate counts', () => {
+    const answer = (protocol: Protocol, name: string) => {
+      const board = calculateBoard(collectBoardNames(protocol));
+      const entry = board.names.get(name);
+      const result = entry && board.results.get(entry.id);
+      return result?.status === 'ok' && 'text' in result.output ? result.output.text : '';
+    };
+    const counted = protocolWith(doseSeries, [drugStock]);
+    const typed = protocolWith({ ...doseSeries, points: '6', replicates: '6' }, [drugStock]);
+    const board = calculateBoard(collectBoardNames(typed));
+    expect(board.names.get('drug x points')).toMatchObject({ kind: 'value', value: '6' });
+    expect(board.names.get('drug x replicates')).toMatchObject({ kind: 'value', value: '6' });
+    expect(answer(counted, 'drug x vol. needed')).toBe('72 µL');
+    expect(answer(typed, 'drug x vol. needed')).toBe('144 µL');
+    const typedPrep = prepFor(typed);
+    expect(typedPrep.kind === 'ready' && typedPrep.summary).toBe('300 nM · 1:3 · 6 points');
   });
 
   it('stops a prep whose name is already taken, instead of reading the wrong number', () => {
@@ -462,5 +496,56 @@ describe('dilution edits', () => {
     expect(valuesOf(protocol)).toEqual([
       { id: expect.any(String), name: 'Total well vol.', value: '80', unit: 'µL' },
     ]);
+  });
+});
+
+describe('a dilution with no plate', () => {
+  const unpainted = (from: Protocol) => {
+    const protocol = produce(from, draft => {
+      draft.plateMaps[0].samples = {};
+    });
+    return protocol;
+  };
+
+  it('starts on the card for a material and asks for its counts until they are typed', () => {
+    let seriesId = '';
+    const started = produce(unpainted(protocolWith(doseSeries, [drugStock])), draft => {
+      draft.series = {};
+      seriesId = startSeries(draft, 'Drug X');
+      Object.assign(draft.series[seriesId], { top: '300', unit: 'nM', dilutionFactor: '3' });
+    });
+    const [run] = dilutionRuns(started);
+    expect(run).toMatchObject({ key: seriesId, subject: 'Drug X', members: [], places: [] });
+    expect(prepFor(started)).toMatchObject({
+      kind: 'problem',
+      problem: 'Type how many points and replicates this series has, or paint it on a plate.',
+    });
+    const counted = produce(started, draft => {
+      Object.assign(draft.series[seriesId], { points: '4', replicates: '3' });
+    });
+    const prep = prepFor(counted);
+    expect(prep.kind === 'ready' && prep.summary).toBe('300 nM · 1:3 · 4 points');
+    expect(prep.kind === 'ready' && prep.platePoints).toBeUndefined();
+  });
+
+  it('stays on the card, named for its drug, when its wells are cleared', () => {
+    const painted = produce(protocolWith(doseSeries, [drugStock]), draft => {
+      linkReferences(draft, calculateBoard(collectBoardNames(draft)));
+    });
+    const cleared = produce(painted, draft => removeSeries(draft.plateMaps[0], 's'));
+    expect(dilutionRuns(cleared)).toMatchObject([{ key: 's', subject: 'Drug X', members: [] }]);
+  });
+
+  it('is removed with every well it was painted on', () => {
+    const removed = produce(protocolWith(doseSeries, [drugStock]), draft =>
+      removeSeriesEverywhere(draft, ['s'])
+    );
+    expect(removed.series).toEqual({});
+    expect(dilutionRuns(removed)).toEqual([]);
+  });
+
+  it('tells the tube strip how many points the plate paints', () => {
+    const prep = prepFor(protocolWith({ ...doseSeries, points: '6' }, [drugStock]));
+    expect(prep.kind === 'ready' && [prep.points.length, prep.platePoints]).toEqual([6, 4]);
   });
 });

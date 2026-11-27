@@ -4,7 +4,6 @@ import { calculateBoard } from '../formulas/boardCalculation';
 
 import { sheetOf, plateMapTabs } from './plateMapTabs';
 import {
-  dropUnpaintedSeries,
   lineUnitOf,
   removeSeries,
   seriesFormFor,
@@ -66,7 +65,7 @@ describe('series edits', () => {
     expect(card.samples['p:B4']).toEqual({ drug: { seriesId, seriesPoint: 2 } });
   });
 
-  it('remove a series from every well that held it, not just the selected ones', () => {
+  it('clear a series from every well that held it, keeping the series itself', () => {
     const card = plateMap();
     const protocol = { plateMaps: [card], series: {} as Protocol['series'] };
     const seriesId = writeSeries(card, protocol.series, sheetFor(card), rowB, {
@@ -75,8 +74,7 @@ describe('series edits', () => {
     });
     removeSeries(card, seriesId);
     normalizePlateMap(card);
-    dropUnpaintedSeries(protocol);
-    expect(protocol.series).toEqual({});
+    expect(Object.keys(protocol.series)).toEqual([seriesId]);
     expect(card.samples).toEqual({});
   });
 

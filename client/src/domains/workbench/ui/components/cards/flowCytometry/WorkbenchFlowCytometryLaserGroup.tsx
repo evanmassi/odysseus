@@ -6,6 +6,7 @@ import {
   firstOpenDetector,
   secondaryRowId,
 } from '../../../../utils/flowCytometry/flowCytometryPanel';
+import { WorkbenchMaterialPick } from '../../board/WorkbenchMaterialPick';
 
 import {
   FLOW_CYTOMETRY_CELL,
@@ -13,7 +14,6 @@ import {
   LASER_LEAD,
   OPEN_ROW,
 } from './flowCytometryTableStyles';
-import { WorkbenchFlowCytometryAddMarker } from './WorkbenchFlowCytometryAddMarker';
 import { WorkbenchFlowCytometryDetectorCells } from './WorkbenchFlowCytometryDetectorCells';
 import { WorkbenchFlowCytometryDetectorPicker } from './WorkbenchFlowCytometryDetectorPicker';
 import {
@@ -116,12 +116,12 @@ export function WorkbenchFlowCytometryLaserGroup({
     placeOf: (materialId: string) => string | undefined = () => undefined
   ) =>
     detectorId && (
-      <WorkbenchFlowCytometryAddMarker
+      <WorkbenchMaterialPick
         label={label}
         newLabel="New marker…"
         example="CD4 BV421 RPA-T4"
-        markerOptions={options}
-        onAdd={materialId => actions.addMarker(materialId, placeOf(materialId) ?? detectorId)}
+        options={options}
+        onPick={materialId => actions.addMarker(materialId, placeOf(materialId) ?? detectorId)}
         onCreate={text => actions.createMarker(text, detectorId)}
       />
     );

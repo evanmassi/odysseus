@@ -116,11 +116,8 @@ function plateRemovalMessage(row: PlateValueRow): string {
     return `Clear "${source.count.subject}" from the plate? Its ${source.count.tally} wells keep anything else in them.`;
   }
   const { subject, value, unit, source: from } = source.amount;
-  if (from.kind === 'wells') {
-    const wells = from.keys.length === 1 ? 'well' : `${from.keys.length} wells`;
-    return `Remove ${displayValue(value, unit)} of ${subject} from its ${wells}?`;
-  }
-  return `Remove the ${subject} dilution? Its wells keep the ${subject} label.`;
+  const wells = from.keys.length === 1 ? 'well' : `${from.keys.length} wells`;
+  return `Remove ${displayValue(value, unit)} of ${subject} from its ${wells}?`;
 }
 
 function sourceLines(cell: ValueCell, plateMaps: readonly PlateMap[]): string[] {
@@ -128,6 +125,7 @@ function sourceLines(cell: ValueCell, plateMaps: readonly PlateMap[]): string[] 
   const card = labwareTitleOf(plateMaps, source?.kind === 'plate' ? source.row.plateId : undefined);
   if (cell.origin === 'worked') return [];
   if (source?.kind === 'recipe') return ['Changing it here changes the recipe in Materials'];
+  if (source?.kind === 'series') return ['Changing it here changes the dilution'];
   if (!cell.isEditable) return [`Counted from ${card}`];
   if (cell.origin === 'plate') return [`Changing it here changes ${card}`];
   if (cell.origin === 'materials') return ['Changing it here changes Materials'];

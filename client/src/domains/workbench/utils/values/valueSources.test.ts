@@ -31,6 +31,8 @@ describe('one address book for every saved number', () => {
     ['plate', 'value'],
     ['recipe', 'value'],
     ['roundTo', 'value'],
+    ['series', 'value'],
+    ['series', 'count'],
   ])('finds a %s %s by its id and writes it where it is saved', (kind, reads) => {
     const entry = numberSavedIn(kind, reads);
     const source = entry && valueSourceOf(protocol, entry.id);
@@ -39,6 +41,22 @@ describe('one address book for every saved number', () => {
       if (source) writeValueSource(draft, source, '7');
     });
     expect(reading(boardOf(written).ids.get(entry?.id ?? ''))).toBe('7');
+  });
+
+  it("goes back to the plate's count when a typed series count is cleared", () => {
+    const counted = numberSavedIn('series', 'count');
+    const source = counted && valueSourceOf(protocol, counted.id);
+    const typed = produce(protocol, draft => {
+      if (source) writeValueSource(draft, source, '9');
+    });
+    const cleared = produce(typed, draft => {
+      if (source) writeValueSource(draft, source, '');
+    });
+    expect(boardOf(typed).ids.get(counted?.id ?? '')).toMatchObject({ kind: 'value', value: '9' });
+    expect(boardOf(cleared).ids.get(counted?.id ?? '')).toMatchObject({
+      kind: 'count',
+      count: counted?.kind === 'count' ? counted.count : undefined,
+    });
   });
 
   it('has no address for a worked-out number', () => {

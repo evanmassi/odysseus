@@ -1,3 +1,4 @@
+import { dilutionRuns } from '../dilutions/dilutionRuns';
 import { linkPlateNames } from '../materials/renameFollowing';
 import { keepRecognizedTerms } from '../terms/savedTerms';
 
@@ -50,4 +51,18 @@ export function linkReferences(draft: Protocol, board: SolvedBoard): void {
     series.dilutionFactor = linkedWhole(series.dilutionFactor, board, NUMBER_KINDS);
   }
   draft.diluent = linkedWhole(draft.diluent, board, MATERIAL_KINDS);
+  linkSeriesMaterials(draft);
+}
+
+function linkSeriesMaterials(draft: Protocol): void {
+  for (const run of dilutionRuns(draft)) {
+    const [link, ...others] = run.members.length ? (run.links ?? []) : [];
+    if (!link || others.length) continue;
+    for (const seriesId of run.seriesIds) {
+      const series = draft.series[seriesId];
+      if (series && 'top' in series && series.materialId !== link.materialId) {
+        series.materialId = link.materialId;
+      }
+    }
+  }
 }

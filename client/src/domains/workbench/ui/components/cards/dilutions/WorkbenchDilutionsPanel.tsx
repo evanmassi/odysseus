@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 
-import { HeaderStrip, PanelEmptyState, Tab } from '@shared/ui';
+import { Plus } from 'lucide-react';
+
+import { HeaderStrip, Tab } from '@shared/ui';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { usePlateSwatches } from '../../../../hooks/usePlateSwatches';
 import { useProtocolOutsidePages } from '../../../../hooks/useWorkbenchSlice';
@@ -11,6 +14,7 @@ import { recordOnMaterial, setSharedPrepValue } from '../../../../utils/dilution
 import { dilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
 import { dilutionRuns, type DilutionRun } from '../../../../utils/dilutions/dilutionRuns';
 import { STOCK_FIELD, WEIGHT_FIELD } from '../../../../utils/dilutions/dilutionStock';
+import { seriesRowView } from '../../../../utils/dilutions/seriesNumbers';
 import { readReference } from '../../../../utils/formulas/nameReferences';
 import { materialGroup } from '../../../../utils/materials/materialCatalog';
 import { guessMaterial } from '../../../../utils/materials/materialGuesser';
@@ -21,10 +25,15 @@ import {
   shortNameOf,
 } from '../../../../utils/materials/materialLookup';
 import { materialKnowledge } from '../../../../utils/materials/materialMemory';
-import { setPrepSetting } from '../../../../utils/plateMap/seriesEdits';
+import {
+  removeSeriesEverywhere,
+  setPrepSetting,
+  startSeries,
+} from '../../../../utils/plateMap/seriesEdits';
 import { assaySetupTitleOf } from '../../../../utils/values/valueNames';
-import { writeValueSource } from '../../../../utils/values/valueSources';
+import { writeValueSource, writeValueSourceUnit } from '../../../../utils/values/valueSources';
 import { CARD_ICONS } from '../../board/cardIcons';
+import { WorkbenchMaterialPick } from '../../board/WorkbenchMaterialPick';
 import { WorkbenchTabStrip } from '../../board/WorkbenchTabStrip';
 import { WorkbenchIndicatorSwatch } from '../plateMap/WorkbenchIndicatorSwatch';
 
@@ -66,6 +75,16 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
     [protocol]
   );
   const [shownKey, setShownKey] = useState(ALL_SERIES);
+  const [removing, setRemoving] = useState<DilutionRun>();
+  const materialOptions = useMemo(
+    () =>
+      listedMaterials(protocol).map(item => ({
+        value: item.id,
+        label: item.name.trim(),
+        group: materialGroup(item.group).label,
+      })),
+    [protocol]
+  );
   const createMaterial = (name: string) => materialFromGuess(guessMaterial(name, known), memory);
   const shown = runs.find(run => run.key === shownKey);
   const isShowingAll = !shown;
@@ -80,16 +99,61 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
 
   const setRunDiluent = (run: DilutionRun, diluent: string) =>
     updateProtocol(draft => {
-      for (const member of run.members) setPrepSetting(draft, member.seriesId, 'diluent', diluent);
+      for (const seriesId of run.seriesIds) setPrepSetting(draft, seriesId, 'diluent', diluent);
     });
+
+  const showSeries = (seriesId: string) => setShownKey(runs.length ? seriesId : ALL_SERIES);
+  const newDilution = (
+    <div className="flex items-center gap-2 text-muted-foreground">
+      <Plus aria-hidden className="h-3.5 w-3.5 flex-none text-primary" />
+      <WorkbenchMaterialPick
+        label="New dilution"
+        newLabel="New material…"
+        example="Drug X"
+        options={materialOptions}
+        onPick={materialId => {
+          let seriesId = '';
+          updateProtocol(draft => {
+            seriesId = startSeries(draft, materialId);
+          });
+          showSeries(seriesId);
+        }}
+        onCreate={text => {
+          let seriesId = '';
+          updateProtocol(draft => {
+            seriesId = startSeries(draft, ensureMaterial(draft, text, createMaterial).id);
+          });
+          showSeries(seriesId);
+        }}
+      />
+    </div>
+  );
+  const removeDialog = (
+    <ConfirmDialog
+      isOpen={!!removing}
+      variant="danger"
+      title="Remove dilution"
+      message={`The ${removing?.subject.trim() ? removing.subject : 'unnamed'} dilution is permanently removed.${removing?.members.length ? ' Its wells on the plate keep their label.' : ''}`}
+      confirmText="Remove"
+      onConfirm={() => {
+        if (removing) updateProtocol(draft => removeSeriesEverywhere(draft, removing.seriesIds));
+        setShownKey(ALL_SERIES);
+        setRemoving(undefined);
+      }}
+      onCancel={() => setRemoving(undefined)}
+    />
+  );
 
   if (!runs.length) {
     return (
-      <PanelEmptyState
-        icon={CARD_ICONS.dilutions}
-        message="Add a dilution series on a plate"
-        description="Pick wells, type an amount and click Dilution"
-      />
+      <div className="flex flex-col items-center gap-3 px-4 py-8 text-center">
+        <CARD_ICONS.dilutions aria-hidden className="h-6 w-6 text-muted-foreground" />
+        <p className="text-body-sm text-foreground">No dilutions yet</p>
+        <p className="text-body-sm text-muted-foreground">
+          Start one here, or paint a dilution on a plate.
+        </p>
+        {newDilution}
+      </div>
     );
   }
 
@@ -153,11 +217,29 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
             }
             onRoundToChange={value =>
               updateProtocol(draft =>
-                writeValueSource(draft, { kind: 'roundTo', members: run.members }, value)
+                writeValueSource(draft, { kind: 'roundTo', seriesIds: run.seriesIds }, value)
               )
             }
             onDiluentChange={diluent => setRunDiluent(run, diluent)}
             onDiluentDone={() => listDiluent(ownDiluent(run))}
+            seriesRow={seriesRowView(run)}
+            plateNames={run.places}
+            isPainted={run.members.length > 0}
+            onSeriesChange={(field, value) =>
+              updateProtocol(draft =>
+                writeValueSource(draft, { kind: 'series', seriesIds: run.seriesIds, field }, value)
+              )
+            }
+            onTopUnitChange={unit =>
+              updateProtocol(draft =>
+                writeValueSourceUnit(
+                  draft,
+                  { kind: 'series', seriesIds: run.seriesIds, field: 'top' },
+                  unit
+                )
+              )
+            }
+            onRemove={() => setRemoving(run)}
             onStockSave={(value, unit) => {
               if (prep.kind !== 'ready' || prep.stock.kind !== 'ask') return;
               const field = prep.stock.need === 'weight' ? WEIGHT_FIELD : STOCK_FIELD;
@@ -168,6 +250,8 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
           />
         );
       })}
+      {newDilution}
+      {removeDialog}
     </div>
   );
 }

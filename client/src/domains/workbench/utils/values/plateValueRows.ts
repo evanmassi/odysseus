@@ -6,7 +6,6 @@ import {
   type PlateAmount,
   type PlateMapCount,
 } from '../plateMap/plateMapNames';
-import { removeSeries } from '../plateMap/seriesEdits';
 
 export type PlateRowSource =
   | { kind: 'count'; count: PlateMapCount }
@@ -19,10 +18,7 @@ export interface PlateValueRow {
   source: PlateRowSource;
 }
 
-export function plateValueRows(
-  plateMap: PlateMap,
-  seriesById: Protocol['series']
-): PlateValueRow[] {
+export function plateValueRows(plateMap: PlateMap): PlateValueRow[] {
   const counts = plateMapCounts(plateMap)
     .filter(count => count.kind !== 'total' || count.count > 1)
     .map(
@@ -33,7 +29,7 @@ export function plateValueRows(
         source: { kind: 'count', count },
       })
     );
-  const amounts = plateAmounts(plateMap, seriesById).map(
+  const amounts = plateAmounts(plateMap).map(
     (amount): PlateValueRow => ({
       id: `${plateMap.id}:${amount.key}`,
       plateId: plateMap.id,
@@ -64,14 +60,9 @@ export function setPlateRowValue(draft: Protocol, row: PlateValueRow, typed: str
       return;
     }
     const from = source.amount.source;
-    if (from.kind === 'wells') {
-      for (const key of from.keys) {
-        const entry = plateMap.samples[key]?.[from.lineId];
-        if (entry) entry.amount = typed;
-      }
-    } else if (from.kind === 'series') {
-      const series = draft.series[from.seriesId];
-      if (series && 'top' in series) series[from.field] = typed;
+    for (const key of from.keys) {
+      const entry = plateMap.samples[key]?.[from.lineId];
+      if (entry) entry.amount = typed;
     }
   });
 }
@@ -80,14 +71,9 @@ export function setPlateRowUnit(draft: Protocol, row: PlateValueRow, unit: strin
   if (row.source.kind !== 'amount') return;
   const from = row.source.amount.source;
   editPlate(draft, row.plateId, plateMap => {
-    if (from.kind === 'wells') {
-      for (const key of from.keys) {
-        const entry = plateMap.samples[key]?.[from.lineId];
-        if (entry) entry.unit = unit;
-      }
-    } else if (from.kind === 'series' && from.field === 'top') {
-      const series = draft.series[from.seriesId];
-      if (series && 'top' in series) series.unit = unit;
+    for (const key of from.keys) {
+      const entry = plateMap.samples[key]?.[from.lineId];
+      if (entry) entry.unit = unit;
     }
   });
 }
@@ -107,7 +93,6 @@ export function removePlateRow(draft: Protocol, row: PlateValueRow): void {
       return;
     }
     const from = source.amount.source;
-    if (from.kind !== 'wells') return removeSeries(plateMap, from.seriesId);
     for (const key of from.keys) {
       const entry = plateMap.samples[key]?.[from.lineId];
       if (!entry) continue;

@@ -2,36 +2,34 @@ import { useState } from 'react';
 
 import { Select, type SelectOption } from '@shared/ui';
 
-import { focusOnMount } from '../../../../utils/dom/focusOnMount';
+import { focusOnMount } from '../../../utils/dom/focusOnMount';
 
-import { FLOW_CYTOMETRY_FIELD } from './flowCytometryTableStyles';
-
-interface WorkbenchFlowCytometryAddMarkerProps {
+interface WorkbenchMaterialPickProps {
   label: string;
   newLabel: string;
   example: string;
-  markerOptions: SelectOption[];
-  onAdd: (materialId: string) => void;
+  options: SelectOption[];
+  onPick: (materialId: string) => void;
   onCreate: (text: string) => void;
   clear?: { label: string; onClear: () => void };
 }
 
-const NEW_MARKER = '__new-marker__';
+const NEW_MATERIAL = '__new-material__';
 const CLEAR = '__clear__';
 
-export function WorkbenchFlowCytometryAddMarker({
+export function WorkbenchMaterialPick({
   label,
   newLabel,
   example,
-  markerOptions,
-  onAdd,
+  options,
+  onPick,
   onCreate,
   clear,
-}: WorkbenchFlowCytometryAddMarkerProps) {
+}: WorkbenchMaterialPickProps) {
   const [isTyping, setIsTyping] = useState(false);
   const [text, setText] = useState('');
 
-  if (isTyping || !markerOptions.length) {
+  if (isTyping || !options.length) {
     const finish = () => {
       setText('');
       setIsTyping(false);
@@ -45,7 +43,7 @@ export function WorkbenchFlowCytometryAddMarker({
           aria-label={`${label}, new to Materials`}
           spellCheck={false}
           autoComplete="off"
-          className={`${FLOW_CYTOMETRY_FIELD} w-72`}
+          className="w-72 bg-transparent text-body-sm text-foreground outline-none placeholder:text-muted-foreground"
           onChange={event => setText(event.target.value)}
           onKeyDown={event => {
             if (event.key === 'Escape') finish();
@@ -69,15 +67,15 @@ export function WorkbenchFlowCytometryAddMarker({
       value={null}
       placeholder={label}
       options={[
-        ...markerOptions,
-        { value: NEW_MARKER, label: newLabel },
+        ...options,
+        { value: NEW_MATERIAL, label: newLabel },
         ...(clear ? [{ value: CLEAR, label: clear.label }] : []),
       ]}
       aria-label={label}
       onChange={choice => {
-        if (choice === NEW_MARKER) setIsTyping(true);
+        if (choice === NEW_MATERIAL) setIsTyping(true);
         else if (choice === CLEAR) clear?.onClear();
-        else onAdd(String(choice));
+        else onPick(String(choice));
       }}
     />
   );

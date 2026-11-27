@@ -1,5 +1,6 @@
 import { prepRoundToId } from '../dilutions/dilutionCalculations';
-import { dilutionRuns, type SeriesRef } from '../dilutions/dilutionRuns';
+import { dilutionRuns } from '../dilutions/dilutionRuns';
+import { seriesNumberId, type SeriesField } from '../dilutions/seriesNumbers';
 import { CELL_COUNTS, countId, type CountSubject } from '../materials/cellCounts';
 import {
   CELL_COUNT_FIELDS,
@@ -11,7 +12,7 @@ import { writeDonorField } from '../materials/materialDonors';
 import { writeMaterialField } from '../materials/materialItems';
 import { editRecipeEntry } from '../materials/materialRecipe';
 import { recipeAmountId } from '../materials/materialRecipeCalculations';
-import { setPrepSetting } from '../plateMap/seriesEdits';
+import { setPrepSetting, setSeriesNumber, setSeriesTopUnit } from '../plateMap/seriesEdits';
 
 import {
   plateValueRows,
@@ -31,7 +32,8 @@ export type ValueSource =
   | { kind: 'donor'; materialId: string; donorId: string; field: FieldDefinition }
   | { kind: 'plate'; row: PlateValueRow }
   | { kind: 'recipe'; materialId: string; entryId: string }
-  | { kind: 'roundTo'; members: SeriesRef[] };
+  | { kind: 'roundTo'; seriesIds: string[] }
+  | { kind: 'series'; seriesIds: string[]; field: SeriesField };
 
 const COUNT_FIELDS: readonly FieldDefinition[] = Object.values(CELL_COUNT_FIELDS);
 
@@ -66,6 +68,8 @@ function materialSourceOf(protocol: SavedNumbers, id: string): ValueSource | und
   return undefined;
 }
 
+const SERIES_FIELDS: readonly SeriesField[] = ['top', 'dilutionFactor', 'points', 'replicates'];
+
 export function valueSourceOf(protocol: SavedNumbers, id: string): ValueSource | undefined {
   if (protocol.values.items.some(item => item.id === id && 'name' in item)) {
     return { kind: 'item', itemId: id };
@@ -73,11 +77,17 @@ export function valueSourceOf(protocol: SavedNumbers, id: string): ValueSource |
   const material = materialSourceOf(protocol, id);
   if (material) return material;
   for (const plateMap of protocol.plateMaps) {
-    const row = plateValueRows(plateMap, protocol.series).find(candidate => candidate.id === id);
+    const row = plateValueRows(plateMap).find(candidate => candidate.id === id);
     if (row) return { kind: 'plate', row };
   }
-  const run = dilutionRuns(protocol).find(candidate => prepRoundToId(candidate) === id);
-  return run && { kind: 'roundTo', members: run.members };
+  const runs = dilutionRuns(protocol);
+  const run = runs.find(candidate => prepRoundToId(candidate) === id);
+  if (run) return { kind: 'roundTo', seriesIds: run.seriesIds };
+  for (const candidate of runs) {
+    const field = SERIES_FIELDS.find(each => seriesNumberId(candidate, each) === id);
+    if (field) return { kind: 'series', seriesIds: candidate.seriesIds, field };
+  }
+  return undefined;
 }
 
 export function writeValueSource(draft: Protocol, source: ValueSource, value: string): void {
@@ -92,7 +102,11 @@ export function writeValueSource(draft: Protocol, source: ValueSource, value: st
       editRecipeEntry(draft, source.materialId, source.entryId, { amount: value });
       return;
     case 'roundTo':
-      for (const { seriesId } of source.members) setPrepSetting(draft, seriesId, 'roundTo', value);
+      for (const seriesId of source.seriesIds) setPrepSetting(draft, seriesId, 'roundTo', value);
+      return;
+    case 'series':
+      for (const seriesId of source.seriesIds)
+        setSeriesNumber(draft, seriesId, source.field, value);
       return;
   }
   const material = materialsById(draft).get(source.materialId);
@@ -110,5 +124,7 @@ export function writeValueSourceUnit(draft: Protocol, source: ValueSource, unit:
   else if (source.kind === 'plate') setPlateRowUnit(draft, source.row, unit);
   else if (source.kind === 'recipe') {
     editRecipeEntry(draft, source.materialId, source.entryId, { unit });
+  } else if (source.kind === 'series' && source.field === 'top') {
+    for (const seriesId of source.seriesIds) setSeriesTopUnit(draft, seriesId, unit);
   }
 }

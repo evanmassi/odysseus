@@ -1,3 +1,5 @@
+import { normalizePlateMap } from '@odysseus/shared-schemas';
+
 import { readReference } from '../formulas/nameReferences';
 import { displayValue } from '../formulas/quantities';
 import { createId } from '../ids/createId';
@@ -8,6 +10,7 @@ import { lowerLead } from '../values/valueNames';
 import { pointAmount } from './plateSeries';
 
 import type { PlateMapSheet } from './plateMapTabs';
+import type { SeriesField } from '../dilutions/seriesNumbers';
 import type { SolvedBoard } from '../formulas/boardCalculation';
 import type { ProtocolSeries, PlateMap, Protocol } from '@odysseus/shared-schemas';
 
@@ -23,6 +26,24 @@ export function setPrepSetting(
 ): void {
   const series = draft.series[seriesId];
   if (series) series.prep = { ...series.prep, [key]: value };
+}
+
+export function setSeriesNumber(
+  draft: Protocol,
+  seriesId: string,
+  field: SeriesField,
+  value: string
+): void {
+  const series = draft.series[seriesId];
+  if (!series || !('top' in series)) return;
+  if (field === 'top' || field === 'dilutionFactor') series[field] = value;
+  else if (value.trim()) series[field] = value.trim();
+  else delete series[field];
+}
+
+export function setSeriesTopUnit(draft: Protocol, seriesId: string, unit: string): void {
+  const series = draft.series[seriesId];
+  if (series && 'top' in series) series.unit = unit;
 }
 
 export interface SeriesForm {
@@ -158,24 +179,36 @@ export function writeSeries(
   return seriesId;
 }
 
-export function dropUnpaintedSeries(draft: Pick<Protocol, 'plateMaps' | 'series'>): void {
-  const painted = new Set(
-    draft.plateMaps.flatMap(plateMap =>
-      Object.values(plateMap.samples).flatMap(lines =>
-        Object.values(lines).map(entry => entry.seriesId)
-      )
-    )
-  );
-  for (const seriesId of Object.keys(draft.series)) {
-    if (!painted.has(seriesId)) delete draft.series[seriesId];
-  }
-}
-
 export function removeSeries(card: PlateMap, seriesId: string): void {
   for (const entry of Object.values(card.samples).flatMap(lines => Object.values(lines))) {
     if (entry.seriesId !== seriesId) continue;
     delete entry.seriesId;
     delete entry.seriesPoint;
+  }
+}
+
+export function startSeries(draft: Pick<Protocol, 'series'>, materialId: string): string {
+  const seriesId = createId();
+  draft.series[seriesId] = {
+    top: '',
+    unit: '',
+    dilutionFactor: '',
+    direction: 'right',
+    materialId,
+  };
+  return seriesId;
+}
+
+export function removeSeriesEverywhere(
+  draft: Pick<Protocol, 'plateMaps' | 'series'>,
+  seriesIds: readonly string[]
+): void {
+  for (const seriesId of seriesIds) {
+    for (const plateMap of draft.plateMaps) {
+      removeSeries(plateMap, seriesId);
+      normalizePlateMap(plateMap);
+    }
+    delete draft.series[seriesId];
   }
 }
 
