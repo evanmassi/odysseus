@@ -119,7 +119,7 @@ function plateMapNames(protocol: Protocol, plateMap: PlateMap): BoardName[] {
       kindOf: boardKind(count.term, ownerOf(count.painted, count.subject)),
     })
   );
-  const amounts = plateAmounts(plateMap).map(
+  const amounts = plateAmounts(plateMap, protocol.series).map(
     (amount): BoardName => ({
       kind: 'value',
       id: `${plateMap.id}:${amount.key}`,
@@ -178,7 +178,7 @@ const NO_NAMES = calculateBoard([]);
 
 export function collectBoardNames(protocol: Protocol): BoardName[] {
   const first = boardNamesReading(protocol, NO_NAMES);
-  return hasNamedSeriesTop(protocol.plateMaps)
+  return hasNamedSeriesTop(protocol.series)
     ? boardNamesReading(protocol, calculateBoard(first))
     : first;
 }

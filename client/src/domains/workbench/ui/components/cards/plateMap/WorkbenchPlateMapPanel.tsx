@@ -76,7 +76,8 @@ interface EditorOpening {
 }
 
 export function WorkbenchPlateMapPanel({ card, plateMap }: WorkbenchPlateMapPanelProps) {
-  const board = usePlateMapBoard(plateMap);
+  const board = usePlateMapBoard();
+  const seriesById = useWorkbenchStore(state => state.protocol.series);
   const summaries = useWorkbenchData(state => donorSummaries(state.protocol));
   const updateDisplay = useUpdateCard(card);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -91,16 +92,19 @@ export function WorkbenchPlateMapPanel({ card, plateMap }: WorkbenchPlateMapPane
   const stainById = useMemo(() => new Map(stains.map(stain => [stain.id, stain])), [stains]);
   const colorLine = useMemo(() => colorLineOf(plateMap), [plateMap]);
   const layers = useMemo(
-    () => lineLayers(plateMap, colorLine, board),
-    [plateMap, colorLine, board]
+    () => lineLayers(plateMap, seriesById, colorLine, board),
+    [plateMap, seriesById, colorLine, board]
   );
   const captions = useMemo(() => plateCaptions(layers), [layers]);
   const printsInWells =
     tab.kind !== 'plate' ||
     wellSizeFor(tab.plate.labware, roomWidth, sheet.cols).density !== 'tiny';
   const indicators = useMemo(
-    () => (sheet.isPlate ? plateIndicators(plateMap, sheet, layers, board, printsInWells) : []),
-    [plateMap, sheet, layers, board, printsInWells]
+    () =>
+      sheet.isPlate
+        ? plateIndicators(plateMap, seriesById, sheet, layers, board, printsInWells)
+        : [],
+    [plateMap, seriesById, sheet, layers, board, printsInWells]
   );
   const stainCounts = useMemo(() => stainedWellCounts([plateMap]), [plateMap]);
   const updatePlateMap = useUpdatePlateMap(plateMap.id);
@@ -121,8 +125,8 @@ export function WorkbenchPlateMapPanel({ card, plateMap }: WorkbenchPlateMapPane
     [plateMap, sheet, isStain]
   );
   const shownAsOne = useMemo(
-    () => replicatesShownAsOne(plateMap, sheet, board, samples),
-    [plateMap, sheet, board, samples]
+    () => replicatesShownAsOne(plateMap, seriesById, sheet, board, samples),
+    [plateMap, seriesById, sheet, board, samples]
   );
   const selection = useWellSelection(sheet, tab.id, closeEditor);
   const startedNames = useWellEditSession(plateMap.id, selection.keys, editor !== undefined);
@@ -192,8 +196,8 @@ export function WorkbenchPlateMapPanel({ card, plateMap }: WorkbenchPlateMapPane
       onPoolSamples: canPoolSamples(sheet, wells, keys)
         ? regroupSelected(draft => poolSamples(draft, sheet, keys))
         : undefined,
-      onPoolReplicates: canPoolReplicates(plateMap, sheet, wells, keys, board)
-        ? regroupSelected(draft => poolReplicates(draft, sheet, keys, board))
+      onPoolReplicates: canPoolReplicates(plateMap, seriesById, sheet, wells, keys, board)
+        ? regroupSelected(draft => poolReplicates(draft, seriesById, sheet, keys, board))
         : undefined,
       onUnpool: canUnpool(wells, keys)
         ? regroupSelected(draft => unpool(draft, sheet, keys))

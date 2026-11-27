@@ -51,6 +51,7 @@ function protocolWith(mixValues: Array<[name: string, value: string, unit: strin
       ],
     },
     calculations: { items: [], materialSections: [] },
+    series: {},
     plateMaps: [],
     flowCytometryPanels: [],
     cards: [
@@ -100,7 +101,6 @@ describe('recipe finals in the well', () => {
       otherLabware: [{ id: 't', labware: 'facs', count: 1 }],
       lines: [{ id: 'l', name: '', role: 'auto', values: [{ id: 'th17', text: 'Th17 cocktail' }] }],
       samples: { 'p:A1': { l: mix }, 'p:A2': { l: mix }, 't#1:1': { l: mix } },
-      series: {},
       counts: {},
       amountNames: {},
       stain: {},

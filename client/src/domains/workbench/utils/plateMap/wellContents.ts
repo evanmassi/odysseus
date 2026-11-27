@@ -3,6 +3,7 @@ import {
   lineValueOf,
   type PlateLine,
   type PlateMap,
+  type Protocol,
 } from '@odysseus/shared-schemas';
 
 import { displayValue, readableAmount } from '../formulas/quantities';
@@ -36,12 +37,13 @@ export const tinted = (color: string, percent: number): string =>
 
 export function wellLine(
   card: PlateMap,
+  seriesById: Protocol['series'],
   key: string,
   line: PlateLine,
   board: SolvedBoard
 ): WellLine | undefined {
   const entry = card.samples[key]?.[line.id];
-  const point = wellAmount(card, key, line, board);
+  const point = wellAmount(card, seriesById, key, line, board);
   if (!isFilledEntry(entry) || !point) return undefined;
   const { amount, unit } = point;
   return {
@@ -54,9 +56,14 @@ export function wellLine(
 export const wellLineText = ({ label, readable }: WellLine) =>
   [label, readable].filter(Boolean).join(' · ');
 
-export const wellDetails = (card: PlateMap, key: string, board: SolvedBoard) =>
+export const wellDetails = (
+  card: PlateMap,
+  seriesById: Protocol['series'],
+  key: string,
+  board: SolvedBoard
+) =>
   card.lines.flatMap(line => {
-    const shown = wellLine(card, key, line, board);
+    const shown = wellLine(card, seriesById, key, line, board);
     const text = shown && wellLineText(shown);
     return text ? [text] : [];
   });

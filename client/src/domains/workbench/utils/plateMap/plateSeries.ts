@@ -10,9 +10,9 @@ import {
 import { amountUnit, readTypedAmount } from '../units/textAmounts';
 
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { PlateLine, PlateSeries, PlateMap } from '@odysseus/shared-schemas';
+import type { PlateLine, PlateMap, Protocol, ProtocolSeries } from '@odysseus/shared-schemas';
 
-export type StepSeries = Extract<PlateSeries, { top: string }>;
+export type StepSeries = Extract<ProtocolSeries, { top: string }>;
 
 export interface PointAmount {
   amount: string;
@@ -38,7 +38,7 @@ function readPart(board: SolvedBoard, text: string) {
 }
 
 export const readsSeriesAlike = (
-  seriesList: readonly PlateSeries[],
+  seriesList: readonly ProtocolSeries[],
   a: SolvedBoard,
   b: SolvedBoard
 ): boolean =>
@@ -53,7 +53,7 @@ export const readsSeriesAlike = (
       })
   );
 
-const DIRECTION_ARROWS: Readonly<Record<PlateSeries['direction'], string>> = {
+const DIRECTION_ARROWS: Readonly<Record<ProtocolSeries['direction'], string>> = {
   right: '→',
   down: '↓',
   left: '←',
@@ -62,7 +62,11 @@ const DIRECTION_ARROWS: Readonly<Record<PlateSeries['direction'], string>> = {
 
 const shortNumber = (value: number) => String(Number(value.toPrecision(3)));
 
-export function pointAmount(series: PlateSeries, point: number, board: SolvedBoard): PointAmount {
+export function pointAmount(
+  series: ProtocolSeries,
+  point: number,
+  board: SolvedBoard
+): PointAmount {
   if ('typedValues' in series) return { amount: series.typedValues[point] ?? '', unit: '' };
   const top = readPart(board, series.top);
   const dilutionFactor = dilutionFactorOf(readPart(board, series.dilutionFactor).text);
@@ -88,19 +92,20 @@ export function pointAmount(series: PlateSeries, point: number, board: SolvedBoa
 
 export function wellAmount(
   card: PlateMap,
+  seriesById: Protocol['series'],
   key: string,
   line: PlateLine,
   board: SolvedBoard
 ): PointAmount | undefined {
   const entry = card.samples[key]?.[line.id];
   if (!entry) return undefined;
-  const series = entry.seriesId === undefined ? undefined : card.series[entry.seriesId];
+  const series = entry.seriesId === undefined ? undefined : seriesById[entry.seriesId];
   return series
     ? pointAmount(series, entry.seriesPoint ?? 0, board)
     : { amount: entry.amount?.trim() ?? '', unit: entry.unit ?? '' };
 }
 
-export function seriesSummary(series: PlateSeries, board: SolvedBoard): string {
+export function seriesSummary(series: ProtocolSeries, board: SolvedBoard): string {
   const arrow = DIRECTION_ARROWS[series.direction];
   if ('typedValues' in series)
     return [series.typedValues.join(', '), arrow].filter(Boolean).join(' ');

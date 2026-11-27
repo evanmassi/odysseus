@@ -424,7 +424,7 @@ function groupLabel(key: string): string {
 }
 
 export function buildValueTable(
-  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'values'>,
+  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'series' | 'values'>,
   { materials, board, needs, unsortedNames }: ValueTableSources
 ): ValueTableGroup[] {
   const { values } = protocol;
@@ -545,7 +545,7 @@ export function buildValueTable(
 
   const platesBySubject = new Map<string, Set<string>>();
   const plateRowsByPlate = plates.map(plateMap => {
-    const plateRows = plateValueRows(plateMap);
+    const plateRows = plateValueRows(plateMap, protocol.series);
     for (const row of plateRows) {
       const key = normalizeMaterialKey(plateSubject(row).subject);
       if (key) platesBySubject.set(key, (platesBySubject.get(key) ?? new Set()).add(plateMap.id));

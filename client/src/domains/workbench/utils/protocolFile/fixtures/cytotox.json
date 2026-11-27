@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 15,
+  "version": 16,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "T cell killing assay",
@@ -598,6 +598,14 @@
       ],
       "materialSections": []
     },
+    "series": {
+      "c61a7yx": {
+        "top": "10",
+        "unit": "µM",
+        "dilutionFactor": "3",
+        "direction": "right"
+      }
+    },
     "plateMaps": [
       {
         "id": "y6sx73w",
@@ -1004,14 +1012,6 @@
             "0eqn3yg": {
               "valueId": "21b5a3c9"
             }
-          }
-        },
-        "series": {
-          "c61a7yx": {
-            "top": "10",
-            "unit": "µM",
-            "dilutionFactor": "3",
-            "direction": "right"
           }
         },
         "counts": {},

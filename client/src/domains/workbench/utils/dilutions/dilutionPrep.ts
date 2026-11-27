@@ -116,7 +116,7 @@ const READ_ONLY_HINTS: Readonly<Record<BoardName['kind'], string>> = {
 };
 
 function sharedPrepField(
-  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'values'>,
+  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'series' | 'values'>,
   board: SolvedBoard,
   run: DilutionRun,
   key: SharedPrepKey
@@ -150,7 +150,7 @@ function sharedMicroliters(
 
 export function dilutionPrep(
   run: DilutionRun,
-  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'values'>,
+  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'series' | 'values'>,
   board: SolvedBoard,
   chosenDiluent: string
 ): DilutionPrep {

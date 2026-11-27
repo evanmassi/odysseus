@@ -13,7 +13,6 @@ const plateMap = (content: Partial<PlateMap>): PlateMap => ({
   otherLabware: [],
   lines: [],
   samples: {},
-  series: {},
   counts: {},
   amountNames: {},
   stain: {},
@@ -67,7 +66,7 @@ describe('plate amounts', () => {
         },
       },
     });
-    expect(plateAmounts(card).map(({ name, value }) => [name, value])).toEqual([
+    expect(plateAmounts(card, {}).map(({ name, value }) => [name, value])).toEqual([
       ['Anti-CD3 final conc. in Aspirin', '1'],
       ['Anti-CD3 final conc. in Brufen', '2'],
     ]);
@@ -87,20 +86,24 @@ describe('plate amounts', () => {
           ])
         )
       ),
-      series: {
-        s1: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
-        s2: { top: '30', unit: 'µM', dilutionFactor: '3', direction: 'right' },
-      },
     });
+  const twinSeriesById: Protocol['series'] = {
+    s1: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
+    s2: { top: '30', unit: 'µM', dilutionFactor: '3', direction: 'right' },
+  };
 
   it('tells twin series apart by their color value', () => {
-    const names = plateAmounts(twinSeries(['Jurkat', 'Raji'])).map(({ name }) => name);
+    const names = plateAmounts(twinSeries(['Jurkat', 'Raji']), twinSeriesById).map(
+      ({ name }) => name
+    );
     expect(names).toContain('Drug X top conc. in Jurkat');
     expect(names).toContain('Drug X top conc. in Raji');
   });
 
   it('numbers twin series that share a color value', () => {
-    const names = plateAmounts(twinSeries(['Jurkat', 'Jurkat'])).map(({ name }) => name);
+    const names = plateAmounts(twinSeries(['Jurkat', 'Jurkat']), twinSeriesById).map(
+      ({ name }) => name
+    );
     expect(names).toContain('Drug X top conc. 1');
     expect(names).toContain('Drug X top conc. 2');
   });
@@ -119,12 +122,11 @@ describe('twin series on different plates', () => {
         'p1:A2': { drug: { valueId: 'DMSO' } },
         'p2:A1': { drug: { valueId: 'Drug X', seriesId: 's2', seriesPoint: 0 } },
       },
-      series: {
-        s1: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
-        s2: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
-      },
     });
-    const names = plateAmounts(card).map(({ name }) => name);
+    const names = plateAmounts(card, {
+      s1: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
+      s2: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
+    }).map(({ name }) => name);
     expect(names).toContain('Drug X top conc. on Plate 1');
     expect(names).toContain('Drug X top conc. on Copy');
   });

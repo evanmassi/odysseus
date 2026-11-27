@@ -19,7 +19,6 @@ const plateWithReplicates = (
       'p:A1': { drug: { valueId: 'x' } },
       'p:A2': { drug: { valueId: 'x' } },
     },
-    series: {},
     showsReplicatesAsOne: true,
     counts: {},
     amountNames: {},
@@ -32,6 +31,7 @@ const mergedKeys = (plateMap: ShownPlateMap, isStainSide: boolean) => {
   const sheet = sheetOf(plateMap, activeTabOf(plateMap));
   const shownAsOne = replicatesShownAsOne(
     plateMap,
+    {},
     sheet,
     calculateBoard([]),
     isStainSide ? stainSamples(plateMap, sheet) : undefined

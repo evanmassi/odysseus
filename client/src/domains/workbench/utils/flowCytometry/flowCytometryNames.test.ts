@@ -50,7 +50,6 @@ const plateMap: PlateMap = {
   otherLabware: [],
   lines: [],
   samples: {},
-  series: {},
   counts: {},
   amountNames: {},
   stain: { 'p1:A1': 'full', 'p1:A2': 'full', 'p1:A3': 'fmo' },
@@ -92,6 +91,7 @@ const protocol = (
       materials: { items, customGroups: [] },
       values: data.values ?? { items: [], rows: [] },
       calculations: data.calculations ?? { items: [], materialSections: [] },
+      series: {},
       plateMaps: [plateMap],
       flowCytometryPanels: [panel],
       cards: [

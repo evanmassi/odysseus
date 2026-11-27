@@ -1,4 +1,9 @@
-import { indicatorColorOf, lineValueOf, type PlateMap } from '@odysseus/shared-schemas';
+import {
+  indicatorColorOf,
+  lineValueOf,
+  type PlateMap,
+  type Protocol,
+} from '@odysseus/shared-schemas';
 
 import { formatNumber } from '../formulas/quantities';
 import { findNamed } from '../materials/materialLookup';
@@ -54,6 +59,7 @@ function indicatorOf(card: PlateMap, layer: LineLayer, key: string): WellIndicat
 
 export function wellTooltipRows(
   card: PlateMap,
+  seriesById: Protocol['series'],
   key: string,
   layers: readonly LineLayer[],
   board: SolvedBoard,
@@ -63,12 +69,12 @@ export function wellTooltipRows(
   const ratios: WellTooltipRow[] = [];
   for (const layer of layers) {
     const { line } = layer;
-    const shown = wellLine(card, key, line, board);
+    const shown = wellLine(card, seriesById, key, line, board);
     if (!shown) continue;
     const indicator = indicatorOf(card, layer, key);
-    if (isRatioAt(card, key, line, board)) {
-      const count = cellCount(card, key, line, board);
-      const partner = ratioPartner(card, key, line, board);
+    if (isRatioAt(card, seriesById, key, line, board)) {
+      const count = cellCount(card, seriesById, key, line, board);
+      const partner = ratioPartner(card, seriesById, key, line, board);
       rows.push({
         kind: 'line',
         indicator,
@@ -99,6 +105,7 @@ const labelIn = (sheet: PlateMapSheet, key: string) =>
 
 export function stainSideTooltipRows(
   card: PlateMap,
+  seriesById: Protocol['series'],
   sheet: PlateMapSheet,
   key: string,
   layers: readonly LineLayer[],
@@ -106,7 +113,8 @@ export function stainSideTooltipRows(
   donorSummaries: readonly DonorSummary[]
 ): WellTooltipRow[] {
   const samples = stainSamples(card, sheet);
-  const contentsOf = (well: string) => wellTooltipRows(card, well, layers, board, donorSummaries);
+  const contentsOf = (well: string) =>
+    wellTooltipRows(card, seriesById, well, layers, board, donorSummaries);
   if (isAtHome(samples, key)) return contentsOf(key);
   const wells = samples.get(key) ?? [];
   if (!wells.length) return [];

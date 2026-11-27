@@ -671,6 +671,68 @@ and independent. 2 is the foundation, 3 makes it visible, 4 and 5 build on it, a
 1, 4 and 5. 7 builds on 4 and comes before 6, since 6's lookups by owner need the plate's
 subject to be a material, not a text (built 2026-11-26).
 
+### Step 8: a dilution series belongs to the protocol (designed 2026-11-27, file change, not built)
+
+Added 2026-11-27 after Evan's rule that nothing is locked to the card it usually lives on (see the
+plan's Resume here, with the sweep that found this and the rest).
+
+- **The gap.** A series exists only on a plate map (`plateMap.series`); its points and replicates
+  are counted from painted wells; the Dilutions card is a window onto plate series and is empty
+  without them; two plates share one prep when their drug, top and factor read the same
+  (`sameSourceKey`), a match by spelling.
+- **Decided 2026-11-27 (Evan, from `dilution-without-plate-mock.html`):**
+  - The Dilutions card starts a series: "+ New dilution", a material from Materials (or a new
+    one), then a **Series** row (Top conc., Dil. factor, Points, Replicates per point) above the
+    prep settings it already shows. The tube strip and notes work with no plate.
+  - The other way round: a series on the card gets "Put on a plate…"; on a plate, selecting wells
+    and choosing Dilution lists the protocol's series above "New series…", and picking one paints
+    its points across the selection, a row per replicate, those wells pointing at the series.
+  - Once painted, Points and Replicates are counted from the plate (teal, a plate mark, "from
+    P1"); either can be typed over, with a small ↺ back to the plate's count. Painting a series
+    wider than the selection asks once, "8 of 12 fit", Keep 12 or Use 8.
+  - No sentences about mismatches (Evan: too wordy): the tube strip marks them. A tube the plate
+    doesn't use is faint and dashed; a point the plate uses with no tube made is an empty amber
+    outline; hover says which.
+- **Design (to confirm while building):**
+  - `protocol.series`: each series has an id, a material link, and either top, unit and
+    dilution factor with prep settings (Round to, diluent) or a typed list of values. Typed points
+    and replicates are saved on the series and win over the plate's count when present. A plate
+    keeps only placement: each well's `seriesId` and `seriesPoint`, and the direction it was
+    painted in. A list series moves too, so a series has one shape and one home (my call: no
+    visible change).
+  - Plates pointing at the same series id share one prep; `sameSourceKey` goes. The file
+    conversion turns each group `sameSourceKey` pools today into one protocol series.
+  - Points and replicates become board numbers of their kind owned by the series, plate-counted or
+    typed, so the prep reads them like any other number, and Diluent total reads
+    `Diluent per point × (Points − 1)` instead of a bare 11.
+  - Removing a series on the Dilutions card ("Remove", red, with the permanently-removed warning)
+    removes it and its painting; clearing wells on a plate leaves the series.
+- **Proposed slices:** (8a) the schema, the conversion, and the prep reading protocol series and
+  their counts (no visible change beyond merge by id and the named points); (8b) the Dilutions
+  card starting a series, the Series row, the strip marks; (8c) painting an existing series on a
+  plate, with the fit question. Counts for cell prep and Flow cocktails follow as their own step,
+  on the same board-number pattern.
+- **8a as built (2026-11-27, file version 16): a pure move, no change in behaviour.**
+  `protocol.series` holds every series by the id its plate gave it, so the board ids built from it
+  (`<plate>:s:<series>:top`) and every saved reference stay as they were; the plate keeps only its
+  wells' `seriesId` and `seriesPoint`. Every helper that read `card.series` takes the protocol's
+  series after the plate (`seriesById`); per-plate caches that read series are keyed on both
+  (`cachedPerCardWith`); the plate update hook hands its recipe the protocol draft too, so painting
+  writes the series in the same edit. Narrowed from the design, each for a reason:
+  - Pooling stays by `sameSourceKey` until 8c. Merging by id before the plate can pick an existing
+    series would split a drug painted twice into two preps.
+  - The named points move to 8b: a plate's own points number (`s:<series>:points`) is not the
+    prep's count when pooled plates differ, so the name waits for the series' own Points number.
+  - `direction` stays on the series until 8c, when one series can be painted on several plates
+    and the direction moves to the plate.
+  - Pruning a series no well uses moved out of `normalizePlateMap` (a plate cannot see the
+    protocol's series) into `dropUnpaintedSeries`, run by the store after plate edits; 8b removes
+    it, since a series may then exist with no plate.
+  - Duplicating a plate tab still copies its series under fresh ids, into the protocol.
+    Converted by `%TEMP%/data-home/convert-v16.mjs` (stops on any id two plate maps share; none
+    did); Evan's files copied first to `Old versions/Version 15`; 122 answers identical, read
+    straight from the files, opened through the store and linked.
+
 ## Code standards for this work
 
 From `AGENTS.md`, `docs/audit-prompt.txt` and `docs/audit-rubric.md`, applied at write time:

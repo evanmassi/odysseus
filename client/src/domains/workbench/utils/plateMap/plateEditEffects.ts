@@ -12,7 +12,7 @@ export function removeValuesTwinnedByPlate(
 ): void {
   const newPlateNames = new Set(
     draft.plateMaps.flatMap(plateMap =>
-      plateAmounts(plateMap)
+      plateAmounts(plateMap, draft.series)
         .filter(amount => knownNames.get(`${plateMap.id}:${amount.key}`) !== amount.name)
         .map(amount => nameKey(amount.name))
     )

@@ -4,6 +4,7 @@ import { wellDetails } from './wellContents';
 import type { PlateMapSheet } from './plateMapTabs';
 import type { ShownPlateMap } from './shownPlateMap';
 import type { SolvedBoard } from '../formulas/boardCalculation';
+import type { Protocol } from '@odysseus/shared-schemas';
 
 export interface ReplicateGroup {
   row: number;
@@ -22,6 +23,7 @@ const NONE_SHOWN_AS_ONE: ReplicatesShownAsOne = { anchors: new Map(), covered: n
 
 export function replicatesShownAsOne(
   card: ShownPlateMap,
+  seriesById: Protocol['series'],
   sheet: PlateMapSheet,
   board: SolvedBoard,
   stainSamples: StainSamples | undefined
@@ -32,7 +34,7 @@ export function replicatesShownAsOne(
   );
   const contents = new Map(
     sheet.positions.map(position => {
-      const details = wellDetails(card, position.key, board).join('|');
+      const details = wellDetails(card, seriesById, position.key, board).join('|');
       if (!stainSamples) return [position.key, details];
       if (!isAtHome(stainSamples, position.key)) return [position.key, ''];
       const stainId = card.stain[position.key];

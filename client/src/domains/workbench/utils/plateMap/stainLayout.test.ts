@@ -49,7 +49,6 @@ function assayPlate(stain: Record<string, string> = {}): ShownPlateMap {
       },
     ],
     samples: cells,
-    series: {},
     showsReplicatesAsOne: true,
     counts: {},
     amountNames: {},
@@ -85,10 +84,15 @@ describe('stain layout', () => {
     const plateMap = assayPlate();
     const sheet = sheetFor(plateMap);
     const whole = keys('A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6');
-    expect(canPoolReplicates(plateMap, sheet, stainSamples(plateMap, sheet), whole, board)).toBe(
-      true
-    );
-    expect(poolReplicates(plateMap, sheet, whole, board)).toEqual(['p:A1', 'p:A2', 'p:B1', 'p:B2']);
+    expect(
+      canPoolReplicates(plateMap, {}, sheet, stainSamples(plateMap, sheet), whole, board)
+    ).toBe(true);
+    expect(poolReplicates(plateMap, {}, sheet, whole, board)).toEqual([
+      'p:A1',
+      'p:A2',
+      'p:B1',
+      'p:B2',
+    ]);
     expect(samplesAt(plateMap, 'A2')).toEqual(['p:A4', 'p:A5', 'p:A6']);
     expect(samplesAt(plateMap, 'B1')).toEqual(['p:B1', 'p:B2', 'p:B3']);
     expect(samplesAt(plateMap, 'A3')).toEqual([]);
@@ -98,7 +102,9 @@ describe('stain layout', () => {
     const plateMap = assayPlate();
     const sheet = sheetFor(plateMap);
     const samples = stainSamples(plateMap, sheet);
-    expect(canPoolReplicates(plateMap, sheet, samples, keys('A1', 'A2', 'A3'), board)).toBe(false);
+    expect(canPoolReplicates(plateMap, {}, sheet, samples, keys('A1', 'A2', 'A3'), board)).toBe(
+      false
+    );
   });
 
   it('unpools back to their own wells, carrying the stain, and moves anything sitting there', () => {

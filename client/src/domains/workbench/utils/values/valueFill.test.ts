@@ -50,6 +50,7 @@ const protocol = {
     ],
   },
   calculations: { items: [], materialSections: [] },
+  series: {},
   plateMaps: [],
 } as unknown as Protocol;
 

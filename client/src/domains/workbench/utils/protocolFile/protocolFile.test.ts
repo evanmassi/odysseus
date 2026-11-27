@@ -117,8 +117,8 @@ function savedFacts(protocol: Protocol) {
   if (!flowCytometryPanel) throw new Error('no panel for the Flow card');
   const stainName = (id: string | undefined) =>
     flowCytometryPanel.stains.find(stain => stain.id === id)?.name;
-  const factorSeries = plateMap.series['series-factor'];
-  const listSeries = plateMap.series['series-list'];
+  const factorSeries = protocol.series['series-factor'];
+  const listSeries = protocol.series['series-list'];
   const amountOf = (name: string) =>
     [material(name).values['amount'], material(name).units['amount']].filter(Boolean).join(' ');
   return {

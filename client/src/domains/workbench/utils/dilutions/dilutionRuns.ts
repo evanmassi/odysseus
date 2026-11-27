@@ -6,7 +6,7 @@ import {
   normalizeMaterialKey,
 } from '@odysseus/shared-schemas';
 
-import { cachedPerCard } from '../cards/cachedPerCard';
+import { cachedPerCardWith } from '../cards/cachedPerCard';
 import { readReference } from '../formulas/nameReferences';
 import { plateNameOf, labwareTitle } from '../plateMap/plateMapTabs';
 import { dilutionFactorOf, type StepSeries } from '../plateMap/plateSeries';
@@ -36,40 +36,41 @@ interface PlateRun extends Omit<PlacedRun, 'place'> {
   tabNames: string[];
 }
 
-const runsOnPlate = cachedPerCard((plateMap: PlateMap): PlateRun[] =>
-  plateMap.lines.flatMap(line => {
-    const runs = new Map<string, Omit<PlateRun, 'tabNames'> & { plateIds: Set<string> }>();
-    for (const [key, lines] of Object.entries(plateMap.samples)) {
-      const entry = lines[line.id];
-      const series = entry?.seriesId === undefined ? undefined : plateMap.series[entry.seriesId];
-      if (!entry?.seriesId || !series || !('top' in series)) continue;
-      const value = lineValueOf(line, entry);
-      const run = runs.get(entry.seriesId) ?? {
-        ref: { plateId: plateMap.id, seriesId: entry.seriesId },
-        plateIds: new Set<string>(),
-        series,
-        subject: value?.text.trim() ?? '',
-        links: value?.links,
-        color: value?.color,
-        replicatesByPoint: new Map<number, number>(),
-      };
-      runs.set(entry.seriesId, run);
-      run.plateIds.add(key.split(':')[0]);
-      const point = entry.seriesPoint ?? 0;
-      run.replicatesByPoint.set(point, (run.replicatesByPoint.get(point) ?? 0) + 1);
-    }
-    return [...runs.values()].map(({ plateIds, ...run }) => ({
-      ...run,
-      tabNames: plateMap.plates
-        .filter(candidate => plateIds.has(candidate.id))
-        .map(candidate => plateNameOf(plateMap, candidate)),
-    }));
-  })
+const runsOnPlate = cachedPerCardWith(
+  (plateMap: PlateMap, seriesById: Protocol['series']): PlateRun[] =>
+    plateMap.lines.flatMap(line => {
+      const runs = new Map<string, Omit<PlateRun, 'tabNames'> & { plateIds: Set<string> }>();
+      for (const [key, lines] of Object.entries(plateMap.samples)) {
+        const entry = lines[line.id];
+        const series = entry?.seriesId === undefined ? undefined : seriesById[entry.seriesId];
+        if (!entry?.seriesId || !series || !('top' in series)) continue;
+        const value = lineValueOf(line, entry);
+        const run = runs.get(entry.seriesId) ?? {
+          ref: { plateId: plateMap.id, seriesId: entry.seriesId },
+          plateIds: new Set<string>(),
+          series,
+          subject: value?.text.trim() ?? '',
+          links: value?.links,
+          color: value?.color,
+          replicatesByPoint: new Map<number, number>(),
+        };
+        runs.set(entry.seriesId, run);
+        run.plateIds.add(key.split(':')[0]);
+        const point = entry.seriesPoint ?? 0;
+        run.replicatesByPoint.set(point, (run.replicatesByPoint.get(point) ?? 0) + 1);
+      }
+      return [...runs.values()].map(({ plateIds, ...run }) => ({
+        ...run,
+        tabNames: plateMap.plates
+          .filter(candidate => plateIds.has(candidate.id))
+          .map(candidate => plateNameOf(plateMap, candidate)),
+      }));
+    })
 );
 
-function placedRuns(plates: readonly PlateMap[]): PlacedRun[] {
+function placedRuns(plates: readonly PlateMap[], seriesById: Protocol['series']): PlacedRun[] {
   return plates.flatMap(plateMap =>
-    runsOnPlate(plateMap).map(({ tabNames, ...run }) => {
+    runsOnPlate(plateMap, seriesById).map(({ tabNames, ...run }) => {
       const showsCard = plates.length > 1 || !tabNames.length;
       return {
         ...run,
@@ -87,10 +88,10 @@ const sameSourceKey = ({ subject, series }: PlacedRun) =>
     readReference(series.dilutionFactor).id ?? dilutionFactorOf(series.dilutionFactor),
   ].join('|');
 
-export function dilutionRuns(protocol: Pick<Protocol, 'plateMaps'>): DilutionRun[] {
+export function dilutionRuns(protocol: Pick<Protocol, 'plateMaps' | 'series'>): DilutionRun[] {
   const plates = protocol.plateMaps;
   const pooled = new Map<string, DilutionRun>();
-  for (const placed of placedRuns(plates)) {
+  for (const placed of placedRuns(plates, protocol.series)) {
     const { ref, place, ...run } = placed;
     const key = sameSourceKey(placed);
     const existing = pooled.get(key);

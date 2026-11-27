@@ -5,6 +5,7 @@ import { calculateBoard, type SolvedBoard } from '../utils/formulas/boardCalcula
 import { collectBoardNames } from '../utils/formulas/boardNames';
 import { linkReferences } from '../utils/formulas/referenceLinks';
 import { removeValuesTwinnedByPlate } from '../utils/plateMap/plateEditEffects';
+import { dropUnpaintedSeries } from '../utils/plateMap/seriesEdits';
 import { blankProtocol } from '../utils/protocolFile/blankProtocol';
 
 import type { Protocol } from '@odysseus/shared-schemas';
@@ -126,6 +127,7 @@ export const useWorkbenchStore = create<WorkbenchState>(set => ({
         ? edited
         : produce(edited, draft => {
             removeValuesTwinnedByPlate(draft, state.knownNames);
+            dropUnpaintedSeries(draft);
           });
       const reconciled = reconcile(changed, state.knownNames);
       const now = Date.now();

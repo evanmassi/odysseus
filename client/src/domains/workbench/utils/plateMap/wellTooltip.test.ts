@@ -20,7 +20,6 @@ const coCulture = () =>
         r: { valueId: 'rv', amount: '1e4', unit: 'cells' },
       },
     },
-    series: {},
     counts: {},
     amountNames: {},
     side: 'assay',
@@ -29,7 +28,7 @@ const coCulture = () =>
   }) as unknown as ShownPlateMap;
 
 const rowsAt = (plateMap: ShownPlateMap, sources: Array<{ name: string; summary: string }> = []) =>
-  wellTooltipRows(plateMap, 'p:A1', lineLayers(plateMap, undefined, empty), empty, sources);
+  wellTooltipRows(plateMap, {}, 'p:A1', lineLayers(plateMap, {}, undefined, empty), empty, sources);
 
 describe('well tooltip rows', () => {
   it('gives each cell its own count and says the ratio once, naming both sides', () => {
@@ -72,8 +71,8 @@ describe('well tooltip rows', () => {
     } as unknown as ShownPlateMap;
     plateMap.samples['p:A2'] = structuredClone(plateMap.samples['p:A1']);
     const sheet = sheetOf(plateMap, activeTabOf(plateMap));
-    const layers = lineLayers(plateMap, undefined, empty);
-    const pooled = stainSideTooltipRows(plateMap, sheet, 'p:B1', layers, empty, []);
+    const layers = lineLayers(plateMap, {}, undefined, empty);
+    const pooled = stainSideTooltipRows(plateMap, {}, sheet, 'p:B1', layers, empty, []);
     expect(pooled[0]).toEqual({ kind: 'note', text: 'Came from A1, A2' });
     expect(pooled).toHaveLength(1 + rowsAt(plateMap).length);
     expect(stainedElsewhereRows(plateMap, sheet, 'p:A2', () => 'Full Stain')).toEqual([

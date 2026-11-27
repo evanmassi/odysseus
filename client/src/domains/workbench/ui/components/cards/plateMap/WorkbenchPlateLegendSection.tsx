@@ -68,6 +68,7 @@ export function WorkbenchPlateLegendSection({
 }: WorkbenchPlateLegendSectionProps) {
   const updatePlateMap = useUpdatePlateMap(card.id);
   const updateProtocol = useWorkbenchStore(state => state.updateProtocol);
+  const seriesById = useWorkbenchStore(state => state.protocol.series);
   const [recoloringId, setRecoloringId] = useState<string>();
   const countOf = new Map(counts.map(count => [count.key, count]));
   const valueTexts = new Map(
@@ -77,7 +78,7 @@ export function WorkbenchPlateLegendSection({
   const used = counts.filter(count => count.kind === 'used');
   const legendWords = new Set(
     Object.values(card.samples).flatMap(lines => {
-      const series = colorLine && card.series[lines[colorLine.id]?.seriesId ?? ''];
+      const series = colorLine && seriesById[lines[colorLine.id]?.seriesId ?? ''];
       return series ? [seriesLegendWord(series)] : [];
     })
   );

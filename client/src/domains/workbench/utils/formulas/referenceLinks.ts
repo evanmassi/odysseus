@@ -42,14 +42,12 @@ export function linkReferences(draft: Protocol, board: SolvedBoard): void {
   for (const page of draft.pages) {
     for (const step of page.steps) step.text = linkedStep(step.text, board);
   }
-  for (const plateMap of draft.plateMaps) {
-    for (const series of Object.values(plateMap.series)) {
-      if (series.prep?.diluent)
-        series.prep.diluent = linkedWhole(series.prep.diluent, board, MATERIAL_KINDS);
-      if (!('top' in series)) continue;
-      series.top = linkedWhole(series.top, board, NUMBER_KINDS);
-      series.dilutionFactor = linkedWhole(series.dilutionFactor, board, NUMBER_KINDS);
-    }
+  for (const series of Object.values(draft.series)) {
+    if (series.prep?.diluent)
+      series.prep.diluent = linkedWhole(series.prep.diluent, board, MATERIAL_KINDS);
+    if (!('top' in series)) continue;
+    series.top = linkedWhole(series.top, board, NUMBER_KINDS);
+    series.dilutionFactor = linkedWhole(series.dilutionFactor, board, NUMBER_KINDS);
   }
   draft.diluent = linkedWhole(draft.diluent, board, MATERIAL_KINDS);
 }

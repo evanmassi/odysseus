@@ -11,3 +11,16 @@ export function cachedPerCard<Card extends object, Result>(
     return cache.get(card) as Result;
   };
 }
+
+export function cachedPerCardWith<Card extends object, With extends object, Result>(
+  compute: (card: Card, extra: With) => Result
+): (card: Card, extra: With) => Result {
+  const cache = new WeakMap<Card, WeakMap<With, Result>>();
+  return (card, extra) => {
+    if (isDraft(card) || isDraft(extra)) return compute(card, extra);
+    const byExtra = cache.get(card) ?? new WeakMap<With, Result>();
+    cache.set(card, byExtra);
+    if (!byExtra.has(extra)) byExtra.set(extra, compute(card, extra));
+    return byExtra.get(extra) as Result;
+  };
+}

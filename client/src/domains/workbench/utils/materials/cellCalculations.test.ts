@@ -51,6 +51,7 @@ function protocolWith(
       items: values.map(([name, value, unit]) => ({ id: name, name, value, unit })),
     },
     calculations: { items: [], materialSections: [] },
+    series: {},
     plateMaps: [
       {
         id: 'plate',
@@ -59,7 +60,6 @@ function protocolWith(
         otherLabware: [],
         lines: [{ id: 'd', name: 'Donors', role: 'auto', values: [{ id: 'v1', text: 'Donor 1' }] }],
         samples: cells,
-        series: {},
         counts: {},
         amountNames: {},
         stain: {},
@@ -366,7 +366,7 @@ describe('cells plated through a series', () => {
       draft => {
         draft.diluent = '';
         const [plateMap] = draft.plateMaps;
-        plateMap.series = {
+        draft.series = {
           s1: {
             top: '{Donor seeding|Donor seeding}',
             unit: 'cells',

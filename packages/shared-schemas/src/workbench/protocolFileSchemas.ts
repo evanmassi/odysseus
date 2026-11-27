@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 15;
+export const PROTOCOL_FILE_VERSION = 16;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -209,7 +209,6 @@ const plateMapSchema = z.object({
   ),
   lines: z.array(plateLineSchema),
   samples: z.record(z.string(), z.record(z.string(), sampleEntrySchema)),
-  series: z.record(z.string(), seriesSchema),
   otherLabwareTabName: z.string().optional(),
   counts: textMap,
   amountNames: textMap,
@@ -299,6 +298,7 @@ const protocolSchema = z.object({
   materials: protocolMaterialsSchema,
   values: protocolValuesSchema,
   calculations: protocolCalculationsSchema,
+  series: z.record(z.string(), seriesSchema),
   plateMaps: z.array(plateMapSchema),
   flowCytometryPanels: z.array(flowCytometryPanelSchema),
   cards: z.array(protocolCardSchema),
@@ -340,7 +340,7 @@ export type ProtocolFluor = z.infer<typeof protocolFluorSchema>;
 export type PlateLine = z.infer<typeof plateLineSchema>;
 export type MaterialLink = z.infer<typeof materialLinkSchema>;
 export type SavedTerm = z.infer<typeof savedTermSchema>;
-export type PlateSeries = z.infer<typeof seriesSchema>;
+export type ProtocolSeries = z.infer<typeof seriesSchema>;
 export type SampleEntry = z.infer<typeof sampleEntrySchema>;
 export type Protocol = z.infer<typeof protocolSchema>;
 export type ProtocolFile = z.infer<typeof protocolFileSchema>;

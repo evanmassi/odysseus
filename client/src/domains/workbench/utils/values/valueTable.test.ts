@@ -72,7 +72,6 @@ const plateMap = (id: string, title: string, content: Partial<PlateMap>): PlateM
   otherLabware: [],
   lines: [],
   samples: {},
-  series: {},
   counts: {},
   amountNames: {},
   stain: {},
@@ -94,8 +93,13 @@ const killingPlate = plateMap('map', 'Assay plate map', {
     'p:A3': { drug: { valueId: 'DMSO' }, cells: { valueId: 'Raji' } },
     'p:A4': { drug: { valueId: 'Targets only' }, cells: { valueId: 'Raji' } },
   },
-  series: { s: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' } },
 });
+
+const SERIES: Protocol['series'] = {
+  s: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
+  s1: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
+  s2: { top: '1', unit: 'µM', dilutionFactor: '2', direction: 'right' },
+};
 
 const valuesWith = (content: Partial<ProtocolValues>): ProtocolValues => ({
   items: [],
@@ -128,6 +132,7 @@ const protocolOf = (
     flowCytometryPanels: [],
     cards: [],
     plateMaps,
+    series: SERIES,
     materials: { items: materials, customGroups: [] },
     values,
     calculations: { items: [], materialSections: [] },
@@ -366,10 +371,6 @@ describe('the values table', () => {
           cells: { valueId: 'Jurkat' },
           drug: { valueId: 'Drug X', seriesId: 's2', seriesPoint: 0 },
         },
-      },
-      series: {
-        s1: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
-        s2: { top: '1', unit: 'µM', dilutionFactor: '2', direction: 'right' },
       },
     });
     const chem = groupNamed(tableFor([twins], mainValues), 'Chemicals & proteins');

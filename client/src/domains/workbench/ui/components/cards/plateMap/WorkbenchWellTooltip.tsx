@@ -16,13 +16,13 @@ interface WorkbenchWellTooltipProps {
 }
 
 function rowsFor(source: WellTooltipSource, key: string): WellTooltipRow[] {
-  const { card, sheet, layers, board, donorSummaries, stains } = source;
+  const { card, seriesById, sheet, layers, board, donorSummaries, stains } = source;
   if (source.isStainSide) {
-    return stainSideTooltipRows(card, sheet, key, layers, board, donorSummaries);
+    return stainSideTooltipRows(card, seriesById, sheet, key, layers, board, donorSummaries);
   }
   return [
     ...stainedElsewhereRows(card, sheet, key, stainId => stains.get(stainId)?.name),
-    ...wellTooltipRows(card, key, layers, board, donorSummaries),
+    ...wellTooltipRows(card, seriesById, key, layers, board, donorSummaries),
   ];
 }
 

@@ -20,7 +20,6 @@ export const newPlateMap = (): PlateMap => ({
   otherLabware: [],
   lines: [],
   samples: {},
-  series: {},
   counts: {},
   amountNames: {},
   stain: {},
@@ -141,7 +140,7 @@ export const withoutPlate = (labware: Labware, plateId: string): Labware => ({
 });
 
 type Plate = PlateMap['plates'][number];
-type Series = PlateMap['series'][string];
+type Series = Protocol['series'][string];
 
 const copyOfSeries = (series: Series): Series => ({
   ...series,
@@ -149,7 +148,11 @@ const copyOfSeries = (series: Series): Series => ({
   ...(series.prep && { prep: { ...series.prep } }),
 });
 
-export function duplicatePlateAsTab(plateMap: PlateMap, plate: Plate): number {
+export function duplicatePlateAsTab(
+  seriesById: Protocol['series'],
+  plateMap: PlateMap,
+  plate: Plate
+): number {
   const copy: Plate = { ...plate, id: createId(), name: plate.name ? `${plate.name} copy` : '' };
   plateMap.plates.splice(plateMap.plates.indexOf(plate) + 1, 0, copy);
   const freshSeries = new Map<string, string>();
@@ -158,7 +161,7 @@ export function duplicatePlateAsTab(plateMap: PlateMap, plate: Plate): number {
     if (known) return known;
     const fresh = createId();
     freshSeries.set(seriesId, fresh);
-    plateMap.series[fresh] = copyOfSeries(plateMap.series[seriesId]);
+    seriesById[fresh] = copyOfSeries(seriesById[seriesId]);
     return fresh;
   };
   const prefix = `${plate.id}:`;

@@ -8,6 +8,7 @@ import { pointAmount, seriesSummary } from './plateSeries';
 import { setRatioPartner } from './wellEdits';
 
 const empty = calculateBoard([]);
+const noSeries = {};
 
 const coCulture = (content: Partial<PlateMap> = {}) =>
   ({
@@ -25,7 +26,6 @@ const coCulture = (content: Partial<PlateMap> = {}) =>
         r: { valueId: 'rv', amount: '2e4', unit: 'cells' },
       },
     },
-    series: {},
     counts: {},
     amountNames: {},
     side: 'assay',
@@ -74,10 +74,10 @@ describe('cells worked out from a ratio', () => {
   it('finds the only other counted cells and multiplies per well', () => {
     const plateMap = coCulture();
     const tCells = lineOf(plateMap, 't');
-    expect(ratioPartner(plateMap, 'p:A1', tCells, empty)?.id).toBe('r');
-    expect(cellCount(plateMap, 'p:A1', tCells, empty)).toBe(4e4);
-    expect(cellCount(plateMap, 'p:A2', tCells, empty)).toBe(1e4);
-    expect(cellCount(plateMap, 'p:A1', lineOf(plateMap, 'r'), empty)).toBe(1e4);
+    expect(ratioPartner(plateMap, noSeries, 'p:A1', tCells, empty)?.id).toBe('r');
+    expect(cellCount(plateMap, noSeries, 'p:A1', tCells, empty)).toBe(4e4);
+    expect(cellCount(plateMap, noSeries, 'p:A2', tCells, empty)).toBe(1e4);
+    expect(cellCount(plateMap, noSeries, 'p:A1', lineOf(plateMap, 'r'), empty)).toBe(1e4);
   });
 
   it('asks for the other cells when more than one could be meant, and uses a picked one', () => {
@@ -85,9 +85,9 @@ describe('cells worked out from a ratio', () => {
     plateMap.lines.push({ id: 'k', name: '', role: 'auto', values: [{ id: 'kv', text: 'K562' }] });
     plateMap.samples['p:A1']['k'] = { valueId: 'kv', amount: '5e3', unit: 'cells' };
     const tCells = lineOf(plateMap, 't');
-    expect(ratioPartner(plateMap, 'p:A1', tCells, empty)).toBeUndefined();
+    expect(ratioPartner(plateMap, noSeries, 'p:A1', tCells, empty)).toBeUndefined();
     setRatioPartner(plateMap, 't', 'k');
-    expect(cellCount(plateMap, 'p:A1', tCells, empty)).toBe(2e4);
+    expect(cellCount(plateMap, noSeries, 'p:A1', tCells, empty)).toBe(2e4);
     setRatioPartner(plateMap, 't', '');
     expect(tCells.ratioTo).toBeUndefined();
   });
@@ -95,16 +95,16 @@ describe('cells worked out from a ratio', () => {
   it('sums up the editor row: choices, the automatic partner and the worked-out cells', () => {
     const plateMap = coCulture();
     const tCells = lineOf(plateMap, 't');
-    expect(ratioRow(plateMap, ['p:A1'], tCells, empty)).toEqual({
+    expect(ratioRow(plateMap, noSeries, ['p:A1'], tCells, empty)).toEqual({
       choices: [{ lineId: 'r', label: 'Raji' }],
       chosenId: '',
       autoLabel: 'Raji',
       workedOut: '= 4.00E+4 cells',
     });
-    expect(ratioRow(plateMap, ['p:A1', 'p:A2'], tCells, empty)?.workedOut).toBe(
+    expect(ratioRow(plateMap, noSeries, ['p:A1', 'p:A2'], tCells, empty)?.workedOut).toBe(
       'cells differ by well'
     );
-    expect(ratioRow(plateMap, ['p:A1'], lineOf(plateMap, 'r'), empty)).toBeUndefined();
+    expect(ratioRow(plateMap, noSeries, ['p:A1'], lineOf(plateMap, 'r'), empty)).toBeUndefined();
   });
 
   it('drops a partner that is gone and follows a partner merged into another line', () => {

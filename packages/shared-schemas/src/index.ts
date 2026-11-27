@@ -699,6 +699,6 @@ export {
   type PlateLine,
   type MaterialLink,
   type SavedTerm,
-  type PlateSeries,
+  type ProtocolSeries,
   type ProtocolFile,
 } from './workbench';

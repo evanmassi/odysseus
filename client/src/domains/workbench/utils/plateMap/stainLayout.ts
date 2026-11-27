@@ -3,7 +3,7 @@ import { isWellFilled, shiftedTargets } from './wellSelection';
 
 import type { PlateMapSheet, PlateMapPosition } from './plateMapTabs';
 import type { SolvedBoard } from '../formulas/boardCalculation';
-import type { PlateMap } from '@odysseus/shared-schemas';
+import type { PlateMap, Protocol } from '@odysseus/shared-schemas';
 
 export type StainSamples = ReadonlyMap<string, readonly string[]>;
 
@@ -88,6 +88,7 @@ export function poolSamples(
 
 function replicateGroups(
   card: PlateMap,
+  seriesById: Protocol['series'],
   sheet: PlateMapSheet,
   samples: StainSamples,
   keys: ReadonlySet<string>,
@@ -96,7 +97,7 @@ function replicateGroups(
   const groups = new Map<string, PlateMapPosition[]>();
   for (const position of occupiedPositions(sheet, samples, keys)) {
     const contents = (samples.get(position.key) ?? []).map(well =>
-      wellDetails(card, well, board).join('|')
+      wellDetails(card, seriesById, well, board).join('|')
     );
     const signature = [...new Set(contents)].sort().join('\n');
     groups.set(signature, [...(groups.get(signature) ?? []), position]);
@@ -106,17 +107,19 @@ function replicateGroups(
 
 export const canPoolReplicates = (
   card: PlateMap,
+  seriesById: Protocol['series'],
   sheet: PlateMapSheet,
   samples: StainSamples,
   keys: ReadonlySet<string>,
   board: SolvedBoard
 ) => {
-  const groups = replicateGroups(card, sheet, samples, keys, board);
+  const groups = replicateGroups(card, seriesById, sheet, samples, keys, board);
   return groups.length > 1 && groups.some(group => group.length > 1);
 };
 
 export function poolReplicates(
   card: PlateMap,
+  seriesById: Protocol['series'],
   sheet: PlateMapSheet,
   keys: ReadonlySet<string>,
   board: SolvedBoard
@@ -127,7 +130,7 @@ export function poolReplicates(
     if (keys.has(position.key))
       freeByRow.set(position.row, [...(freeByRow.get(position.row) ?? []), position.key]);
   }
-  const pools = replicateGroups(card, sheet, samples, keys, board).map(positions => ({
+  const pools = replicateGroups(card, seriesById, sheet, samples, keys, board).map(positions => ({
     positions,
     target: freeByRow.get(positions[0].row)?.shift() ?? positions[0].key,
   }));

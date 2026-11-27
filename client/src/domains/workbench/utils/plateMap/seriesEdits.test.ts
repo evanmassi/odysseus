@@ -1,9 +1,10 @@
-import { normalizePlateMap, type PlateMap } from '@odysseus/shared-schemas';
+import { normalizePlateMap, type PlateMap, type Protocol } from '@odysseus/shared-schemas';
 
 import { calculateBoard } from '../formulas/boardCalculation';
 
 import { sheetOf, plateMapTabs } from './plateMapTabs';
 import {
+  dropUnpaintedSeries,
   lineUnitOf,
   removeSeries,
   seriesFormFor,
@@ -18,7 +19,6 @@ const plateMap = () =>
     otherLabware: [],
     lines: [{ id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Drug X' }] }],
     samples: {},
-    series: {},
     counts: {},
     amountNames: {},
     side: 'assay',
@@ -47,14 +47,19 @@ describe('series edits', () => {
 
   it('write each well its point and keep the Dilutions settings when rewritten', () => {
     const card = plateMap();
+    const seriesById: Protocol['series'] = {};
     const sheet = sheetFor(card);
     card.samples['p:B2'] = { drug: { valueId: 'x', amount: '10' } };
-    const seriesId = writeSeries(card, sheet, rowB, { ...form, dilutionFactor: '3' });
+    const seriesId = writeSeries(card, seriesById, sheet, rowB, { ...form, dilutionFactor: '3' });
     expect(card.samples['p:B4']).toEqual({ drug: { seriesId, seriesPoint: 2 } });
     expect(card.samples['p:B2']).toEqual({ drug: { valueId: 'x', seriesId, seriesPoint: 0 } });
-    card.series[seriesId] = { ...card.series[seriesId], prep: { roundTo: '10' } };
-    writeSeries(card, sheet, new Set(['p:B2']), { ...form, seriesId, dilutionFactor: '2' });
-    expect(card.series[seriesId]).toMatchObject({
+    seriesById[seriesId] = { ...seriesById[seriesId], prep: { roundTo: '10' } };
+    writeSeries(card, seriesById, sheet, new Set(['p:B2']), {
+      ...form,
+      seriesId,
+      dilutionFactor: '2',
+    });
+    expect(seriesById[seriesId]).toMatchObject({
       dilutionFactor: '2',
       prep: { roundTo: '10' },
     });
@@ -63,10 +68,15 @@ describe('series edits', () => {
 
   it('remove a series from every well that held it, not just the selected ones', () => {
     const card = plateMap();
-    const seriesId = writeSeries(card, sheetFor(card), rowB, { ...form, dilutionFactor: '3' });
+    const protocol = { plateMaps: [card], series: {} as Protocol['series'] };
+    const seriesId = writeSeries(card, protocol.series, sheetFor(card), rowB, {
+      ...form,
+      dilutionFactor: '3',
+    });
     removeSeries(card, seriesId);
     normalizePlateMap(card);
-    expect(card.series).toEqual({});
+    dropUnpaintedSeries(protocol);
+    expect(protocol.series).toEqual({});
     expect(card.samples).toEqual({});
   });
 
@@ -92,10 +102,11 @@ describe('series edits', () => {
 
   it('default a new series to a unit already used on its line', () => {
     const card = plateMap();
-    expect(lineUnitOf(card, 'drug')).toBe('');
-    writeSeries(card, sheetFor(card), rowB, { ...form, dilutionFactor: '3' });
-    expect(lineUnitOf(card, 'drug')).toBe('µM');
+    const seriesById: Protocol['series'] = {};
+    expect(lineUnitOf(card, seriesById, 'drug')).toBe('');
+    writeSeries(card, seriesById, sheetFor(card), rowB, { ...form, dilutionFactor: '3' });
+    expect(lineUnitOf(card, seriesById, 'drug')).toBe('µM');
     card.samples['p:H1'] = { drug: { valueId: 'x', amount: '5', unit: 'nM' } };
-    expect(lineUnitOf(card, 'drug')).toBe('nM');
+    expect(lineUnitOf(card, seriesById, 'drug')).toBe('nM');
   });
 });

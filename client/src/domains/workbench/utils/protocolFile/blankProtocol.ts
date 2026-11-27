@@ -15,6 +15,7 @@ export function blankProtocol(): Protocol {
     materials: { items: [], customGroups: [] },
     values: { items: [], rows: [] },
     calculations: { items: [], materialSections: [] },
+    series: {},
     plateMaps: [],
     flowCytometryPanels: [],
     cards: [

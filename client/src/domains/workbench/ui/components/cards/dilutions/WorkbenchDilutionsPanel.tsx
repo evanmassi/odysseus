@@ -80,9 +80,7 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
 
   const setRunDiluent = (run: DilutionRun, diluent: string) =>
     updateProtocol(draft => {
-      for (const member of run.members) {
-        setPrepSetting(draft, member.plateId, member.seriesId, 'diluent', diluent);
-      }
+      for (const member of run.members) setPrepSetting(draft, member.seriesId, 'diluent', diluent);
     });
 
   if (!runs.length) {

@@ -12,7 +12,7 @@ import { dilutionPrep } from './dilutionPrep';
 import { dilutionRuns, type DilutionRun } from './dilutionRuns';
 import { stockFor } from './dilutionStock';
 
-import type { MaterialItem, PlateSeries, Protocol } from '@odysseus/shared-schemas';
+import type { MaterialItem, ProtocolSeries, Protocol } from '@odysseus/shared-schemas';
 
 const material = (name: string, values: Record<string, string>, units: Record<string, string>) =>
   ({
@@ -38,7 +38,7 @@ const SHARED_PREP: ValueLine[] = [
 ];
 
 function protocolWith(
-  series: PlateSeries,
+  series: ProtocolSeries,
   materials: MaterialItem[],
   values: ValueLine[] = SHARED_PREP
 ): Protocol {
@@ -55,6 +55,7 @@ function protocolWith(
     materials: { items: materials, customGroups: [] },
     values: { items: values.map((line, index) => ({ id: `v${index}`, ...line })), rows: [] },
     calculations: { items: [], materialSections: [] },
+    series: { s: series },
     plateMaps: [
       {
         id: 'map',
@@ -62,7 +63,6 @@ function protocolWith(
         plates: [{ id: 'p', labware: '96', name: '' }],
         lines: [{ id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Drug X' }] }],
         samples: cells,
-        series: { s: series },
         otherLabware: [],
         counts: {},
         amountNames: {},
@@ -100,13 +100,13 @@ function protocolWith(
   return protocol;
 }
 
-const doseSeries: PlateSeries = {
+const doseSeries: ProtocolSeries = {
   top: '300',
   unit: 'nM',
   dilutionFactor: '3',
   direction: 'right',
 };
-const withDiluent = (diluent: string): PlateSeries => ({ ...doseSeries, prep: { diluent } });
+const withDiluent = (diluent: string): ProtocolSeries => ({ ...doseSeries, prep: { diluent } });
 const valuesOf = (protocol: Protocol) => protocol.values.items;
 const drugStock = material(
   'Drug X',
@@ -128,7 +128,7 @@ describe('dilution prep', () => {
     const copy = structuredClone(plateMap);
     copy.id = 'copy';
     copy.title = 'Assay plate copy';
-    copy.series = { other: copy.series['s'] };
+    protocol.series['other'] = protocol.series['s'];
     for (const lines of Object.values(copy.samples)) lines['drug'].seriesId = 'other';
     protocol.plateMaps.push(copy);
     const runs = dilutionRuns(protocol);
@@ -137,7 +137,9 @@ describe('dilution prep', () => {
     expect(runs[0].places).toEqual(['Assay plate · Plate 1', 'Assay plate copy · Plate 1']);
     expect(runs[0].replicatesByPoint.get(0)).toBe(6);
     expect(dilutionRuns(protocol)[0].replicatesByPoint.get(0)).toBe(6);
-    expect(dilutionRuns({ plateMaps: [plateMap] })[0].places).toEqual(['Plate 1']);
+    expect(dilutionRuns({ plateMaps: [plateMap], series: protocol.series })[0].places).toEqual([
+      'Plate 1',
+    ]);
   });
 
   it('finds each dilution series on the plates with its most replicated point', () => {
@@ -293,7 +295,7 @@ describe('dilution prep', () => {
   });
 
   it('runs a 1:N series forward from undiluted stock', () => {
-    const ratio: PlateSeries = {
+    const ratio: ProtocolSeries = {
       top: '100',
       unit: '1:N',
       dilutionFactor: '2',
@@ -410,11 +412,11 @@ describe('stock lookup', () => {
 describe('dilution edits', () => {
   it('saves Round to onto the series and answers onto a new material', () => {
     const protocol = protocolWith(doseSeries, []);
-    setPrepSetting(protocol, 'map', 's', 'roundTo', '10');
+    setPrepSetting(protocol, 's', 'roundTo', '10');
     recordOnMaterial(protocol, 'Drug X', 'stock-concentration', '5', 'mM', name =>
       material(name, {}, {})
     );
-    expect(protocol.plateMaps[0].series['s'].prep).toEqual({ roundTo: '10' });
+    expect(protocol.series['s'].prep).toEqual({ roundTo: '10' });
     expect(protocol.materials.items[0]).toMatchObject({
       name: 'Drug X',
       values: { 'stock-concentration': '5' },

@@ -53,7 +53,7 @@ import { WorkbenchWellSeriesForm } from './WorkbenchWellSeriesForm';
 import type { lineLayers } from '../../../../utils/plateMap/plateLayers';
 import type { PlateMapSheet, PlateMapTab } from '../../../../utils/plateMap/plateMapTabs';
 import type { ShownPlateMap } from '../../../../utils/plateMap/shownPlateMap';
-import type { PlateMap } from '@odysseus/shared-schemas';
+import type { PlateMap, Protocol } from '@odysseus/shared-schemas';
 
 interface DraftLine {
   lineId: string;
@@ -117,6 +117,7 @@ export function WorkbenchWellEditorPanel({
   onClose,
 }: WorkbenchWellEditorPanelProps) {
   const board = useWorkbenchStore(state => state.board);
+  const seriesById = useWorkbenchStore(state => state.protocol.series);
   const knownNames = useWorkbenchData(state => knownNamesIn(state.protocol));
   const updatePlateMap = useUpdatePlateMap(card.id);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -166,10 +167,10 @@ export function WorkbenchWellEditorPanel({
     setDrafts([]);
   }, [keys]);
 
-  const writeRow = (target: EditorRow, change: (draft: PlateMap) => void) => {
+  const writeRow = (target: EditorRow, change: (draft: PlateMap, protocol: Protocol) => void) => {
     const pending = target.draft;
-    updatePlateMap(draft => {
-      change(draft);
+    updatePlateMap((draft, protocol) => {
+      change(draft, protocol);
       if (pending?.name) renameLine(draft, target.lineId, pending.name);
     });
     if (pending) setDrafts(shownDrafts.filter(draft => draft !== pending));
@@ -193,8 +194,8 @@ export function WorkbenchWellEditorPanel({
     if (!openSeries) return;
     const next = { ...openSeries, ...change };
     let { seriesId } = next;
-    const write = (draft: PlateMap) => {
-      seriesId = writeSeries(draft, sheet, keys, next);
+    const write = (draft: PlateMap, protocol: Protocol) => {
+      seriesId = writeSeries(draft, protocol.series, sheet, keys, next);
     };
     const target = rows.find(candidate => candidate.lineId === next.lineId);
     if (target) writeRow(target, write);
@@ -236,7 +237,7 @@ export function WorkbenchWellEditorPanel({
       </div>
       {rows.map((target, index) => {
         const { row, lineId, draft } = target;
-        const series = row.seriesId === undefined ? undefined : card.series[row.seriesId];
+        const series = row.seriesId === undefined ? undefined : seriesById[row.seriesId];
         const edit = (change: (draft: PlateMap) => void) => writeRow(target, change);
         const form = openSeries?.lineId === lineId ? openSeries : undefined;
         const started = draft ? undefined : startedNames.get(lineId);
@@ -263,7 +264,7 @@ export function WorkbenchWellEditorPanel({
               canRemove={!draft && rows.length > 1}
               inputRef={index === 0 && focusesFirstRow ? focusOnMount : undefined}
               sharedName={sharedName}
-              ratio={row.line && ratioRow(card, keyList, row.line, board)}
+              ratio={row.line && ratioRow(card, seriesById, keyList, row.line, board)}
               onTextChange={text => edit(change => setWellsText(change, keyList, lineId, text))}
               onRenameLine={name => nameRow(target, name)}
               onPartnerChange={partnerId =>
@@ -296,7 +297,7 @@ export function WorkbenchWellEditorPanel({
                 setOpenSeries(
                   seriesFormFor(lineId, row.seriesId, series, {
                     amount: row.amount,
-                    unit: row.unit || lineUnitOf(card, lineId),
+                    unit: row.unit || lineUnitOf(card, seriesById, lineId),
                   })
                 )
               }

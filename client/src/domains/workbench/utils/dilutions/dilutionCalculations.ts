@@ -110,7 +110,7 @@ function seriesName(protocol: Protocol, run: DilutionRun, field: 'top' | 'diluti
   const [first] = run.members;
   const plateMap = protocol.plateMaps.find(candidate => candidate.id === first.plateId);
   const amount = plateMap
-    ? plateAmounts(plateMap).find(
+    ? plateAmounts(plateMap, protocol.series).find(
         candidate =>
           candidate.source.kind === 'series' &&
           candidate.source.seriesId === first.seriesId &&

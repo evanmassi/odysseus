@@ -19,7 +19,10 @@ export interface PlateValueRow {
   source: PlateRowSource;
 }
 
-export function plateValueRows(plateMap: PlateMap): PlateValueRow[] {
+export function plateValueRows(
+  plateMap: PlateMap,
+  seriesById: Protocol['series']
+): PlateValueRow[] {
   const counts = plateMapCounts(plateMap)
     .filter(count => count.kind !== 'total' || count.count > 1)
     .map(
@@ -30,7 +33,7 @@ export function plateValueRows(plateMap: PlateMap): PlateValueRow[] {
         source: { kind: 'count', count },
       })
     );
-  const amounts = plateAmounts(plateMap).map(
+  const amounts = plateAmounts(plateMap, seriesById).map(
     (amount): PlateValueRow => ({
       id: `${plateMap.id}:${amount.key}`,
       plateId: plateMap.id,
@@ -67,7 +70,7 @@ export function setPlateRowValue(draft: Protocol, row: PlateValueRow, typed: str
         if (entry) entry.amount = typed;
       }
     } else if (from.kind === 'series') {
-      const series = plateMap.series[from.seriesId];
+      const series = draft.series[from.seriesId];
       if (series && 'top' in series) series[from.field] = typed;
     }
   });
@@ -83,7 +86,7 @@ export function setPlateRowUnit(draft: Protocol, row: PlateValueRow, unit: strin
         if (entry) entry.unit = unit;
       }
     } else if (from.kind === 'series' && from.field === 'top') {
-      const series = plateMap.series[from.seriesId];
+      const series = draft.series[from.seriesId];
       if (series && 'top' in series) series.unit = unit;
     }
   });

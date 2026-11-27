@@ -104,7 +104,7 @@ const SETTINGS_LABELS: Partial<Record<ProtocolCard['type'], string>> = {
 };
 
 function prepWarnings(
-  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'values'>,
+  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'series' | 'values'>,
   board: SolvedBoard
 ) {
   const byLine = new Map<string, string[]>();

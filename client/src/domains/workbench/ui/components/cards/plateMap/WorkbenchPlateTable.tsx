@@ -1,6 +1,7 @@
 import { useMemo, type CSSProperties, type KeyboardEvent } from 'react';
 
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
+import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import {
   indicatorShapes,
   plateGeometry,
@@ -156,6 +157,7 @@ export function WorkbenchPlateTable({
   onOpenMenu,
 }: WorkbenchPlateTableProps) {
   const actions = useWellPointerActions(sheet, selection, onOpenWell, onOpenMenu);
+  const seriesById = useWorkbenchStore(state => state.protocol.series);
   const views = useMemo(
     () =>
       sheet.positions.flatMap((position): PlateWellView[] => {
@@ -175,7 +177,7 @@ export function WorkbenchPlateTable({
             {
               ...place,
               tooltipHeading: where,
-              shownLine: colorLine && wellLine(card, position.key, colorLine, board),
+              shownLine: colorLine && wellLine(card, seriesById, position.key, colorLine, board),
               isFilled: isWellFilled(card, position.key),
               color: wellColor(card, position.key, colorLine),
               stripes: wellStripes(card, position.key, layers),
@@ -198,7 +200,8 @@ export function WorkbenchPlateTable({
             ...place,
             tooltipHeading: heading.filter(Boolean).join(' · '),
             shownLine:
-              colorLine && sharedByAll(wells, well => wellLine(card, well, colorLine, board)),
+              colorLine &&
+              sharedByAll(wells, well => wellLine(card, seriesById, well, colorLine, board)),
             isFilled: isInUse,
             color: dimmedForStain(sharedByAll(wells, well => wellColor(card, well, colorLine))),
             stripes: (sharedByAll(wells, well => wellStripes(card, well, layers)) ?? []).map(
@@ -210,13 +213,13 @@ export function WorkbenchPlateTable({
           },
         ];
       }),
-    [card, sheet, colorLine, layers, board, shownAsOne, stains, stainSamples]
+    [card, seriesById, sheet, colorLine, layers, board, shownAsOne, stains, stainSamples]
   );
   const wells = useStructuralSharing(views);
   const isStainSide = stainSamples !== undefined;
   const tooltipSource = useMemo(
-    () => ({ card, sheet, layers, board, donorSummaries, stains, isStainSide }),
-    [card, sheet, layers, board, donorSummaries, stains, isStainSide]
+    () => ({ card, seriesById, sheet, layers, board, donorSummaries, stains, isStainSide }),
+    [card, seriesById, sheet, layers, board, donorSummaries, stains, isStainSide]
   );
   const showsAssayIndicators = !isStainSide || !isRearranged(card, sheet);
   const geometry = plateGeometry(size, sheet.rows, sheet.cols, indicators);

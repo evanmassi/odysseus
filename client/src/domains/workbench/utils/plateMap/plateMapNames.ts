@@ -7,11 +7,12 @@ import {
   unitScale,
   type MaterialItem,
   type PlateLine,
-  type PlateSeries,
   type PlateMap,
+  type Protocol,
+  type ProtocolSeries,
 } from '@odysseus/shared-schemas';
 
-import { cachedPerCard } from '../cards/cachedPerCard';
+import { cachedPerCard, cachedPerCardWith } from '../cards/cachedPerCard';
 import {
   DILUTION_FACTOR_NOTATION,
   dimensionKey,
@@ -119,7 +120,7 @@ const LEGEND_WORDS = new Map<Term, string>([
   [TOP_DILUTION, 'dil.'],
 ]);
 
-export const seriesLegendWord = (series: PlateSeries): string =>
+export const seriesLegendWord = (series: ProtocolSeries): string =>
   ('top' in series
     ? LEGEND_WORDS.get(seriesTopTerm(series.unit, stepSeriesUnit(series)))
     : undefined) ?? 'amount';
@@ -241,7 +242,7 @@ interface PlainCell {
 const isSameAmount = (cells: PlainCell[]) =>
   new Set(cells.map(cell => `${cell.amount}|${cell.unit}`)).size === 1;
 
-function amountsOnPlate(card: PlateMap): PlateAmount[] {
+function amountsOnPlate(card: PlateMap, seriesById: Protocol['series']): PlateAmount[] {
   const amounts: PlateAmount[] = [];
   const add = (amount: Omit<PlateAmount, 'name'>) => {
     const typedName = card.amountNames[amount.key]?.trim();
@@ -338,7 +339,7 @@ function amountsOnPlate(card: PlateMap): PlateAmount[] {
     }
 
     const dilutionRuns = [...runs.entries()].flatMap(([seriesId, run]) => {
-      const series = card.series[seriesId];
+      const series = seriesById[seriesId];
       return series && 'top' in series ? [{ seriesId, series, ...run }] : [];
     });
     for (const run of dilutionRuns) {
@@ -409,8 +410,10 @@ function amountsOnPlate(card: PlateMap): PlateAmount[] {
 export const plateMapCounts: (card: PlateMap) => readonly PlateMapCount[] =
   cachedPerCard(countLabware);
 
-export const plateAmounts: (card: PlateMap) => readonly PlateAmount[] =
-  cachedPerCard(amountsOnPlate);
+export const plateAmounts: (
+  card: PlateMap,
+  seriesById: Protocol['series']
+) => readonly PlateAmount[] = cachedPerCardWith(amountsOnPlate);
 
 export function materialWellCounts(
   cards: readonly PlateMap[],

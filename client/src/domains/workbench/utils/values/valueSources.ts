@@ -23,7 +23,7 @@ import { materialsById, setValueAmount, setValueUnit } from './valueEdits';
 
 import type { FieldDefinition, Protocol } from '@odysseus/shared-schemas';
 
-type SavedNumbers = Pick<Protocol, 'materials' | 'values' | 'plateMaps'>;
+type SavedNumbers = Pick<Protocol, 'materials' | 'values' | 'plateMaps' | 'series'>;
 
 export type ValueSource =
   | { kind: 'item'; itemId: string }
@@ -73,7 +73,7 @@ export function valueSourceOf(protocol: SavedNumbers, id: string): ValueSource |
   const material = materialSourceOf(protocol, id);
   if (material) return material;
   for (const plateMap of protocol.plateMaps) {
-    const row = plateValueRows(plateMap).find(candidate => candidate.id === id);
+    const row = plateValueRows(plateMap, protocol.series).find(candidate => candidate.id === id);
     if (row) return { kind: 'plate', row };
   }
   const run = dilutionRuns(protocol).find(candidate => prepRoundToId(candidate) === id);
@@ -92,9 +92,7 @@ export function writeValueSource(draft: Protocol, source: ValueSource, value: st
       editRecipeEntry(draft, source.materialId, source.entryId, { amount: value });
       return;
     case 'roundTo':
-      for (const { plateId, seriesId } of source.members) {
-        setPrepSetting(draft, plateId, seriesId, 'roundTo', value);
-      }
+      for (const { seriesId } of source.members) setPrepSetting(draft, seriesId, 'roundTo', value);
       return;
   }
   const material = materialsById(draft).get(source.materialId);

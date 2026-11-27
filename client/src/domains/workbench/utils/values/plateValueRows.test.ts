@@ -1,3 +1,5 @@
+import { dropUnpaintedSeries } from '../plateMap/seriesEdits';
+
 import { plateValueRows, removePlateRow, setPlateRowValue } from './plateValueRows';
 
 import type { PlateMap, Protocol } from '@odysseus/shared-schemas';
@@ -31,23 +33,26 @@ function protocolWithPlate(): Protocol {
       },
       'p:A3': { drug: { valueId: 'v' }, stim: { valueId: 'cd3', amount: '1', unit: 'µg/mL' } },
     },
-    series: { s: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' } },
     counts: {},
     amountNames: {},
     stain: {},
     stainedIn: {},
   };
-  return { plateMaps: [plateMap] } as unknown as Protocol;
+  return {
+    plateMaps: [plateMap],
+    series: { s: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' } },
+  } as unknown as Protocol;
 }
 
 const plateIn = (protocol: Protocol) => protocol.plateMaps[0];
 
 const rowNamed = (protocol: Protocol, name: string) =>
-  plateValueRows(plateIn(protocol)).find(row => row.name === name)!;
+  plateValueRows(plateIn(protocol), protocol.series).find(row => row.name === name)!;
 
 describe('plate rows', () => {
   it('list the counts and amounts a plate holds', () => {
-    expect(plateValueRows(plateIn(protocolWithPlate())).map(row => row.name)).toEqual([
+    const protocol = protocolWithPlate();
+    expect(plateValueRows(plateIn(protocol), protocol.series).map(row => row.name)).toEqual([
       'Drug X wells',
       'Vehicle wells',
       'Wells used',
@@ -64,14 +69,14 @@ describe('plate rows', () => {
     setPlateRowValue(protocol, rowNamed(protocol, 'Anti-CD3 final conc.'), '2');
     setPlateRowValue(protocol, rowNamed(protocol, 'Vehicle wells'), '4');
     const plateMap = plateIn(protocol);
-    expect(plateMap.series['s']).toMatchObject({ top: '30' });
+    expect(protocol.series['s']).toMatchObject({ top: '30' });
     expect(plateMap.samples['p:A3']['stim']).toMatchObject({ amount: '2' });
     expect(plateMap.counts).toEqual({ v: '4' });
   });
 
   it('remove a value from its wells, an amount from its wells, or a whole dilution', () => {
     const protocol = protocolWithPlate();
-    const rows = plateValueRows(plateIn(protocol));
+    const rows = plateValueRows(plateIn(protocol), protocol.series);
     const row = (name: string) => rows.find(candidate => candidate.name === name)!;
     removePlateRow(protocol, row('Vehicle wells'));
     removePlateRow(protocol, row('Anti-CD3 final conc.'));
@@ -79,6 +84,7 @@ describe('plate rows', () => {
     const plateMap = plateIn(protocol);
     expect(plateMap.samples['p:A3']).toEqual({ stim: { valueId: 'cd3' } });
     expect(plateMap.samples['p:A1']).toEqual({ drug: { valueId: 'x' }, stim: { valueId: 'cd3' } });
-    expect(plateMap.series).toEqual({});
+    dropUnpaintedSeries(protocol);
+    expect(protocol.series).toEqual({});
   });
 });

@@ -36,6 +36,7 @@ function needsFor(items: ProtocolValues['items']) {
     },
     values: { rows: [], items },
     calculations: { items: [], materialSections: [] },
+    series: {},
     plateMaps: [],
   } as unknown as Protocol;
   keepRecognizedTerms(protocol);

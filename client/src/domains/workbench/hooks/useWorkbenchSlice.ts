@@ -21,15 +21,19 @@ export const useProtocolOutsidePages = (): ProtocolOutsidePages =>
 export const useWorkbenchData = <Value>(select: (state: WorkbenchState) => Value): Value =>
   useStoreWithEqualityFn(useWorkbenchStore, select, isSameData);
 
-type ProtocolData = Pick<Protocol, 'materials' | 'values' | 'calculations' | 'plateMaps'>;
+type ProtocolData = Pick<
+  Protocol,
+  'materials' | 'values' | 'calculations' | 'plateMaps' | 'series'
+>;
 
 export function useProtocolData(): ProtocolData {
   const materials = useWorkbenchStore(state => state.protocol.materials);
   const values = useWorkbenchStore(state => state.protocol.values);
   const calculations = useWorkbenchStore(state => state.protocol.calculations);
   const plateMaps = useWorkbenchStore(state => state.protocol.plateMaps);
+  const series = useWorkbenchStore(state => state.protocol.series);
   return useMemo(
-    () => ({ materials, values, calculations, plateMaps }),
-    [materials, values, calculations, plateMaps]
+    () => ({ materials, values, calculations, plateMaps, series }),
+    [materials, values, calculations, plateMaps, series]
   );
 }

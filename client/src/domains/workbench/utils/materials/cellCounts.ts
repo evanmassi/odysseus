@@ -167,7 +167,7 @@ export const cellPartId = (subject: CellSubject, part: string): string =>
   `cells:${cellSubjectId(subject)}:${part}`;
 
 export function countSubjects(
-  protocol: Pick<Protocol, 'materials' | 'plateMaps'>,
+  protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'series'>,
   board: SolvedBoard
 ): CountSubject[] {
   const plated = platedCells(protocol, board);

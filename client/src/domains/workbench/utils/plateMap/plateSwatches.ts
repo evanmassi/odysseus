@@ -14,19 +14,21 @@ export interface PlateSwatch {
 export type PlateSwatchOf = (name: string) => PlateSwatch | undefined;
 
 export function plateSwatches(
-  protocol: Pick<Protocol, 'plateMaps'>,
+  protocol: Pick<Protocol, 'plateMaps' | 'series'>,
   board: SolvedBoard
 ): PlateSwatchOf {
   const swatches = protocol.plateMaps
     .flatMap(plateMap =>
-      lineLayers(plateMap, colorLineOf(plateMap), board).flatMap(({ line, role }) => {
-        const kind = indicatorKindOf(role);
-        if (!kind) return [];
-        return line.values.flatMap(value => {
-          const color = kind === 'fill' ? value.color : indicatorColorOf(plateMap, value);
-          return color ? [{ name: value.text, swatch: { color, kind } }] : [];
-        });
-      })
+      lineLayers(plateMap, protocol.series, colorLineOf(plateMap), board).flatMap(
+        ({ line, role }) => {
+          const kind = indicatorKindOf(role);
+          if (!kind) return [];
+          return line.values.flatMap(value => {
+            const color = kind === 'fill' ? value.color : indicatorColorOf(plateMap, value);
+            return color ? [{ name: value.text, swatch: { color, kind } }] : [];
+          });
+        }
+      )
     )
     .sort((a, b) => Number(b.swatch.kind === 'fill') - Number(a.swatch.kind === 'fill'));
   return name => findNamed(swatches, name, swatch => swatch.name)?.swatch;

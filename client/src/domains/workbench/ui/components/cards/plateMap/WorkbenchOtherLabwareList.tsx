@@ -1,6 +1,7 @@
 import { useMemo, type KeyboardEvent } from 'react';
 
 import { useStructuralSharing } from '../../../../hooks/useStructuralSharing';
+import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { OTHER_LABWARE } from '../../../../utils/plateMap/labwareCatalog';
 import { SHAPE_METRICS } from '../../../../utils/plateMap/labwareSizing';
 import { sharedByAll, type StainSamples } from '../../../../utils/plateMap/stainLayout';
@@ -55,6 +56,7 @@ export function WorkbenchOtherLabwareList({
   onOpenMenu,
 }: WorkbenchOtherLabwareListProps) {
   const actions = useWellPointerActions(sheet, selection, onOpenWell, onOpenMenu);
+  const seriesById = useWorkbenchStore(state => state.protocol.series);
   const labwareRowViews = useMemo(
     () =>
       card.otherLabware.map((set, row) => {
@@ -81,7 +83,9 @@ export function WorkbenchOtherLabwareList({
                 sizeLabel: labware.short,
                 tooltipHeading: stainSamples ? heading.filter(Boolean).join(' · ') : labware.label,
                 lines: card.lines.flatMap(line => {
-                  const shown = sharedByAll(wells, well => wellLine(card, well, line, board));
+                  const shown = sharedByAll(wells, well =>
+                    wellLine(card, seriesById, well, line, board)
+                  );
                   return shown ? [shown] : [];
                 }),
                 color: stainSamples ? dimmedForStain(color) : color,
@@ -94,13 +98,13 @@ export function WorkbenchOtherLabwareList({
             }),
         };
       }),
-    [card, sheet, colorLine, scale, board, stains, stainSamples, cutKeys, copiedKeys]
+    [card, seriesById, sheet, colorLine, scale, board, stains, stainSamples, cutKeys, copiedKeys]
   );
   const labwareRows = useStructuralSharing(labwareRowViews);
   const isStainSide = stainSamples !== undefined;
   const tooltipSource = useMemo(
-    () => ({ card, sheet, layers, board, donorSummaries, stains, isStainSide }),
-    [card, sheet, layers, board, donorSummaries, stains, isStainSide]
+    () => ({ card, seriesById, sheet, layers, board, donorSummaries, stains, isStainSide }),
+    [card, seriesById, sheet, layers, board, donorSummaries, stains, isStainSide]
   );
 
   return (

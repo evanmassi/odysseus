@@ -4,6 +4,7 @@ import {
   lineValueOf,
   type PlateLine,
   type PlateMap,
+  type Protocol,
 } from '@odysseus/shared-schemas';
 
 import { seriesProgress, wellLine, wellLineText, type WellColor } from './wellContents';
@@ -24,6 +25,7 @@ const STRIPE_FADE = 70;
 
 export function lineLayers(
   card: PlateMap,
+  seriesById: Protocol['series'],
   colorLine: PlateLine | undefined,
   board: SolvedBoard
 ): LineLayer[] {
@@ -36,7 +38,7 @@ export function lineLayers(
     const texts = [
       ...new Set(
         keysOnLine.flatMap(key => {
-          const shown = wellLine(card, key, line, board);
+          const shown = wellLine(card, seriesById, key, line, board);
           return shown ? [wellLineText(shown)] : [];
         })
       ),
@@ -146,11 +148,12 @@ function clustersOf(cells: IndicatorCell[]): Array<Omit<IndicatorCluster, 'place
 
 function amountSummary(
   card: PlateMap,
+  seriesById: Protocol['series'],
   line: PlateLine,
   keys: readonly string[],
   board: SolvedBoard
 ): string {
-  const readableAt = (key: string) => wellLine(card, key, line, board)?.readable ?? '';
+  const readableAt = (key: string) => wellLine(card, seriesById, key, line, board)?.readable ?? '';
   const runs = new Map<string, string[]>();
   const plain = new Set<string>();
   for (const key of keys) {
@@ -194,6 +197,7 @@ const isScatteredPlace = (place: IndicatorPlacement) =>
 
 export function plateIndicators(
   card: PlateMap,
+  seriesById: Protocol['series'],
   sheet: PlateMapSheet,
   layers: readonly LineLayer[],
   board: SolvedBoard,
@@ -210,7 +214,7 @@ export function plateIndicators(
     const isLabeledFill = role === 'fill' && !printsInWells;
     if (role !== 'band' && role !== 'stripe' && role !== 'tag' && !isLabeledFill) continue;
     const groupOf = (key: string) => {
-      const shown = wellLine(card, key, line, board);
+      const shown = wellLine(card, seriesById, key, line, board);
       if (!shown || !wellLineText(shown) || (isLabeledFill && shown.readable)) return undefined;
       const entry = card.samples[key][line.id];
       const amountKey = entry.seriesId === undefined ? shown.readable : `series:${entry.seriesId}`;
@@ -232,7 +236,7 @@ export function plateIndicators(
       .filter(group => group.cells.length)
       .map(group => ({
         ...group,
-        amount: amountSummary(card, line, group.mapKeys, board),
+        amount: amountSummary(card, seriesById, line, group.mapKeys, board),
         clusters: placeClusters(group.cells, usedTop, usedBottom),
       }));
     const isScattered =
