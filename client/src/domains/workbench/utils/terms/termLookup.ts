@@ -1,12 +1,19 @@
-import { UNIT_REGISTRY, type UnitKind } from '@odysseus/shared-schemas';
+import { UNIT_REGISTRY, type SavedTerm, type UnitKind } from '@odysseus/shared-schemas';
 
-import { nameKey, type BoardName, type CalculationGap } from '../formulas/boardCalculation';
-import { joinValueName, lowerLead } from '../values/valueNames';
+import {
+  kindKey,
+  nameKey,
+  type BoardName,
+  type CalculationGap,
+  type KindIndex,
+} from '../formulas/boardCalculation';
+import { lowerLead } from '../values/valueNames';
 
 import {
   ASSAY_SETUP_TERMS,
   COCKTAIL_VOLUME_PER_WELL,
   formsOnEveryLabware,
+  isPerSample,
   PER_WELL_TERMS,
   perLabwareKind,
   SAMPLE_NOUNS,
@@ -45,15 +52,10 @@ export const isSpellingOf = (label: string, word: string): boolean =>
 const spellingsOnEveryLabware = (term: Term): readonly string[] =>
   formsOnEveryLabware(term).flatMap(recognizedSpellingsOf);
 
-export function isAssaySetting(name: string): boolean {
-  const key = nameKey(name);
-  return ASSAY_SETUP_TERMS.some(term =>
-    spellingsOnEveryLabware(term).some(spelling => {
-      const word = nameKey(spelling);
-      return key === word || key.endsWith(` ${word}`);
-    })
-  );
-}
+const ASSAY_SETUP_KEYS = new Set(ASSAY_SETUP_TERMS.map(term => term.key));
+
+export const isAssaySetting = (termKey: string | undefined): boolean =>
+  !!termKey && ASSAY_SETUP_KEYS.has(termKey);
 
 export function totalWellVolumeGap(
   assaySetupTitle: string,
@@ -67,15 +69,15 @@ export function totalWellVolumeGap(
   };
 }
 
-function findInForms(
-  names: ReadonlyMap<string, BoardName>,
+function findInNouns(
+  kinds: KindIndex,
   term: Term,
   owners: readonly string[],
-  forms: readonly Term[]
+  nouns: readonly (SampleNoun | undefined)[]
 ): BoardName | undefined {
   for (const owner of owners) {
-    for (const spelling of forms.flatMap(recognizedSpellingsOf)) {
-      const entry = names.get(nameKey(joinValueName(owner, spelling)));
+    for (const noun of nouns) {
+      const entry = kinds.byKind.get(kindKey({ term: term.key, noun, owner }));
       if (entry && fitsUnit(term, entry)) return entry;
     }
   }
@@ -83,27 +85,78 @@ function findInForms(
 }
 
 export function findTerm(
-  names: ReadonlyMap<string, BoardName>,
+  kinds: KindIndex,
   term: Term,
   owners: readonly string[],
   noun?: SampleNoun
 ): BoardName | undefined {
-  const forms = formsOnEveryLabware(term);
-  const ordered = noun && forms.length > 1 ? [perLabwareKind(term, noun), ...forms] : forms;
-  return findInForms(names, term, owners, ordered);
+  if (!isPerSample(term)) return findInNouns(kinds, term, owners, [undefined]);
+  return findInNouns(kinds, term, owners, noun ? [noun, ...SAMPLE_NOUNS] : SAMPLE_NOUNS);
 }
 
-export const sampleNounsOf = (
-  names: ReadonlyMap<string, BoardName>,
-  owners: readonly string[]
-): SampleNoun[] => SAMPLE_NOUNS.filter(noun => findTermOn(names, WELLS, owners, noun));
+export const sampleNounsOf = (kinds: KindIndex, owners: readonly string[]): SampleNoun[] =>
+  SAMPLE_NOUNS.filter(noun => findTermOn(kinds, WELLS, owners, noun));
 
 export const findTermOn = (
-  names: ReadonlyMap<string, BoardName>,
+  kinds: KindIndex,
   term: Term,
   owners: readonly string[],
   noun: SampleNoun
-): BoardName | undefined => findInForms(names, term, owners, [perLabwareKind(term, noun)]);
+): BoardName | undefined =>
+  findInNouns(kinds, term, owners, [isPerSample(term) ? noun : undefined]);
+
+function termMatches(name: string, unit: string, ownerKeys: ReadonlySet<string>) {
+  const key = nameKey(name);
+  const unitKind = kindOf(unit);
+  const ownerOf = (spellings: readonly string[]) =>
+    spellings.flatMap(spelling => {
+      const ending = nameKey(spelling);
+      if (key === ending) return [{ of: '', length: ending.length }];
+      if (!key.endsWith(` ${ending}`)) return [];
+      const of = name.trim().slice(0, -ending.length).trim();
+      return ownerKeys.has(nameKey(of)) ? [{ of, length: ending.length }] : [];
+    });
+  return TERMS.flatMap(term =>
+    (isPerSample(term) ? SAMPLE_NOUNS : [undefined]).flatMap(noun => {
+      const form = noun ? perLabwareKind(term, noun) : term;
+      const fits = !term.unitKind || !unitKind || term.unitKind === unitKind;
+      return [
+        ...ownerOf(spellingsOf(form)).map(found => ({ ...found, isCurrent: true })),
+        ...ownerOf(form.formerly ?? []).map(found => ({ ...found, isCurrent: false })),
+      ].map(found => ({ term, noun, fits, ...found }));
+    })
+  );
+}
+
+type TermMatch = ReturnType<typeof termMatches>[number];
+
+const isBetterMatch = (a: TermMatch, b: TermMatch) =>
+  a.length !== b.length
+    ? a.length > b.length
+    : a.isCurrent !== b.isCurrent
+      ? a.isCurrent
+      : a.fits && !b.fits;
+
+const NO_OWNERS: ReadonlySet<string> = new Set();
+
+export function termOfName(
+  name: string,
+  unit: string,
+  ownerKeys: ReadonlySet<string> = NO_OWNERS
+): SavedTerm | undefined {
+  if (!nameKey(name)) return undefined;
+  const best = termMatches(name, unit, ownerKeys).reduce<TermMatch | undefined>(
+    (kept, match) => (!kept || isBetterMatch(match, kept) ? match : kept),
+    undefined
+  );
+  return (
+    best && {
+      key: best.term.key,
+      ...(best.noun && { noun: best.noun }),
+      ...(best.of && { of: best.of }),
+    }
+  );
+}
 
 const PER_LABWARE_KIND_SPELLINGS: ReadonlyArray<[noun: SampleNoun, spelling: string]> = [
   ...PER_WELL_TERMS,

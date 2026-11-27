@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 13,
+  "version": 14,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "IL-6 sandwich ELISA",
@@ -355,13 +355,20 @@
           "id": "nlg73cs",
           "name": "Samples",
           "value": "24",
-          "unit": ""
+          "unit": "",
+          "term": {
+            "key": "wells",
+            "noun": "sample"
+          }
         },
         {
           "id": "hsl5nyw",
           "name": "Replicates",
           "value": "2",
-          "unit": ""
+          "unit": "",
+          "term": {
+            "key": "replicates"
+          }
         },
         {
           "id": "p4dj201",
@@ -379,13 +386,20 @@
           "id": "in9kwwl",
           "name": "Extra (dead vol.)",
           "value": "10",
-          "unit": "%"
+          "unit": "%",
+          "term": {
+            "key": "extra"
+          }
         },
         {
           "id": "4z3ai8z",
           "name": "Vol./well",
           "value": "100",
-          "unit": "µL"
+          "unit": "µL",
+          "term": {
+            "key": "volume-per-well",
+            "noun": "well"
+          }
         },
         {
           "id": "3dn1f1y",
@@ -403,7 +417,10 @@
           "id": "jvips96",
           "name": "Fold",
           "value": "2",
-          "unit": "X"
+          "unit": "X",
+          "term": {
+            "key": "dilution-factor"
+          }
         }
       ],
       "rows": []
@@ -414,7 +431,11 @@
           "id": "yf21f8w",
           "name": "Wells",
           "formula": "Samples × Replicates + Std points × 2 + Blanks",
-          "unit": "auto"
+          "unit": "auto",
+          "term": {
+            "key": "wells",
+            "noun": "well"
+          }
         },
         {
           "id": "6hlizim",
@@ -428,7 +449,10 @@
           "materialId": "kavz434",
           "materialName": "Capture Ab",
           "formula": "Coating mix × Capture Ab dil.",
-          "unit": "µL"
+          "unit": "µL",
+          "term": {
+            "key": "volume"
+          }
         },
         {
           "id": "d5d3ncl",
@@ -436,7 +460,10 @@
           "materialId": "web1ydc",
           "materialName": "Coating buffer",
           "formula": "Coating mix − Capture Ab volume",
-          "unit": "mL"
+          "unit": "mL",
+          "term": {
+            "key": "volume"
+          }
         },
         {
           "id": "lyc2o84",

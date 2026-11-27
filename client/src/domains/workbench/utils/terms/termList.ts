@@ -3,6 +3,7 @@ import { LABWARE_KIND_PLURALS, MIXED_LABWARE_WORDS } from '../plateMap/labwareCa
 import type { UnitKind } from '@odysseus/shared-schemas';
 
 export interface Term {
+  key: string;
   word: string;
   alsoAccepted: readonly string[];
   formerly?: readonly string[];
@@ -12,6 +13,7 @@ export interface Term {
 }
 
 export const VOLUME: Term = {
+  key: 'volume',
   word: 'Vol.',
   alsoAccepted: ['Volume'],
   unitKind: 'volume',
@@ -19,6 +21,7 @@ export const VOLUME: Term = {
 };
 
 export const MASS: Term = {
+  key: 'mass',
   word: 'Mass',
   alsoAccepted: [],
   formerly: ['Amount'],
@@ -27,6 +30,7 @@ export const MASS: Term = {
 };
 
 export const VOLUME_PER_WELL: Term = {
+  key: 'volume-per-well',
   word: 'Vol./well',
   meaning: 'Volume of it added to each well',
   alsoAccepted: ['Volume per well', 'Vol/well', 'Vol per well', 'Volume/well', 'Volume added'],
@@ -35,6 +39,7 @@ export const VOLUME_PER_WELL: Term = {
 };
 
 export const CELLS_PER_WELL: Term = {
+  key: 'cells-per-well',
   word: 'Cells/well',
   meaning: 'Cells added to each well',
   alsoAccepted: ['Cells per well', 'Per well'],
@@ -43,6 +48,7 @@ export const CELLS_PER_WELL: Term = {
 };
 
 export const MASS_PER_WELL: Term = {
+  key: 'mass-per-well',
   word: 'Mass/well',
   meaning: 'Mass of it added to each well',
   alsoAccepted: ['Mass per well', 'Amount per well', 'Per well'],
@@ -51,6 +57,7 @@ export const MASS_PER_WELL: Term = {
 };
 
 export const TOTAL_WELL_VOLUME: Term = {
+  key: 'total-well-volume',
   word: 'Total well vol.',
   meaning: 'Total liquid in each well',
   alsoAccepted: ['Well volume', 'Total well volume', 'Final well volume'],
@@ -59,6 +66,7 @@ export const TOTAL_WELL_VOLUME: Term = {
 };
 
 export const EXTRA: Term = {
+  key: 'extra',
   word: 'Extra (dead vol.)',
   meaning: 'Extra made on top of what the wells use, to cover dead volume',
   alsoAccepted: ['Extra', 'Overage', 'Dead volume', 'Dead vol.'],
@@ -67,6 +75,7 @@ export const EXTRA: Term = {
 };
 
 export const TOTAL_CELL_CONCENTRATION: Term = {
+  key: 'total-cell-concentration',
   word: 'Total cell conc.',
   meaning: 'Cells per mL in the suspension, live and dead',
   alsoAccepted: ['Total cell concentration', 'Cell conc.', 'Cell concentration', 'Total count'],
@@ -76,6 +85,7 @@ export const TOTAL_CELL_CONCENTRATION: Term = {
 };
 
 export const LIVE_CELL_CONCENTRATION: Term = {
+  key: 'live-cell-concentration',
   word: 'Live cell conc.',
   meaning: 'Live cells per mL in the suspension; plating uses this',
   alsoAccepted: [
@@ -89,6 +99,7 @@ export const LIVE_CELL_CONCENTRATION: Term = {
 };
 
 export const TOTAL_CELLS: Term = {
+  key: 'total-cells',
   word: 'Total cells',
   meaning: 'All the cells in the suspension, live and dead',
   alsoAccepted: [],
@@ -97,6 +108,7 @@ export const TOTAL_CELLS: Term = {
 };
 
 export const LIVE_CELLS: Term = {
+  key: 'live-cells',
   word: 'Live cells',
   meaning: 'Live cells in the whole suspension',
   alsoAccepted: ['Viable cells'],
@@ -105,6 +117,7 @@ export const LIVE_CELLS: Term = {
 };
 
 export const PLATING_CONCENTRATION: Term = {
+  key: 'plating-concentration',
   word: 'Plating conc.',
   meaning: 'Cells per mL to plate at: cells/well ÷ vol./well',
   alsoAccepted: ['Plating concentration'],
@@ -113,12 +126,14 @@ export const PLATING_CONCENTRATION: Term = {
 };
 
 export const STOCK_CONCENTRATION: Term = {
+  key: 'stock-concentration',
   word: 'Stock conc.',
   meaning: 'Concentration of the stock you start from',
   alsoAccepted: ['Stock concentration'],
 };
 
 export const FINAL_CONCENTRATION: Term = {
+  key: 'final-concentration',
   word: 'Final conc.',
   meaning: 'Concentration it ends at in the well',
   alsoAccepted: ['Final concentration', 'Final in the well', 'In the well'],
@@ -126,28 +141,33 @@ export const FINAL_CONCENTRATION: Term = {
 };
 
 export const MIX_CONCENTRATION: Term = {
+  key: 'mix-concentration',
   word: 'Mix conc.',
   meaning: 'Concentration of this ingredient in the mix',
   alsoAccepted: ['In the mix'],
 };
 
 export const MOLECULAR_WEIGHT: Term = {
+  key: 'molecular-weight',
   word: 'MW',
   meaning: 'Molecular weight, to turn a mass into molar',
   alsoAccepted: ['Molecular weight'],
 };
 
 export const PROTEIN_CONCENTRATION: Term = {
+  key: 'protein-concentration',
   word: 'Protein conc.',
   alsoAccepted: ['Protein concentration'],
 };
 
 export const COATING_CONCENTRATION: Term = {
+  key: 'coating-concentration',
   word: 'Coating conc.',
   alsoAccepted: ['Coating concentration'],
 };
 
 export const VOLUME_PER_REACTION: Term = {
+  key: 'volume-per-reaction',
   word: 'Vol./reaction',
   alsoAccepted: ['Volume per reaction'],
   unitKind: 'volume',
@@ -155,6 +175,7 @@ export const VOLUME_PER_REACTION: Term = {
 };
 
 export const VOLUME_MADE: Term = {
+  key: 'volume-made',
   word: 'Vol. made',
   alsoAccepted: ['Volume made'],
   unitKind: 'volume',
@@ -162,6 +183,7 @@ export const VOLUME_MADE: Term = {
 };
 
 export const RECONSTITUTION_VOLUME: Term = {
+  key: 'reconstitution-volume',
   word: 'Reconstitution vol.',
   alsoAccepted: ['Reconstitution volume'],
   unitKind: 'volume',
@@ -169,12 +191,14 @@ export const RECONSTITUTION_VOLUME: Term = {
 };
 
 export const ANTIBODY_DILUTION: Term = {
+  key: 'antibody-dilution',
   word: 'Dil.',
   meaning: 'How far the antibody is diluted for staining',
   alsoAccepted: ['Dilution'],
 };
 
 export const PER_TEST: Term = {
+  key: 'per-test',
   word: 'Per test',
   alsoAccepted: [],
   formerly: ['Amount'],
@@ -183,21 +207,28 @@ export const PER_TEST: Term = {
 };
 
 export const TOTAL_NEEDED: Term = {
+  key: 'total-needed',
   word: 'Total needed',
   meaning: 'Total to prepare: amount per well × wells × extra',
   alsoAccepted: ['Needed', 'Cells needed'],
 };
 
 export const TOTAL_VOLUME_NEEDED: Term = {
+  key: 'total-volume-needed',
   word: 'Total vol. needed',
   meaning: 'Total volume to prepare: vol./well × wells × extra',
   alsoAccepted: [],
   formerly: ['Mix'],
 };
 
-export const CELLS_PER_VIAL: Term = { word: 'Cells per vial', alsoAccepted: [] };
+export const CELLS_PER_VIAL: Term = {
+  key: 'cells-per-vial',
+  word: 'Cells per vial',
+  alsoAccepted: [],
+};
 
 export const VIABILITY: Term = {
+  key: 'viability',
   word: 'Viability',
   meaning: 'Share of the cells that are alive',
   alsoAccepted: [],
@@ -205,11 +236,12 @@ export const VIABILITY: Term = {
   unit: '%',
 };
 
-export const WELLS: Term = { word: 'Wells', alsoAccepted: [] };
+export const WELLS: Term = { key: 'wells', word: 'Wells', alsoAccepted: [] };
 
-export const WELLS_USED: Term = { word: 'Wells used', alsoAccepted: [] };
+export const WELLS_USED: Term = { key: 'wells-used', word: 'Wells used', alsoAccepted: [] };
 
 export const COCKTAIL_VOLUME_PER_WELL: Term = {
+  key: 'cocktail-volume-per-well',
   word: 'Cocktail vol./well',
   meaning: 'Volume of the cocktail each well gets',
   alsoAccepted: ['Stain volume', 'Cocktail volume per well', 'Stain vol./well'],
@@ -220,18 +252,21 @@ export const COCKTAIL_VOLUME_PER_WELL: Term = {
 export const COCKTAIL = 'Cocktail';
 
 export const COCKTAIL_WELLS: Term = {
+  key: 'cocktail-wells',
   word: 'Cocktail wells',
   alsoAccepted: [],
   formerly: ['Wells'],
 };
 
 export const COCKTAIL_ANTIBODIES: Term = {
+  key: 'cocktail-antibodies',
   word: 'Cocktail antibodies',
   alsoAccepted: [],
   formerly: ['Antibodies'],
 };
 
 export const WORKING_STRENGTH: Term = {
+  key: 'working-strength',
   word: 'Working strength',
   meaning: 'How many times stronger the prep is than in the well',
   alsoAccepted: [],
@@ -239,36 +274,42 @@ export const WORKING_STRENGTH: Term = {
 };
 
 export const WORKING_DILUTION: Term = {
+  key: 'working-dilution',
   word: 'Working dil.',
   meaning: 'How far the stock is diluted to make the working solution',
   alsoAccepted: ['Working dilution'],
 };
 
 export const WORKING_CONCENTRATION: Term = {
+  key: 'working-concentration',
   word: 'Working conc.',
   meaning: 'Concentration of the prep before it goes in the well',
   alsoAccepted: ['Working concentration'],
 };
 
 export const TOP_CONCENTRATION: Term = {
+  key: 'top-concentration',
   word: 'Top conc.',
   meaning: 'Concentration of the strongest point',
   alsoAccepted: ['Top concentration', 'Top dose'],
 };
 
 export const TOP_DILUTION: Term = {
+  key: 'top-dilution',
   word: 'Top dil.',
   meaning: 'Dilution of the strongest point',
   alsoAccepted: ['Top dilution'],
 };
 
 export const TOP_AMOUNT: Term = {
+  key: 'top-amount',
   word: 'Top amount',
   meaning: 'Amount at the strongest point',
   alsoAccepted: ['Top dose'],
 };
 
 export const TOP_VOLUME: Term = {
+  key: 'top-volume',
   word: 'Top vol.',
   meaning: 'Volume made in the strongest point of the prep',
   alsoAccepted: ['Top well volume', 'Top well vol.'],
@@ -277,12 +318,14 @@ export const TOP_VOLUME: Term = {
 };
 
 export const TOP_WORKING_CONCENTRATION: Term = {
+  key: 'top-working-concentration',
   word: 'Top working conc.',
   alsoAccepted: [],
   formerly: ['Top working'],
 };
 
 export const DILUTION_FACTOR: Term = {
+  key: 'dilution-factor',
   word: 'Dil. factor',
   meaning: 'How much each point is diluted from the one before',
   alsoAccepted: ['Dilution factor', 'DF'],
@@ -290,12 +333,14 @@ export const DILUTION_FACTOR: Term = {
 };
 
 export const ROUND_TO: Term = {
+  key: 'round-to',
   word: 'Round to',
   meaning: 'Volumes round up to this, to match your pipette',
   alsoAccepted: [],
 };
 
 export const POINTS: Term = {
+  key: 'points',
   word: 'Points',
   meaning: 'How many points the series has',
   alsoAccepted: [],
@@ -304,12 +349,14 @@ export const POINTS: Term = {
 export const TOP_POSITION = 'Top';
 
 export const REPLICATES: Term = {
+  key: 'replicates',
   word: 'Replicates',
   meaning: 'Wells holding the same point',
   alsoAccepted: ['Reps', 'Wells per point'],
 };
 
 export const VOLUME_NEEDED: Term = {
+  key: 'volume-needed',
   word: 'Vol. needed',
   meaning: 'Volume of working solution each point needs, extra included',
   alsoAccepted: ['Volume needed'],
@@ -317,6 +364,7 @@ export const VOLUME_NEEDED: Term = {
 };
 
 export const DILUENT_IN_TOP: Term = {
+  key: 'diluent-in-top',
   word: 'Diluent in top',
   alsoAccepted: [],
   formerly: ['Diluent in well 1'],
@@ -372,6 +420,7 @@ const CONDITION_TERMS: readonly Term[] = [...new Set(Object.values(CONDITION_NOU
       const measures = [measure.word, ...measure.formerly];
       const word = `${noun} ${measure.word}`;
       return {
+        key: `condition:${word}`,
         word,
         alsoAccepted: nouns
           .flatMap(each => measures.map(part => `${each} ${part}`))
@@ -472,5 +521,7 @@ export const perLabwareKind = (term: Term, noun: SampleNoun): Term =>
         alsoAccepted: term.alsoAccepted.map(spelling => inSampleNoun(spelling, noun)),
       };
 
+export const isPerSample = (term: Term): boolean => PER_SAMPLE_TERMS.includes(term);
+
 export const formsOnEveryLabware = (term: Term): readonly Term[] =>
-  PER_SAMPLE_TERMS.includes(term) ? SAMPLE_NOUNS.map(noun => perLabwareKind(term, noun)) : [term];
+  isPerSample(term) ? SAMPLE_NOUNS.map(noun => perLabwareKind(term, noun)) : [term];

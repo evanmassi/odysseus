@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 13,
+  "version": 14,
   "savedAt": "2026-11-22T12:00:00.000Z",
   "protocol": {
     "title": "Safety net protocol",
@@ -275,13 +275,20 @@
           "id": "value-well",
           "name": "Total well vol.",
           "value": "200",
-          "unit": "µL"
+          "unit": "µL",
+          "term": {
+            "key": "total-well-volume",
+            "noun": "well"
+          }
         },
         {
           "id": "value-extra",
           "name": "Extra (dead vol.)",
           "value": "10",
-          "unit": "%"
+          "unit": "%",
+          "term": {
+            "key": "extra"
+          }
         },
         {
           "id": "value-cell-volume",
@@ -307,7 +314,11 @@
           "name": "Vol./well",
           "value": "20",
           "unit": "µL",
-          "row": "new-1"
+          "row": "new-1",
+          "term": {
+            "key": "volume-per-well",
+            "noun": "well"
+          }
         }
       ],
       "rows": [
@@ -334,7 +345,10 @@
           "materialId": "mat-cells",
           "materialName": "Cell line A",
           "formula": "Cell line A vol./well × 2",
-          "unit": "µL"
+          "unit": "µL",
+          "term": {
+            "key": "volume-needed"
+          }
         }
       ],
       "materialSections": ["mat-cells"]

@@ -2,6 +2,7 @@ import { produce } from 'immer';
 
 import { calculateBoard, type SolvedBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
+import { keepRecognizedTerms } from '../terms/savedTerms';
 
 import { mixFinalId, recipeFinalId, recipeWarnings } from './materialRecipeCalculations';
 import { linkPlateNames } from './renameFollowing';
@@ -65,7 +66,14 @@ const answer = (board: SolvedBoard, id: string) => {
 };
 
 const calculate = (protocol: Protocol) =>
-  calculateBoard(collectBoardNames(produce(protocol, linkPlateNames)));
+  calculateBoard(
+    collectBoardNames(
+      produce(protocol, draft => {
+        linkPlateNames(draft);
+        keepRecognizedTerms(draft);
+      })
+    )
+  );
 
 describe('recipe finals in the well', () => {
   it('goes from the stock through the working dilution to the well', () => {

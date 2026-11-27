@@ -5,6 +5,7 @@ import { describeName } from '../formulas/nameDisplay';
 import { readReference } from '../formulas/nameReferences';
 import { RATIO_NOTATION, readableAmount } from '../formulas/quantities';
 import { displayNameOf } from '../materials/materialLookup';
+import { linkOwner } from '../materials/plateLinks';
 import { seriesDilutionFactor, seriesTop } from '../plateMap/plateSeries';
 import {
   DILUTION_FACTOR,
@@ -117,13 +118,13 @@ const READ_ONLY_HINTS: Readonly<Record<BoardName['kind'], string>> = {
 function sharedPrepField(
   protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'values'>,
   board: SolvedBoard,
-  subject: string,
+  run: DilutionRun,
   key: SharedPrepKey
 ): SharedPrepField {
-  const found = sharedPrepSource(board.names, subject, key);
+  const found = sharedPrepSource(board.kinds, linkOwner(protocol, run, run.subject), key);
   const { term, unit } = SHARED_PREP_VALUES[key];
   if (!found) {
-    const name = key === 'totalWellVolume' ? term.word : ownPrepValueName(subject, key);
+    const name = key === 'totalWellVolume' ? term.word : ownPrepValueName(run.subject, key);
     return { key, value: '', unit, isAssaySetup: false, edit: { kind: 'new', name, unit } };
   }
   const { entry, isAssaySetup } = found;
@@ -136,8 +137,13 @@ function sharedPrepField(
   return { key, value: describeName(board, entry).text, unit: '', isAssaySetup, edit };
 }
 
-function sharedMicroliters(board: SolvedBoard, subject: string, key: SharedPrepKey) {
-  const entry = sharedPrepSource(board.names, subject, key)?.entry;
+function sharedMicroliters(
+  protocol: Pick<Protocol, 'materials'>,
+  board: SolvedBoard,
+  run: DilutionRun,
+  key: SharedPrepKey
+) {
+  const entry = sharedPrepSource(board.kinds, linkOwner(protocol, run, run.subject), key)?.entry;
   const quantity = entry && quantityOfName(board, entry);
   return quantity && quantity.magnitude / MICROLITER;
 }
@@ -164,7 +170,7 @@ export function dilutionPrep(
   const base = {
     settings,
     shared: Object.fromEntries(
-      SHARED_PREP_KEYS.map(key => [key, sharedPrepField(protocol, board, run.subject, key)])
+      SHARED_PREP_KEYS.map(key => [key, sharedPrepField(protocol, board, run, key)])
     ) as Record<SharedPrepKey, SharedPrepField>,
     summary,
   };
@@ -175,8 +181,8 @@ export function dilutionPrep(
       problem: `Give this series a ${lowerLead(TOP_AMOUNT.word)} with a unit, and a ${lowerLead(DILUTION_FACTOR.word)}, with its Dilution button.`,
     };
   }
-  const added = sharedMicroliters(board, run.subject, 'volumePerWell');
-  const wellVolume = sharedMicroliters(board, run.subject, 'totalWellVolume');
+  const added = sharedMicroliters(protocol, board, run, 'volumePerWell');
+  const wellVolume = sharedMicroliters(protocol, board, run, 'totalWellVolume');
   const shownVolume = lowerLead(VOLUME_PER_WELL.word);
   const shownWellVolume = lowerLead(TOTAL_WELL_VOLUME.word);
   const problem = !(added && added > 0)

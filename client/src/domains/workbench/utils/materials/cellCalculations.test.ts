@@ -3,6 +3,7 @@ import { produce } from 'immer';
 import { calculateBoard, type SolvedBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 import { nameUsage } from '../formulas/nameUsage';
+import { keepRecognizedTerms } from '../terms/savedTerms';
 
 import { cellWarnings } from './cellCalculations';
 import { linkPlateNames } from './renameFollowing';
@@ -80,7 +81,14 @@ const answer = (board: SolvedBoard, part: string) => {
 };
 
 const calculate = (protocol: Protocol) =>
-  calculateBoard(collectBoardNames(produce(protocol, linkPlateNames)));
+  calculateBoard(
+    collectBoardNames(
+      produce(protocol, draft => {
+        linkPlateNames(draft);
+        keepRecognizedTerms(draft);
+      })
+    )
+  );
 
 const PLATING: Array<[string, string, string]> = [
   ['PBMC volume per well', '100', 'µL'],

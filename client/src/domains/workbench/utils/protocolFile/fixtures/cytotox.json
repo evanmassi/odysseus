@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 13,
+  "version": 14,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "T cell killing assay",
@@ -303,13 +303,19 @@
           "id": "q6lk86k",
           "name": "Replicates",
           "value": "3",
-          "unit": ""
+          "unit": "",
+          "term": {
+            "key": "replicates"
+          }
         },
         {
           "id": "4c3venz",
           "name": "Extra (dead vol.)",
           "value": "10",
-          "unit": "%"
+          "unit": "%",
+          "term": {
+            "key": "extra"
+          }
         },
         {
           "id": "dfw0bqs",
@@ -322,14 +328,22 @@
           "name": "Cells/well",
           "value": "10000",
           "unit": "cells",
-          "row": "5m0vihy"
+          "row": "5m0vihy",
+          "term": {
+            "key": "cells-per-well",
+            "noun": "well"
+          }
         },
         {
           "id": "388w18n",
           "name": "Vol./well",
           "value": "50",
           "unit": "µL",
-          "row": "5m0vihy"
+          "row": "5m0vihy",
+          "term": {
+            "key": "volume-per-well",
+            "noun": "well"
+          }
         },
         {
           "id": "zcg347r",
@@ -353,7 +367,11 @@
           "name": "Vol./well",
           "value": "100",
           "unit": "µL",
-          "row": "7t7j8wx"
+          "row": "7t7j8wx",
+          "term": {
+            "key": "volume-per-well",
+            "noun": "well"
+          }
         },
         {
           "id": "2oioggh",
@@ -375,21 +393,32 @@
           "name": "Vol./well",
           "value": "50",
           "unit": "µL",
-          "row": "2sqbzla"
+          "row": "2sqbzla",
+          "term": {
+            "key": "volume-per-well",
+            "noun": "well"
+          }
         },
         {
           "id": "9113d1fe",
           "name": "Extra (dead vol.)",
           "value": "20",
           "unit": "%",
-          "row": "2sqbzla"
+          "row": "2sqbzla",
+          "term": {
+            "key": "extra"
+          }
         },
         {
           "id": "9nlh7ts",
           "name": "Vol./well",
           "value": "100",
           "unit": "µL",
-          "row": "3l5nhqj"
+          "row": "3l5nhqj",
+          "term": {
+            "key": "volume-per-well",
+            "noun": "well"
+          }
         }
       ],
       "rows": [
@@ -426,7 +455,11 @@
           "id": "ms37qq1",
           "name": "Well volume",
           "formula": "Raji-Luc vol./well + T cells vol./well + Compound X vol./well",
-          "unit": "µL"
+          "unit": "µL",
+          "term": {
+            "key": "total-well-volume",
+            "noun": "well"
+          }
         },
         {
           "id": "hjulnjx",
@@ -434,7 +467,10 @@
           "materialId": "mqtbxit",
           "materialName": "Raji-Luc",
           "formula": "Raji-Luc cells/well × Raji-Luc wells × (1 + Extra (dead vol.))",
-          "unit": "auto"
+          "unit": "auto",
+          "term": {
+            "key": "total-needed"
+          }
         },
         {
           "id": "w109bw4",
@@ -450,7 +486,10 @@
           "materialId": "mqtbxit",
           "materialName": "Raji-Luc",
           "formula": "Raji-Luc wells × Raji-Luc vol./well × (1 + Extra (dead vol.))",
-          "unit": "mL"
+          "unit": "mL",
+          "term": {
+            "key": "total-volume-needed"
+          }
         },
         {
           "id": "oszkn2x",
@@ -458,7 +497,11 @@
           "materialId": "vugju7i",
           "materialName": "T cells",
           "formula": "Raji-Luc cells/well × T cells E:T",
-          "unit": "auto"
+          "unit": "auto",
+          "term": {
+            "key": "cells-per-well",
+            "noun": "well"
+          }
         },
         {
           "id": "0y7whbx",
@@ -466,7 +509,10 @@
           "materialId": "vugju7i",
           "materialName": "T cells",
           "formula": "T cells per well × T cells wells × (1 + Extra (dead vol.))",
-          "unit": "auto"
+          "unit": "auto",
+          "term": {
+            "key": "total-needed"
+          }
         },
         {
           "id": "mxe6s45",
@@ -482,7 +528,10 @@
           "materialId": "vugju7i",
           "materialName": "T cells",
           "formula": "T cells wells × T cells vol./well × (1 + Extra (dead vol.))",
-          "unit": "mL"
+          "unit": "mL",
+          "term": {
+            "key": "total-volume-needed"
+          }
         },
         {
           "id": "1s14its",
@@ -498,7 +547,10 @@
           "materialId": "1bfkegd",
           "materialName": "Compound X",
           "formula": "Compound X top conc. × Compound X added at",
-          "unit": "µM"
+          "unit": "µM",
+          "term": {
+            "key": "top-working-concentration"
+          }
         },
         {
           "id": "eld0zec",
@@ -538,7 +590,10 @@
           "materialId": "pw4coxa",
           "materialName": "Bright-Glo",
           "formula": "Bright-Glo vol./well × Wells used × (1 + Extra (dead vol.))",
-          "unit": "mL"
+          "unit": "mL",
+          "term": {
+            "key": "total-needed"
+          }
         }
       ],
       "materialSections": []

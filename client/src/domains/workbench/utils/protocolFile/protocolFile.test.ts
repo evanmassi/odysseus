@@ -3,6 +3,7 @@ import { PROTOCOL_FILE_VERSION } from '@odysseus/shared-schemas';
 import { SHARED_PREP_KEYS, sharedPrepSource } from '../dilutions/dilutionCalculations';
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
+import { ownerNamed } from '../materials/plateLinks';
 
 import cellsSample from './fixtures/cells.json';
 import cytotoxSample from './fixtures/cytotox.json';
@@ -174,7 +175,7 @@ function savedFacts(protocol: Protocol) {
       dilutionsSettings: factorSeries.prep,
       sharedValues: Object.fromEntries(
         SHARED_PREP_KEYS.map(key => {
-          const entry = sharedPrepSource(board.names, 'Drug X', key)?.entry;
+          const entry = sharedPrepSource(board.kinds, ownerNamed(protocol, 'Drug X'), key)?.entry;
           return [key, entry?.kind === 'value' ? `${entry.value} ${entry.unit}` : undefined];
         })
       ),

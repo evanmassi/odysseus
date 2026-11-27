@@ -312,12 +312,15 @@ export function WorkbenchValuesPanel() {
     )
   );
   const [setupRows, unsortedRows] = useMemo(() => {
+    const settingIds = new Set(
+      generalItems.filter(item => isAssaySetting(item.term?.key)).map(item => item.id)
+    );
     const isInSetup = (row: ValueRowData) =>
       generalEdit?.itemId === row.id && generalEdit.isInSetup !== undefined
         ? generalEdit.isInSetup
-        : isAssaySetting(row.fullName);
+        : settingIds.has(row.id);
     return [generalRows.filter(isInSetup), generalRows.filter(row => !isInSetup(row))];
-  }, [generalRows, generalEdit]);
+  }, [generalItems, generalRows, generalEdit]);
   const moveTargetsByKey = useMemo(
     () =>
       new Map(

@@ -81,7 +81,7 @@ export const LABWARE_KIND_PLURALS: Readonly<Record<LabwareKind, string>> = {
 };
 
 export interface LabwareWords {
-  noun: string;
+  noun: LabwareKind | 'sample';
   plural: string;
 }
 

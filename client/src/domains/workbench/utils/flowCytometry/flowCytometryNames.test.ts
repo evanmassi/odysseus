@@ -1,7 +1,10 @@
+import { produce } from 'immer';
+
 import { calculateBoard, calculationAnswerText, nameKey } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 import { materialFromGuess } from '../materials/materialItems';
 import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
+import { keepRecognizedTerms } from '../terms/savedTerms';
 
 import type {
   FlowCytometryPanel,
@@ -75,36 +78,40 @@ const protocol = (
   data: Partial<Pick<Protocol, 'values' | 'calculations'>> = {},
   items = [cd3, cd4],
   panelCards: ProtocolCard[] = [panelCard]
-): Protocol => ({
-  title: 'Panel',
-  descriptor: '',
-  purpose: '',
-  runNumber: '',
-  runOn: { from: '', to: '' },
-  pages: [{ id: 'page', name: 'Flow', steps: [] }],
-  fluors: [],
-  diluent: '',
-  materials: { items, customGroups: [] },
-  values: data.values ?? { items: [], rows: [] },
-  calculations: data.calculations ?? { items: [], materialSections: [] },
-  plateMaps: [plateMap],
-  flowCytometryPanels: [panel],
-  cards: [
+): Protocol =>
+  produce<Protocol>(
     {
-      ...placement,
-      id: 'materials',
-      type: 'materials',
-      title: 'Materials',
-      foldedGroups: [],
-      isSetAsideOpen: false,
+      title: 'Panel',
+      descriptor: '',
+      purpose: '',
+      runNumber: '',
+      runOn: { from: '', to: '' },
+      pages: [{ id: 'page', name: 'Flow', steps: [] }],
+      fluors: [],
+      diluent: '',
+      materials: { items, customGroups: [] },
+      values: data.values ?? { items: [], rows: [] },
+      calculations: data.calculations ?? { items: [], materialSections: [] },
+      plateMaps: [plateMap],
+      flowCytometryPanels: [panel],
+      cards: [
+        {
+          ...placement,
+          id: 'materials',
+          type: 'materials',
+          title: 'Materials',
+          foldedGroups: [],
+          isSetAsideOpen: false,
+        },
+        ...panelCards,
+        plateCard,
+      ],
+      lotMemory: {},
+      keptBoth: [],
+      ignoredSuggestions: [],
     },
-    ...panelCards,
-    plateCard,
-  ],
-  lotMemory: {},
-  keptBoth: [],
-  ignoredSuggestions: [],
-});
+    keepRecognizedTerms
+  );
 
 const answer = (board: ReturnType<typeof calculateBoard>, name: string) => {
   const entry = board.names.get(nameKey(name));

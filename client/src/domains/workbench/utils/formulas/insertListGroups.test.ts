@@ -1,5 +1,8 @@
 import { materialFromGuess } from '../materials/materialItems';
 import { EMPTY_LAB_MEMORY } from '../materials/materialMemory';
+import { boardKind } from '../terms/savedTerms';
+import { termOfName } from '../terms/termLookup';
+import { GENERAL } from '../values/valueNames';
 
 import { calculateBoard } from './boardCalculation';
 import { insertListGroups } from './insertListGroups';
@@ -34,7 +37,14 @@ const board = calculateBoard([
   },
   { kind: 'count', id: 'c1', name: 'Drug X wells', count: 24 },
   { kind: 'value', id: 'v2', name: 'Total volume', value: '9.6', unit: 'mL' },
-  { kind: 'value', id: 'v3', name: 'Total well vol.', value: '80', unit: 'µL' },
+  {
+    kind: 'value',
+    id: 'v3',
+    name: 'Total well vol.',
+    value: '80',
+    unit: 'µL',
+    kindOf: boardKind(termOfName('Total well vol.', 'µL'), GENERAL),
+  },
 ]);
 
 const outline = (isForFormula: boolean) =>

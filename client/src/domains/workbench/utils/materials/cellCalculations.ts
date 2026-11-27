@@ -1,7 +1,10 @@
 import { UNIT_REGISTRY, type Protocol } from '@odysseus/shared-schemas';
 
 import {
+  kindIndex,
   nameKey,
+  type BoardKind,
+  type KindIndex,
   type SolvedBoard,
   type BoardName,
   type CalculationName,
@@ -25,10 +28,11 @@ import {
   VOLUME_PER_WELL,
   WELLS,
   perLabwareKind,
+  type SampleNoun,
   type Term,
 } from '../terms/termList';
 import { findTerm, findTermOn } from '../terms/termLookup';
-import { joinValueName, lowerLead } from '../values/valueNames';
+import { GENERAL, joinValueName, lowerLead } from '../values/valueNames';
 
 import { cellPartId, CELLS_TO_PREPARE } from './cellCounts';
 import { donorListName } from './materialDonors';
@@ -49,16 +53,26 @@ const missingCount = (count: Term, ...others: Term[]): CalculationGap => ({
   problem: `Needs a live count: ${count.word}, or ${others.map(term => term.word).join(' and ')}`,
 });
 
-function subjectNames(plated: PlatedCells, names: ReadonlyMap<string, BoardName>): BoardName[] {
+function subjectNames(
+  plated: PlatedCells,
+  names: ReadonlyMap<string, BoardName>,
+  kinds: KindIndex
+): BoardName[] {
   const { subject, material, donor, placements } = plated;
   const donorList = donorListName(material);
   const materialName = nameWithoutNotes(material.name);
-  const materialOwners = [material.name.trim(), materialName];
-  const owners = donor ? [subject] : [subject, ...materialOwners];
+  const subjectId = (donor ?? material).id;
+  const materialOwners = [material.id];
+  const owners = [subjectId];
+  const kindFor = (term: Term, noun?: SampleNoun): BoardKind => ({
+    term: term.key,
+    noun,
+    owner: subjectId,
+  });
   const isSplit = placements.length > 1;
   const id = (part: string) => cellPartId(plated, part);
   const filled = (term: Term) => {
-    const entry = findTerm(names, term, owners);
+    const entry = findTerm(kinds, term, owners);
     return isFilled(entry) ? entry.name : undefined;
   };
   const group: WorkedOutGroup = {
@@ -69,8 +83,16 @@ function subjectNames(plated: PlatedCells, names: ReadonlyMap<string, BoardName>
   };
   const inputs: BoardName[] = [];
   const calculations: CalculationName[] = [];
-  const input = (part: string, name: string, value: string, unit: string) => {
-    inputs.push({ kind: 'value', id: id(part), name, value, unit, workedOut: group });
+  const input = (part: string, name: string, value: string, unit: string, kindOf?: BoardKind) => {
+    inputs.push({
+      kind: 'value',
+      id: id(part),
+      name,
+      value,
+      unit,
+      workedOut: group,
+      ...(kindOf && { kindOf }),
+    });
     return name;
   };
   const addCalculation = (
@@ -78,7 +100,8 @@ function subjectNames(plated: PlatedCells, names: ReadonlyMap<string, BoardName>
     name: string,
     expr: string,
     unit: string,
-    gap?: CalculationGap
+    gap?: CalculationGap,
+    kindOf?: BoardKind
   ) =>
     calculations.push({
       kind: 'calculation',
@@ -88,13 +111,14 @@ function subjectNames(plated: PlatedCells, names: ReadonlyMap<string, BoardName>
       unit,
       workedOut: group,
       ...gap,
+      ...(kindOf && { kindOf }),
     });
 
-  const extra = findTerm(names, EXTRA, [...owners, ...materialOwners, ''])?.name;
+  const extra = findTerm(kinds, EXTRA, [...owners, ...materialOwners, GENERAL])?.name;
   const prepFor = ({ noun, wells, cells, perWell: perWellCounts }: CellPlacement) => {
     const word = (term: Term) => perLabwareKind(term, noun).word;
     const find = (term: Term, from: readonly string[]) =>
-      (isSplit ? findTermOn(names, term, from, noun) : findTerm(names, term, from, noun))?.name;
+      (isSplit ? findTermOn(kinds, term, from, noun) : findTerm(kinds, term, from, noun))?.name;
     const plural = lowerLead(word(WELLS));
     const forThem = isSplit ? ` for the ${plural}` : '';
     const part = (name: string) => (isSplit ? `${name}:${noun}` : name);
@@ -107,6 +131,7 @@ function subjectNames(plated: PlatedCells, names: ReadonlyMap<string, BoardName>
         name: wellsName,
         count: wells,
         workedOut: group,
+        kindOf: kindFor(WELLS, noun),
       });
     }
     const placed =
@@ -115,18 +140,26 @@ function subjectNames(plated: PlatedCells, names: ReadonlyMap<string, BoardName>
     const [onlyPerWell] = perWellCounts;
     const perWell =
       perWellCounts.size === 1
-        ? (find(CELLS_PER_WELL, [subject]) ??
+        ? (find(CELLS_PER_WELL, owners) ??
           input(
             part('per-well'),
             joinValueName(subject, word(CELLS_PER_WELL)),
             String(onlyPerWell),
-            CELLS
+            CELLS,
+            kindFor(CELLS_PER_WELL, noun)
           ))
         : undefined;
     const volume = find(VOLUME_PER_WELL, [...owners, ...materialOwners]);
 
     const needed = `${joinValueName(subject, TOTAL_NEEDED.word)}${forThem}`;
-    addCalculation(part('needed'), needed, extra ? `${onPlate} × (1 + ${extra})` : onPlate, CELLS);
+    addCalculation(
+      part('needed'),
+      needed,
+      extra ? `${onPlate} × (1 + ${extra})` : onPlate,
+      CELLS,
+      undefined,
+      isSplit ? undefined : kindFor(TOTAL_NEEDED)
+    );
     const plating = `${joinValueName(subject, PLATING_CONCENTRATION.word)}${forThem}`;
     const platingProblem: CalculationGap | undefined = !perWell
       ? { problem: `${word(CELLS_PER_WELL)} differ between ${plural}` }
@@ -141,23 +174,33 @@ function subjectNames(plated: PlatedCells, names: ReadonlyMap<string, BoardName>
       plating,
       platingProblem ? '' : `${perWell} ÷ ${volume}`,
       CELLS_PER_ML,
-      platingProblem
+      platingProblem,
+      isSplit ? undefined : kindFor(PLATING_CONCENTRATION)
     );
     return { forThem, part, needed, plating, platingProblem };
   };
   const preps = placements.map(prepFor);
 
   const needed = isSplit ? joinValueName(subject, TOTAL_NEEDED.word) : preps[0].needed;
-  if (isSplit) addCalculation('needed', needed, preps.map(prep => prep.needed).join(' + '), CELLS);
+  if (isSplit) {
+    addCalculation(
+      'needed',
+      needed,
+      preps.map(prep => prep.needed).join(' + '),
+      CELLS,
+      undefined,
+      kindFor(TOTAL_NEEDED)
+    );
+  }
   const perVialValue = donor?.values[PER_VIAL_FIELD]?.trim();
   const perVial =
-    findTerm(names, CELLS_PER_VIAL, [subject])?.name ??
+    findTerm(kinds, CELLS_PER_VIAL, owners)?.name ??
     (perVialValue
-      ? input('per-vial', `${subject} cells per vial`, perVialValue, CELLS)
+      ? input('per-vial', `${subject} cells per vial`, perVialValue, CELLS, kindFor(CELLS_PER_VIAL))
       : undefined);
   const liveCells = filled(LIVE_CELLS);
   const liveConcentration = filled(LIVE_CELL_CONCENTRATION);
-  const stockEntry = donor ? undefined : findTerm(names, STOCK_CONCENTRATION, owners);
+  const stockEntry = donor ? undefined : findTerm(kinds, STOCK_CONCENTRATION, owners);
   const stock =
     liveConcentration ??
     (stockEntry?.kind === 'value' && stockEntry.value.trim() && isCellConcentration(stockEntry.unit)
@@ -251,7 +294,8 @@ function subjectNames(plated: PlatedCells, names: ReadonlyMap<string, BoardName>
 
 export function cellCalculationNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
-  return platedCells(protocol).flatMap(plated => subjectNames(plated, names));
+  const kinds = kindIndex(taken, false);
+  return platedCells(protocol).flatMap(plated => subjectNames(plated, names, kinds));
 }
 
 function shortfallOf(result: CalculationResult | undefined): string | undefined {

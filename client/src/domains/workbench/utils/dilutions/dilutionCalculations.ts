@@ -1,13 +1,16 @@
 import { unitScale, type MaterialItem, type Protocol } from '@odysseus/shared-schemas';
 
 import {
+  kindIndex,
   nameKey,
   type BoardName,
   type CalculationGap,
+  type KindIndex,
   type WorkedOutGroup,
 } from '../formulas/boardCalculation';
 import { dimensionKey, FOLD_UNIT, RATIO_NOTATION, readNumber } from '../formulas/quantities';
 import { fieldName, materialFields } from '../materials/materialCatalog';
+import { linkOwner } from '../materials/plateLinks';
 import { plateAmounts } from '../plateMap/plateMapNames';
 import { stepSeriesUnit } from '../plateMap/plateSeries';
 import {
@@ -60,14 +63,14 @@ export interface SharedPrepSource {
 }
 
 export function sharedPrepSource(
-  names: ReadonlyMap<string, BoardName>,
-  subject: string,
+  kinds: KindIndex,
+  owner: string,
   key: SharedPrepKey
 ): SharedPrepSource | undefined {
   const { term, readsFrom } = SHARED_PREP_VALUES[key];
-  const own = readsFrom === 'assaySetup' ? undefined : findTerm(names, term, [subject]);
+  const own = readsFrom === 'assaySetup' ? undefined : findTerm(kinds, term, [owner]);
   if (own) return { entry: own, isAssaySetup: false };
-  const general = readsFrom === 'own' ? undefined : findTerm(names, term, [GENERAL]);
+  const general = readsFrom === 'own' ? undefined : findTerm(kinds, term, [GENERAL]);
   return general && { entry: general, isAssaySetup: true };
 }
 
@@ -176,12 +179,14 @@ function runNames(
   protocol: Protocol,
   run: DilutionRun,
   tag: string,
-  names: ReadonlyMap<string, BoardName>
+  names: ReadonlyMap<string, BoardName>,
+  kinds: KindIndex
 ): BoardName[] {
   const subject = run.subject;
   const settings = prepSettingsOf(run);
   const named = (label: string) => `${subject} ${label}${tag}`;
-  const shared = (key: SharedPrepKey) => sharedPrepSource(names, subject, key)?.entry.name;
+  const owner = linkOwner(protocol, run, subject);
+  const shared = (key: SharedPrepKey) => sharedPrepSource(kinds, owner, key)?.entry.name;
   const line = (key: PrepLine) => named(PREP_LINES[key]);
   const volume = shared('volumePerWell');
   const wellVolume = shared('totalWellVolume');
@@ -297,6 +302,7 @@ export function dilutionCalculationNames(
   taken: readonly BoardName[]
 ): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
+  const kinds = kindIndex(taken, false);
   const runs = dilutionRuns(protocol);
   const tags = runTags(runs);
   const diluents = runDiluents(runs, protocol.diluent);
@@ -311,7 +317,7 @@ export function dilutionCalculationNames(
       use.totals.push(`${run.subject} ${PREP_LINES.diluentTotal}${tag}`);
       uses.set(choice.key, use);
     }
-    return runNames(protocol, run, tag, names);
+    return runNames(protocol, run, tag, names, kinds);
   });
   return [...runEntries, ...diluentNeedNames(uses, names)];
 }

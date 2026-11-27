@@ -1,7 +1,7 @@
 # Workbench: Where the Data Lives
 
 Design for moving the workbench's saved data out of cards and into the protocol, so a card only
-shows and edits it. Started 2026-11-24 with Evan. Built: steps 0 to 5 and 7; next 6. Step 7 (painted
+shows and edits it. Started 2026-11-24 with Evan. Built: steps 0 to 5, 6a and 7; next 6b. Step 7 (painted
 wells point at their material) added 2026-11-25, built 2026-11-26.
 
 ## Why
@@ -522,6 +522,63 @@ Raised while weighing what of the workbench another lab could reuse. **Decided 2
     mock when built.
   - _`formerly` spellings:_ kept. They are spellings typing recognizes ("Count" still files into
     the cell count); tags replace reading names in the math, not recognizing what is typed.
+- **Split (agreed 2026-11-26):** 6a saves kinds and moves every lookup to kind and owner by id,
+  with nothing visible changing; 6b adds the "This is… ▸" menu, the square tag and the flag for
+  two values of one kind and owner, from a mock.
+- **Scoped 2026-11-26.** Every lookup goes through `findInForms` in `termLookup.ts` ("owner +
+  spelling" on the board), from about 20 places in 8 files (dilutions, cell math, recipes, Flow,
+  Calculations suggestions, the Values table, Values and insert-list grouping by
+  `isAssaySetting`). Owners are passed as spellings: a donor's name, a material's full and bare
+  names, a mix's names, `''` for Assay setup. Most numbers the math reads are made by the app
+  (Materials fields, plate amounts and counts, well counts, cell counts, the generated cell and
+  recipe numbers); only typed Values items and the scientist's own formulas have free names.
+  Evan's typed values are all named exactly a word from the list.
+- **6a plan:**
+  - Every `Term` gets a `key` that never changes (its word can, as `formerly` shows).
+  - A typed Values item and a calculation save `term` (`key` and container noun). One pass, beside
+    `linkPlateNames`, applies the decided rule: a name the word list knows sets it, any other
+    leaves it.
+  - A board number carries `kindOf` (term key, container noun, owner). The owner is one thing: a
+    material id, a donor id, a mix row id, `''` for Assay setup, or `name:` plus the text for a
+    painted subject that names nothing. Each source stamps its own: Materials fields from the
+    catalog field (not the scientist's relabel), Values items from their row and saved term,
+    calculations from `materialId` and saved term, plate amounts and counts from the painted
+    value's link (step 7), well and cell counts from their material or donor, the generated cell,
+    recipe and Flow numbers from their subject.
+  - The lookup reads an index by kind built beside each name map, keeping each map's
+    first-or-last-wins order so no answer moves; callers pass owner ids.
+  - `isAssaySetting` reads the saved term.
+  - File version 14; converted through the app's pass; the 122 answers identical.
+
+- **6a built 2026-11-26 (file version 14):**
+  - **Schema:** a typed Values item and a calculation save `term` (`SavedTerm`: `key`, `noun` for
+    a per-container word, `of` for an owner a loose name puts in front, like "Surface" in
+    "Surface cocktail vol./well"). Every `Term` in `termList.ts` has a `key` from its constant.
+  - **The rule:** `keepRecognizedTerms` (`terms/savedTerms.ts`), beside `linkPlateNames` in
+    `linkReferences`: a name the word list knows sets the term, any other leaves it, so renaming
+    "Total well vol." to "Final vol." keeps a well volume. `termOfName` takes the longest word
+    that ends the name, then a current spelling over a former one, then a fitting unit. Found
+    while testing it: a loose name's front part counts as an owner only when it names a material
+    (full, bare or short), a donor, a Flow staining or a painted name; otherwise "Final vol."
+    read as Vol. of "Final".
+  - **The board:** a number carries `kindOf` (term key, container, owner), stamped where it is
+    made: Materials fields from the catalog's own label for the unit (not the scientist's
+    relabel), Values items from their row (material, mix row) or the owner their name puts in
+    front (`ownerNamed`), calculations from `materialId`, plate counts and amounts from the
+    painted value's link (`linkOwner`), well and cell counts from their material or donor, the
+    cell math's own cells/well, wells, cells per vial, needed and plating conc., and Flow's per-well
+    amounts. `KindIndex` (`kindIndex`) is built beside each name map in the same first- or
+    last-wins order, and `SolvedBoard.kinds` holds the board's.
+  - **The lookups:** `findTerm`, `findTermOn` and `sampleNounsOf` read the index by owner id;
+    dilutions, cell math, recipes, Flow, Calculations suggestions and the Values table pass ids;
+    `isAssaySetting` reads the saved term (Values and insert-list grouping).
+  - **Checked:** typecheck and lint clean; 880 client tests (new `savedTerms.test.ts`: a known
+    name sets the kind, an unknown rename keeps it and the math still finds it, a known rename
+    changes it; `termLookup.test.ts` rewritten for kinds and front-part owners); the four samples
+    and Evan's two protocols converted through the app's own passes (v13 copies in
+    `Old versions/Version 13`); the 122 answers identical, read and opened. Evan's typed values
+    and his "Working concentration" formulas all took their kinds; none uses a front-part owner.
+
 - Then W114 step 5 resumes.
 
 ### Step 7: painted names point at their material (built 2026-11-26, file version 13)

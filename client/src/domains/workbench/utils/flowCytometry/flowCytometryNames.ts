@@ -1,5 +1,12 @@
-import { nameKey, type BoardName, type WorkedOutGroup } from '../formulas/boardCalculation';
+import {
+  kindIndex,
+  nameKey,
+  type BoardName,
+  type KindIndex,
+  type WorkedOutGroup,
+} from '../formulas/boardCalculation';
 import { listedMaterials } from '../materials/materialLookup';
+import { ownerNamed } from '../materials/plateLinks';
 import { stainedSampleCounts } from '../plateMap/stainSide';
 import {
   COCKTAIL,
@@ -11,7 +18,7 @@ import {
   type SampleNoun,
 } from '../terms/termList';
 import { findTerm, findTermOn } from '../terms/termLookup';
-import { joinValueName, lowerLead } from '../values/valueNames';
+import { GENERAL, joinValueName, lowerLead } from '../values/valueNames';
 
 import { panelCocktails } from './flowCytometryCocktails';
 import { markerDose, type MarkerDose } from './markerAmount';
@@ -51,11 +58,13 @@ export const cocktailAntibodiesName = (
 ): string => `${cocktailName} antibodies${isSplit ? ` in the ${pluralOf(noun)}` : ''}`;
 
 function panelNames(
+  protocol: Protocol,
   panel: FlowCytometryPanel,
   materials: ReadonlyMap<string, MaterialItem>,
   samples: SampleCounts,
   taken: Set<string>,
-  ownNames: ReadonlyMap<string, BoardName>
+  ownNames: ReadonlyMap<string, BoardName>,
+  kinds: KindIndex
 ): BoardName[] {
   const origin = { type: 'flowCytometryPanel', shows: panel.id } as const;
   const claim = (name: string) => {
@@ -77,7 +86,12 @@ function panelNames(
     nounsByStaining.get(nameKey(staining)) ?? ['well'];
   const volumeFor = (staining: string, noun: SampleNoun) => {
     const find = nounsFor(staining).length > 1 ? findTermOn : findTerm;
-    return find(ownNames, COCKTAIL_VOLUME_PER_WELL, [staining, ''], noun)?.name.trim();
+    return find(
+      kinds,
+      COCKTAIL_VOLUME_PER_WELL,
+      [ownerNamed(protocol, staining), GENERAL],
+      noun
+    )?.name.trim();
   };
   const missingVolume = (staining: string, noun: SampleNoun) => {
     const { word } = perLabwareKind(COCKTAIL_VOLUME_PER_WELL, noun);
@@ -174,6 +188,7 @@ function panelNames(
           name,
           formula: problem ? '' : (dose.perWell ?? ''),
           unit: PIPETTED_UNIT,
+          kindOf: { term: VOLUME_PER_WELL.key, noun, owner: material.id },
           workedOut: {
             key: `amount:${row.id}${nounEnd(noun)}`,
             subject: materialName,
@@ -198,6 +213,6 @@ export function flowCytometryCalculationNames(
   const takenKeys = new Set(taken.map(entry => nameKey(entry.name)));
   const ownNames = new Map(taken.map(entry => [nameKey(entry.name), entry]));
   return protocol.flowCytometryPanels.flatMap(panel =>
-    panelNames(panel, materials, samples, takenKeys, ownNames)
+    panelNames(protocol, panel, materials, samples, takenKeys, ownNames, kindIndex(taken, false))
   );
 }

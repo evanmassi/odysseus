@@ -1,3 +1,7 @@
+import { boardKind } from '../terms/savedTerms';
+import { termOfName } from '../terms/termLookup';
+import { GENERAL } from '../values/valueNames';
+
 import { calculateBoard, type BoardName } from './boardCalculation';
 import {
   calculationSuggestions,
@@ -27,12 +31,20 @@ const material = (name: string): MaterialItem => ({
   recipe: [],
 });
 
+const OWNER_KEYS: ReadonlySet<string> = new Set(['raji', 'medium']);
+
+const kindOf = (name: string, unit: string) => {
+  const term = termOfName(name, unit, OWNER_KEYS);
+  return boardKind(term, term?.of ?? GENERAL);
+};
+
 const value = (name: string, amount = '1', unit = ''): BoardName => ({
   kind: 'value',
   id: name,
   name,
   value: amount,
   unit,
+  kindOf: kindOf(name, unit),
 });
 
 const raji = material('Raji');
@@ -112,6 +124,7 @@ describe('formula scopes', () => {
       id: name,
       name,
       count: counted,
+      kindOf: kindOf(name, ''),
     });
     const split = calculateBoard([
       count('Raji wells', 24),

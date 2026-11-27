@@ -4,6 +4,7 @@ import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 import { linkPlateNames } from '../materials/renameFollowing';
 import { setPrepSetting } from '../plateMap/seriesEdits';
+import { keepRecognizedTerms } from '../terms/savedTerms';
 
 import { diluentUses, runDiluents } from './dilutionDiluents';
 import { recordOnMaterial, setSharedPrepValue } from './dilutionEdits';
@@ -95,6 +96,7 @@ function protocolWith(
     diluent: '',
   } as unknown as Protocol;
   linkPlateNames(protocol);
+  keepRecognizedTerms(protocol);
   return protocol;
 }
 
@@ -430,7 +432,13 @@ describe('dilution edits', () => {
     const { values } = protocol;
     expect(values.rows).toEqual([{ id: expect.any(String), materialId: 'Drug X' }]);
     expect(values.items).toEqual([
-      { id: 'v0', name: 'Total well vol.', value: '100', unit: 'µL' },
+      {
+        id: 'v0',
+        name: 'Total well vol.',
+        value: '100',
+        unit: 'µL',
+        term: { key: 'total-well-volume', noun: 'well' },
+      },
       {
         id: expect.any(String),
         name: 'Vol./well',
@@ -439,6 +447,7 @@ describe('dilution edits', () => {
         row: values.rows[0].id,
       },
     ]);
+    keepRecognizedTerms(protocol);
     const after = prepFor(protocol);
     expect(after.kind === 'ready' && after.strength).toBe('4×');
   });

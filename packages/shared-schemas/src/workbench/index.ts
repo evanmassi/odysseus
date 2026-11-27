@@ -27,6 +27,7 @@ export {
   type SampleEntry,
   type PlateLine,
   type MaterialLink,
+  type SavedTerm,
   type PlateSeries,
   type ProtocolFile,
 } from './protocolFileSchemas';

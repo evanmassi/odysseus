@@ -71,7 +71,10 @@ export function insertListGroups(
     }
     const key = sectionKeyOf(entry.name, entry.workedOut, materials);
     const isUnsortedValue =
-      key === GENERAL && entry.kind === 'value' && !entry.workedOut && !isAssaySetting(entry.name);
+      key === GENERAL &&
+      entry.kind === 'value' &&
+      !entry.workedOut &&
+      !isAssaySetting(entry.kindOf?.term);
     const group = isUnsortedValue
       ? groupFor(UNSORTED_GROUP, materialGroup(UNSORTED_GROUP).label)
       : key === GENERAL

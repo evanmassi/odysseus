@@ -11,7 +11,7 @@ import {
   type Term,
 } from '../terms/termList';
 import { findTerm, findTermOn, sampleNounsOf } from '../terms/termLookup';
-import { joinValueName, upperLead } from '../values/valueNames';
+import { GENERAL, joinValueName, upperLead } from '../values/valueNames';
 
 import { findReferenced, nameKey, type SolvedBoard } from './boardCalculation';
 import { FORMULA_FUNCTIONS, type FormulaFunction } from './formulaParser';
@@ -208,23 +208,23 @@ export function calculationSuggestions(
 ): CalculationSuggestion[] {
   if (!material) return [];
   const has = (name: string) => board.names.has(nameKey(name));
-  const owner = material.name.trim();
-  const own = (label: string) => joinValueName(owner, label);
-  const find = (term: Term, owners: readonly string[]) => findTerm(board.names, term, owners)?.name;
+  const own = (label: string) => joinValueName(material.name.trim(), label);
+  const owner = material.id;
+  const find = (term: Term, owners: readonly string[]) => findTerm(board.kinds, term, owners)?.name;
   const needed = find(TOTAL_NEEDED, [owner]);
-  const extra = find(EXTRA, [owner, '']);
-  const nouns = sampleNounsOf(board.names, [owner]);
+  const extra = find(EXTRA, [owner, GENERAL]);
+  const nouns = sampleNounsOf(board.kinds, [owner]);
   const isSplit = nouns.length > 1;
   const placements = (isSplit ? nouns : [nouns[0]]).map(noun => {
     const inIt = (term: Term) =>
       (noun && isSplit
-        ? findTermOn(board.names, term, [owner], noun)
-        : findTerm(board.names, term, [owner], noun)
+        ? findTermOn(board.kinds, term, [owner], noun)
+        : findTerm(board.kinds, term, [owner], noun)
       )?.name;
     const cells = inIt(CELLS_PER_WELL);
     const volume = inIt(VOLUME_PER_WELL);
     return {
-      wells: inIt(WELLS) ?? (isSplit ? undefined : find(WELLS_USED, [''])),
+      wells: inIt(WELLS) ?? (isSplit ? undefined : find(WELLS_USED, [GENERAL])),
       cells,
       volume,
       amount: cells ?? inIt(MASS_PER_WELL) ?? volume,

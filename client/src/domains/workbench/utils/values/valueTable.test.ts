@@ -6,6 +6,7 @@ import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
 import { DILUTION_FACTOR_NOTATION } from '../formulas/quantities';
 import { linkPlateNames } from '../materials/renameFollowing';
+import { keepRecognizedTerms } from '../terms/savedTerms';
 
 import { materialsById } from './valueEdits';
 import { valueNeeds } from './valueNeeds';
@@ -134,7 +135,10 @@ const protocolOf = (
   }) as unknown as Protocol;
 
 function tableOf(unlinked: Protocol, unsortedNames: readonly string[] = []): ValueTableGroup[] {
-  const protocol = produce(unlinked, linkPlateNames);
+  const protocol = produce(unlinked, draft => {
+    linkPlateNames(draft);
+    keepRecognizedTerms(draft);
+  });
   const board = calculateBoard(collectBoardNames(protocol));
   return buildValueTable(protocol, {
     materials: materialsById(protocol),

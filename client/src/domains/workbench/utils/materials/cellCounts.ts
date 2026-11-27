@@ -1,5 +1,7 @@
 import { nameKey, type BoardName, type WorkedOutGroup } from '../formulas/boardCalculation';
 import { displayValue, formatNumber, readNumber } from '../formulas/quantities';
+import { boardKind } from '../terms/savedTerms';
+import { termOfName } from '../terms/termLookup';
 import { joinValueName } from '../values/valueNames';
 
 import { CELL_COUNT_FIELDS, CELL_TYPES, type CellCount } from './materialCatalog';
@@ -215,7 +217,10 @@ export function cellCountNames(
       if (!reading || takenKeys.has(nameKey(name))) return [];
       const id = countId(subject, count);
       const { key, unit } = CELL_COUNT_FIELDS[count];
-      if (!reading.rule) return [{ kind: 'value', id, name, value: values[key] ?? '', unit }];
+      const kindOf = boardKind(termOfName(labelOf(count), unit), cellSubjectId(subject));
+      if (!reading.rule) {
+        return [{ kind: 'value', id, name, value: values[key] ?? '', unit, kindOf }];
+      }
       const [a, b] = reading.rule.from.map(each => countName(subject, each));
       return [
         {
@@ -225,6 +230,7 @@ export function cellCountNames(
           formula: `${a} ${reading.rule.operation} ${b}`,
           unit,
           isIntermediate: true,
+          kindOf,
           ...(workedOut && { workedOut }),
         },
       ];

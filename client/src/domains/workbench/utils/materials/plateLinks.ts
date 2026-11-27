@@ -1,3 +1,5 @@
+import { nameKey } from '../formulas/boardCalculation';
+
 import { findDonor, donorsIn, type KnownDonorMatch } from './materialDonors';
 import { findMaterial, listedMaterials, nameWithoutNotes, shortNameOf } from './materialLookup';
 
@@ -68,4 +70,19 @@ export function namedTarget(
     donor ? [{ material: owner, donor }] : []
   );
   return findDonor(donors, text);
+}
+
+export function ownerNamed(protocol: Pick<Protocol, 'materials'>, text: string): string {
+  const material = findMaterial(listedMaterials(protocol), text);
+  const match = material ? undefined : findDonor(donorsIn(protocol), text);
+  return material?.id ?? match?.donor.id ?? `name:${nameKey(text)}`;
+}
+
+export function linkOwner(
+  protocol: Pick<Protocol, 'materials'>,
+  holder: { links?: readonly MaterialLink[] } | undefined,
+  text: string
+): string {
+  const target = namedTarget(protocol, holder, text);
+  return target ? (target.donor ?? target.material).id : ownerNamed(protocol, text);
 }

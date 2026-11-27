@@ -1,5 +1,6 @@
 import { calculateBoard, type BoardName } from '../formulas/boardCalculation';
 
+import { boardKind } from './savedTerms';
 import {
   CELLS_PER_WELL,
   EXTRA,
@@ -14,30 +15,55 @@ import {
   isAssaySetting,
   settledValue,
   termMeaning,
+  termOfName,
   unitMismatch,
   withPerLabwareKind,
 } from './termLookup';
 
-const value = (name: string, unit = ''): BoardName => ({
-  kind: 'value',
-  id: name,
-  name,
-  value: '1',
-  unit,
-});
+const OWNERS: ReadonlySet<string> = new Set(['raji', 'medium', 'full stain']);
 
-const namesOf = (...entries: BoardName[]) => calculateBoard(entries).names;
+function value(name: string, unit = ''): BoardName {
+  const term = termOfName(name, unit, OWNERS);
+  return {
+    kind: 'value',
+    id: name,
+    name,
+    value: '1',
+    unit,
+    kindOf: boardKind(term, term?.of ?? ''),
+  };
+}
+
+const namesOf = (...entries: BoardName[]) => calculateBoard(entries).kinds;
+const isSetting = (name: string) => isAssaySetting(termOfName(name, '', OWNERS)?.key);
+
+describe('termOfName', () => {
+  it('keeps the owner a loose name puts in front of its word', () => {
+    expect(termOfName('Full Stain cocktail vol./well', 'µL', OWNERS)).toEqual({
+      key: 'cocktail-volume-per-well',
+      noun: 'well',
+      of: 'Full Stain',
+    });
+    expect(termOfName('Raji vol./tube', 'µL', OWNERS)).toEqual({
+      key: 'volume-per-well',
+      noun: 'tube',
+      of: 'Raji',
+    });
+    expect(termOfName('Raji vol./tube', 'µL')).toBeUndefined();
+    expect(termOfName('Seeding count', '', OWNERS)).toBeUndefined();
+  });
+});
 
 describe('isAssaySetting', () => {
   it('knows the settings the math reads for the whole assay, under any spelling or prefix', () => {
     for (const name of ['Total well vol.', 'Overage', 'Full Stain cocktail vol./well']) {
-      expect(isAssaySetting(name)).toBe(true);
+      expect(isSetting(name)).toBe(true);
     }
   });
 
   it('leaves anything else unsorted', () => {
     for (const name of ['Spin speed', 'Incubation', 'Total volume', '']) {
-      expect(isAssaySetting(name)).toBe(false);
+      expect(isSetting(name)).toBe(false);
     }
   });
 });
@@ -64,7 +90,7 @@ describe('findTerm', () => {
     const both = namesOf(value('Raji vol./well', 'µL'), value('Raji vol./tube', 'mL'));
     expect(findTerm(both, VOLUME_PER_WELL, ['Raji'])?.name).toBe('Raji vol./well');
     expect(findTerm(both, VOLUME_PER_WELL, ['Raji'], 'tube')?.name).toBe('Raji vol./tube');
-    expect(isAssaySetting('Cocktail vol./tube')).toBe(true);
+    expect(isSetting('Cocktail vol./tube')).toBe(true);
   });
 
   it('prefers the material’s own value over Assay setup’s', () => {

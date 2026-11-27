@@ -24,6 +24,7 @@ import { type WorkingNode } from './workingTree';
 
 import type { NameReference } from './nameReferences';
 import type { CardTarget } from '../cards/createCard';
+import type { SampleNoun } from '../terms/termList';
 
 export interface WorkedOutGroup {
   key: string;
@@ -32,9 +33,16 @@ export interface WorkedOutGroup {
   settings: CardTarget;
 }
 
+export interface BoardKind {
+  term: string;
+  noun?: SampleNoun;
+  owner: string;
+}
+
 interface NameOrigin {
   origin?: CardTarget;
   workedOut?: WorkedOutGroup;
+  kindOf?: BoardKind;
 }
 
 export type BoardName = NameOrigin &
@@ -65,6 +73,23 @@ export type BoardName = NameOrigin &
 
 export type CalculationName = Extract<BoardName, { kind: 'calculation' }>;
 
+export const kindKey = ({ term, noun, owner }: BoardKind): string =>
+  `${owner}|${term}|${noun ?? ''}`;
+
+export interface KindIndex {
+  byKind: ReadonlyMap<string, BoardName>;
+}
+
+export function kindIndex(entries: readonly BoardName[], isFirstKept: boolean): KindIndex {
+  const byKind = new Map<string, BoardName>();
+  for (const entry of entries) {
+    if (!entry.kindOf || !nameKey(entry.name)) continue;
+    const key = kindKey(entry.kindOf);
+    if (!isFirstKept || !byKind.has(key)) byKind.set(key, { ...entry, name: entry.name.trim() });
+  }
+  return { byKind };
+}
+
 export interface CalculationGap {
   problem: string;
   need?: string;
@@ -89,6 +114,7 @@ export type CalculationResult =
 
 export interface SolvedBoard {
   names: ReadonlyMap<string, BoardName>;
+  kinds: KindIndex;
   ids: ReadonlyMap<string, BoardName>;
   takenNameIds: ReadonlySet<string>;
   results: ReadonlyMap<string, CalculationResult>;
@@ -360,5 +386,5 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
   };
 
   calculations.forEach(evaluate);
-  return { names, ids, takenNameIds, results };
+  return { names, kinds: kindIndex(entries, true), ids, takenNameIds, results };
 }

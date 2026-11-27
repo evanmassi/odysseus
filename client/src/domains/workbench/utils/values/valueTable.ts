@@ -40,12 +40,7 @@ import {
 } from '../materials/materialCatalog';
 import { findDonor, donorsIn } from '../materials/materialDonors';
 import { UNSORTED_GROUP } from '../materials/materialItems';
-import {
-  displayNameOf,
-  findMaterial,
-  findNamed,
-  nameWithoutNotes,
-} from '../materials/materialLookup';
+import { displayNameOf, findMaterial, findNamed } from '../materials/materialLookup';
 import {
   finalConcentrationName,
   mixConcentrationName,
@@ -196,8 +191,10 @@ const wellsCell = (entry: Extract<BoardName, { kind: 'count' }>, noun: SampleNou
   linkedTo: { kind: 'wells' },
 });
 
+const subjectOwner = (subject: CountSubject) => (subject.donor ?? subject.material).id;
+
 function inheritedVolumeCells(subject: CountSubject, board: SolvedBoard): ValueCell[] {
-  const nouns = sampleNounsOf(board.names, [subject.subject]);
+  const nouns = sampleNounsOf(board.kinds, [subjectOwner(subject)]);
   return nouns.flatMap(noun => inheritedVolumeCell(subject, board, noun, nouns.length > 1));
 }
 
@@ -207,11 +204,10 @@ function inheritedVolumeCell(
   noun: SampleNoun,
   isSplit: boolean
 ): ValueCell[] {
-  const { material } = subject;
-  const owners = [material.name.trim(), nameWithoutNotes(material.name)];
+  const owners = [subject.material.id];
   const volume = isSplit
-    ? findTermOn(board.names, VOLUME_PER_WELL, owners, noun)
-    : findTerm(board.names, VOLUME_PER_WELL, owners, noun);
+    ? findTermOn(board.kinds, VOLUME_PER_WELL, owners, noun)
+    : findTerm(board.kinds, VOLUME_PER_WELL, owners, noun);
   if (!subject.isPlated || volume?.kind !== 'value' || !volume.value.trim()) return [];
   const label = perLabwareKind(VOLUME_PER_WELL, noun).word;
   const id = `${cellPartId(subject, 'inherited')}:${label}`;
@@ -228,7 +224,7 @@ function inheritedVolumeCell(
       units: [],
       isEditable: false,
       canRemove: false,
-      note: `Set on the ${material.name.trim()} row`,
+      note: `Set on the ${subject.material.name.trim()} row`,
       neededFor: NOT_NEEDED,
       origin: 'worked',
       linkedTo: { kind: 'worked' },
@@ -650,8 +646,8 @@ export function buildValueTable(
     const owner = subject.donor && rowForMaterial(subject.material);
     if (!owner || !subject.donor) continue;
     const donorName = subject.donor.name.trim();
-    for (const noun of sampleNounsOf(board.names, [subject.subject])) {
-      const wells = findTermOn(board.names, WELLS, [subject.subject], noun);
+    for (const noun of sampleNounsOf(board.kinds, [subjectOwner(subject)])) {
+      const wells = findTermOn(board.kinds, WELLS, [subjectOwner(subject)], noun);
       if (wells?.kind !== 'count' || !wells.id.startsWith(cellPartId(subject, 'wells'))) {
         continue;
       }
@@ -668,7 +664,7 @@ export function buildValueTable(
   for (const row of [...rows]) {
     const { material } = row;
     if (!material?.recipe.length) continue;
-    const placements = recipePlacements(material, board.names);
+    const placements = recipePlacements(material, board.kinds);
     const stockAmount = material.values[STOCK_FIELD] ?? '';
     if (material.units[STOCK_FIELD] === FOLD_UNIT && stockAmount.trim()) {
       row.cells.push(

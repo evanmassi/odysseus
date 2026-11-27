@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 13,
+  "version": 14,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "Cell viability dose response",
@@ -309,31 +309,48 @@
           "id": "gx8xelk",
           "name": "Cells/well",
           "value": "5000",
-          "unit": "cells"
+          "unit": "cells",
+          "term": {
+            "key": "cells-per-well",
+            "noun": "well"
+          }
         },
         {
           "id": "6e8nyrc",
           "name": "Vol./well",
           "value": "100",
-          "unit": "µL"
+          "unit": "µL",
+          "term": {
+            "key": "volume-per-well",
+            "noun": "well"
+          }
         },
         {
           "id": "gefx27z",
           "name": "Extra (dead vol.)",
           "value": "10",
-          "unit": "%"
+          "unit": "%",
+          "term": {
+            "key": "extra"
+          }
         },
         {
           "id": "d05kn7e",
           "name": "Top conc.",
           "value": "10",
-          "unit": "µM"
+          "unit": "µM",
+          "term": {
+            "key": "top-concentration"
+          }
         },
         {
           "id": "w8gptu3",
           "name": "Fold",
           "value": "3",
-          "unit": "X"
+          "unit": "X",
+          "term": {
+            "key": "dilution-factor"
+          }
         }
       ],
       "rows": []
@@ -350,7 +367,10 @@
           "id": "g64zzfl",
           "name": "Cells needed",
           "formula": "Cells/well × Cell wells × (1 + Extra (dead vol.))",
-          "unit": "auto"
+          "unit": "auto",
+          "term": {
+            "key": "total-needed"
+          }
         },
         {
           "id": "mc4gorp",

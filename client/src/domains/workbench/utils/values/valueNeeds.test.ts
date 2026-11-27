@@ -1,5 +1,6 @@
 import { calculateBoard } from '../formulas/boardCalculation';
 import { collectBoardNames } from '../formulas/boardNames';
+import { keepRecognizedTerms } from '../terms/savedTerms';
 
 import { valueNeeds } from './valueNeeds';
 
@@ -37,6 +38,7 @@ function needsFor(items: ProtocolValues['items']) {
     calculations: { items: [], materialSections: [] },
     plateMaps: [],
   } as unknown as Protocol;
+  keepRecognizedTerms(protocol);
   return valueNeeds(protocol, calculateBoard(collectBoardNames(protocol)));
 }
 

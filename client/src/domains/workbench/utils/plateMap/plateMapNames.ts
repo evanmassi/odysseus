@@ -31,6 +31,8 @@ import {
   TOP_CONCENTRATION,
   TOP_DILUTION,
   VOLUME_PER_WELL,
+  WELLS,
+  WELLS_USED,
   type Term,
 } from '../terms/termList';
 import { readTypedAmount } from '../units/textAmounts';
@@ -56,6 +58,8 @@ export interface PlateMapCount {
   tally: number;
   key: string;
   kind: 'value' | 'used' | 'total';
+  term?: { key: string; noun: SampleNoun };
+  painted?: LineValue;
 }
 
 export type PlateAmountSource =
@@ -73,6 +77,8 @@ export interface PlateAmount {
   value: string;
   unit: string;
   source: PlateAmountSource;
+  term?: { key: string; noun?: SampleNoun };
+  painted?: LineValue;
 }
 
 function labelFromName(name: string, subject: string, variant: string): string {
@@ -134,7 +140,7 @@ function valueCounts(card: PlateMap): PlateMapCount[] {
     const keys = keysHolding(card, line, value);
     const text = value.text.trim();
     if (!keys.length || !text) return [];
-    const { plural } = wordsForTypes(keys.map(key => labwareTypeAt(card, key)));
+    const { noun, plural } = wordsForTypes(keys.map(key => labwareTypeAt(card, key)));
     return [
       {
         name: `${text} ${plural}`,
@@ -144,6 +150,8 @@ function valueCounts(card: PlateMap): PlateMapCount[] {
         tally: keys.length,
         key: value.id,
         kind: 'value' as const,
+        term: { key: WELLS.key, noun },
+        painted: value,
       },
     ];
   });
@@ -168,6 +176,7 @@ function countLabware(card: PlateMap): PlateMapCount[] {
       tally: keys.length,
       key,
       kind: 'used',
+      term: { key: WELLS_USED.key, noun: noun ?? wordsForTypes(allLabwareTypes(card)).noun },
     };
   });
   const plateTotals = [...new Set(card.plates.map(candidate => candidate.labware))].map(
@@ -206,12 +215,21 @@ function countLabware(card: PlateMap): PlateMapCount[] {
   return [...valueCounts(card), ...used, ...plateTotals, ...setTotals];
 }
 
-function amountNoun(unit: string, labwareKind: SampleNoun): string {
-  if (unit === PAIR_NOTATION) return 'ratio';
+function amountTerm(
+  unit: string,
+  labwareKind: SampleNoun
+): { term: Term; noun?: SampleNoun } | undefined {
+  if (unit === PAIR_NOTATION) return undefined;
   const key = dimensionKey(unitScale(unit)?.dimension ?? {});
-  if (CONCENTRATION_DIMENSIONS.has(key)) return lowerLead(FINAL_CONCENTRATION.word);
+  if (CONCENTRATION_DIMENSIONS.has(key)) return { term: FINAL_CONCENTRATION };
   const term = PER_LABWARE_KIND_TERMS.get(key);
-  return term ? lowerLead(perLabwareKind(term, labwareKind).word) : 'amount';
+  return term && { term, noun: labwareKind };
+}
+
+function amountNoun(unit: string, found: ReturnType<typeof amountTerm>): string {
+  if (unit === PAIR_NOTATION) return 'ratio';
+  if (!found) return 'amount';
+  return lowerLead((found.noun ? perLabwareKind(found.term, found.noun) : found.term).word);
 }
 
 interface PlainCell {
@@ -246,29 +264,47 @@ function amountsOnPlate(card: PlateMap): PlateAmount[] {
   };
 
   for (const line of card.lines) {
-    const plain = new Map<string, { subject: string; noun: string; cells: PlainCell[] }>();
-    const runs = new Map<string, { subject: string; keys: string[]; steps: Set<number> }>();
+    const plain = new Map<
+      string,
+      {
+        subject: string;
+        noun: string;
+        term: ReturnType<typeof amountTerm>;
+        painted: LineValue;
+        cells: PlainCell[];
+      }
+    >();
+    const runs = new Map<
+      string,
+      { subject: string; painted: LineValue; keys: string[]; steps: Set<number> }
+    >();
     for (const [key, lines] of Object.entries(card.samples)) {
       const entry = lines[line.id];
       const painted = lineValueOf(line, entry);
       const subject = painted?.text.trim() ?? '';
       if (!entry || !painted || !subject) continue;
       if (entry.seriesId !== undefined) {
-        const run = runs.get(entry.seriesId) ?? { subject, keys: [], steps: new Set<number>() };
+        const run = runs.get(entry.seriesId) ?? {
+          subject,
+          painted,
+          keys: [],
+          steps: new Set<number>(),
+        };
         runs.set(entry.seriesId, run);
         run.keys.push(key);
         run.steps.add(entry.seriesPoint ?? 0);
       } else if ((entry.amount ?? '').trim()) {
         const unit = entry.unit ?? '';
-        const noun = amountNoun(unit, labwareOf(labwareTypeAt(card, key)).kind);
+        const term = amountTerm(unit, labwareOf(labwareTypeAt(card, key)).kind);
+        const noun = amountNoun(unit, term);
         const groupKey = `${normalizeMaterialKey(noun)}:${painted.id}`;
-        const amountGroup = plain.get(groupKey) ?? { subject, noun, cells: [] };
+        const amountGroup = plain.get(groupKey) ?? { subject, noun, term, painted, cells: [] };
         plain.set(groupKey, amountGroup);
         amountGroup.cells.push({ key, amount: (entry.amount ?? '').trim(), unit });
       }
     }
 
-    for (const [groupKey, { subject, noun, cells }] of plain) {
+    for (const [groupKey, { subject, noun, term, painted, cells }] of plain) {
       const base = `${amountLinePrefix(line.id)}${groupKey}`;
       const fromWells = (inWells: PlainCell[]) => ({
         subject,
@@ -278,7 +314,14 @@ function amountsOnPlate(card: PlateMap): PlateAmount[] {
         source: { kind: 'wells' as const, lineId: line.id, keys: inWells.map(cell => cell.key) },
       });
       if (isSameAmount(cells)) {
-        add({ key: base, automaticName: `${subject} ${noun}`, variant: '', ...fromWells(cells) });
+        add({
+          key: base,
+          automaticName: `${subject} ${noun}`,
+          variant: '',
+          ...fromWells(cells),
+          ...(term && { term: { key: term.term.key, noun: term.noun } }),
+          painted,
+        });
         continue;
       }
       for (const value of colorLine?.values ?? []) {
@@ -299,7 +342,7 @@ function amountsOnPlate(card: PlateMap): PlateAmount[] {
       return series && 'top' in series ? [{ seriesId, series, ...run }] : [];
     });
     for (const run of dilutionRuns) {
-      const { seriesId, series, subject, steps } = run;
+      const { seriesId, series, subject, painted, steps } = run;
       const twins = dilutionRuns.filter(
         other => normalizeMaterialKey(other.subject) === normalizeMaterialKey(subject)
       );
@@ -322,13 +365,15 @@ function amountsOnPlate(card: PlateMap): PlateAmount[] {
               ? ` on ${plateNameOf(card, plate)}`
               : ` ${index + 1}`;
       const top = seriesTopTerm(series.unit, stepSeriesUnit(series));
-      const shared = { subject, variant: tag.trim() };
+      const shared = { subject, variant: tag.trim(), painted };
+      const termOf = (term: Term) => (tag ? {} : { term: { key: term.key } });
       if (STARTS_WITH_NUMBER.test(series.top)) {
         add({
           key: `s:${seriesId}:top`,
           automaticName: `${subject} ${lowerLead(top.word)}${tag}`,
           label: top.word,
           ...shared,
+          ...termOf(top),
           value: readTypedAmount(series.top)?.value ?? series.top.trim(),
           unit: stepSeriesUnit(series),
           source: { kind: 'series', seriesId, field: 'top' },
@@ -340,6 +385,7 @@ function amountsOnPlate(card: PlateMap): PlateAmount[] {
           automaticName: `${subject} ${lowerLead(DILUTION_FACTOR.word)}${tag}`,
           label: DILUTION_FACTOR.word,
           ...shared,
+          ...termOf(DILUTION_FACTOR),
           value: String(dilutionFactorOf(series.dilutionFactor)),
           unit: DILUTION_FACTOR_NOTATION,
           source: { kind: 'series', seriesId, field: 'dilutionFactor' },
@@ -350,6 +396,7 @@ function amountsOnPlate(card: PlateMap): PlateAmount[] {
         automaticName: `${subject} ${lowerLead(POINTS.word)}${tag}`,
         label: POINTS.word,
         ...shared,
+        ...termOf(POINTS),
         value: String(steps.size),
         unit: '',
         source: { kind: 'points', seriesId },
