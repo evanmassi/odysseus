@@ -13,7 +13,7 @@ export type WorkingNode =
   | { kind: 'literal'; text: string }
   | { kind: 'group'; inner: WorkingNode }
   | { kind: 'negate'; operand: WorkingNode }
-  | { kind: 'call'; name: FormulaFunction; args: WorkingNode[] }
+  | { kind: 'call'; name: FormulaFunction; args: WorkingNode[]; before: string }
   | { kind: 'binary'; operator: Operator; left: WorkingNode; right: WorkingNode };
 
 export interface WorkingFraction {

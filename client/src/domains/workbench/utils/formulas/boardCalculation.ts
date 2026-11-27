@@ -293,6 +293,7 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
       kind: 'call',
       name,
       args: step ? [value.working, step.working] : [value.working],
+      before: autoFormat(value.quantity),
     };
     const { dimension } = value.quantity;
     if (step && !isSameDimension(dimension, step.quantity.dimension)) {

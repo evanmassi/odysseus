@@ -5,11 +5,12 @@ import { Pencil } from 'lucide-react';
 import { Tooltip } from '@shared/ui';
 import { ROW_HOVER_GLOW, ROW_LIT_HOVER } from '@shared/ui/primitives/table/rowGlow';
 
+import { useFollowedNames } from '../../../../hooks/useFollowedNames';
 import { nameWithin } from '../../../../utils/formulas/formulaScopes';
 import { LEADER_LINE } from '../../board/leaderLineClass';
 
 import { CALCULATION_WORKING_INDENT } from './calculationLineClasses';
-import { WorkbenchCalculationWorking } from './WorkbenchCalculationWorking';
+import { WorkbenchCalculationWorkingChain } from './WorkbenchCalculationWorkingChain';
 
 import type { CalculationResult } from '../../../../utils/formulas/boardCalculation';
 import type { MaterialItem } from '@odysseus/shared-schemas';
@@ -37,6 +38,7 @@ export const WorkbenchCalculationRow = memo(function WorkbenchCalculationRow({
   onOpen,
 }: WorkbenchCalculationRowProps) {
   const [isShowingWorking, setIsShowingWorking] = useState(false);
+  const { followed, toggleFollowed, clearFollowed } = useFollowedNames();
   const shortName = nameWithin(name, material);
   const isWorkingShown = isShowingWorking || result?.status !== 'ok';
   return (
@@ -50,7 +52,10 @@ export const WorkbenchCalculationRow = memo(function WorkbenchCalculationRow({
           type="button"
           aria-expanded={isShowingWorking}
           className="flex min-w-0 flex-1 items-baseline gap-2 text-left"
-          onClick={() => setIsShowingWorking(isShown => !isShown)}
+          onClick={() => {
+            clearFollowed();
+            setIsShowingWorking(isShown => !isShown);
+          }}
         >
           <span className="text-body-sm text-foreground">
             {shortName || <span className="text-muted-foreground">Unnamed</span>}
@@ -75,11 +80,12 @@ export const WorkbenchCalculationRow = memo(function WorkbenchCalculationRow({
       </span>
       {isWorkingShown && (
         <div className={`${CALCULATION_WORKING_INDENT} empty:hidden`}>
-          <WorkbenchCalculationWorking
+          <WorkbenchCalculationWorkingChain
             name={name}
             result={result}
-            isCompact
             shortName={full => nameWithin(full, material)}
+            followed={followed}
+            onFollow={toggleFollowed}
           />
         </div>
       )}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { Tooltip } from '@shared/ui';
 
@@ -15,7 +15,10 @@ import {
 } from '../../../../utils/values/valueSources';
 import { WorkbenchValueAmountField } from '../values/WorkbenchValueAmountField';
 
+import { WorkbenchCalculationWorkingQuantity } from './WorkbenchCalculationWorkingQuantity';
+
 import type { WorkingRef } from '../../../../utils/formulas/workingTree';
+import type { UnitPart } from '../../../../utils/formulas/workingUnits';
 
 const TERM_SOURCE_CLASS: Record<WorkingRef['source'], string> = {
   value: 'text-foreground',
@@ -23,16 +26,27 @@ const TERM_SOURCE_CLASS: Record<WorkingRef['source'], string> = {
   calculation: 'text-action',
 };
 
-const TERM_LABEL = 'text-label-2xs text-muted-foreground';
+export const WORKING_HOT = 'bg-primary/15 text-foreground';
+const FOLLOWED = 'bg-primary/15 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.5)]';
 
 interface WorkbenchCalculationWorkingTermProps {
   node: WorkingRef;
-  label: string;
+  isBracketed: boolean;
+  struckParts: ReadonlySet<UnitPart> | undefined;
+  isHot: boolean;
+  isFollowed: boolean;
+  onHover: (isHovered: boolean) => void;
+  onFollow: (name: string) => void;
 }
 
 export function WorkbenchCalculationWorkingTerm({
   node,
-  label,
+  isBracketed,
+  struckParts,
+  isHot,
+  isFollowed,
+  onHover,
+  onFollow,
 }: WorkbenchCalculationWorkingTermProps) {
   const entry = useWorkbenchStore(state => state.board.names.get(nameKey(node.name)));
   const protocol = useWorkbenchStore(state => state.protocol);
@@ -45,23 +59,32 @@ export function WorkbenchCalculationWorkingTerm({
   const [isEditing, setIsEditing] = useState(false);
   const leave = useFocusLeave(() => setIsEditing(false));
 
-  const stackClass = `inline-flex flex-col items-center ${node.isSetAside ? 'line-through' : ''}`;
-  const labelLine = <span className={TERM_LABEL}>{label}</span>;
   const shown = (
-    <>
-      {labelLine}
-      <span className={`font-mono text-data-sm ${TERM_SOURCE_CLASS[node.source]}`}>
-        {withPerLabwareKind(node.text, node.name)}
-      </span>
-    </>
+    <WorkbenchCalculationWorkingQuantity
+      text={withPerLabwareKind(node.text, node.name)}
+      struckParts={struckParts}
+      isSetAside={node.isSetAside}
+    />
   );
+  const framed = (content: ReactNode) => (
+    <span
+      className={`whitespace-nowrap ${isHot ? WORKING_HOT : ''}`}
+      onMouseEnter={() => onHover(true)}
+      onMouseLeave={() => onHover(false)}
+    >
+      {isBracketed && <span className="text-muted-foreground">(</span>}
+      {content}
+      {isBracketed && <span className="text-muted-foreground">)</span>}
+    </span>
+  );
+  const sourceClass = TERM_SOURCE_CLASS[node.source];
 
   if (source && entry?.kind === 'value') {
     if (isEditing) {
-      return (
+      return framed(
         // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Enter, Escape and leaving bubble up from the field's own inputs
         <span
-          className={stackClass}
+          className="inline-flex"
           onBlur={leave.onBlur}
           onFocus={leave.onFocus}
           onKeyDown={event => {
@@ -70,7 +93,6 @@ export function WorkbenchCalculationWorkingTerm({
             setIsEditing(false);
           }}
         >
-          {labelLine}
           <WorkbenchValueAmountField
             value={entry.value}
             unit={entry.unit}
@@ -85,11 +107,11 @@ export function WorkbenchCalculationWorkingTerm({
         </span>
       );
     }
-    return (
+    return framed(
       <Tooltip content="Click to change">
         <button
           type="button"
-          className={`${stackClass} inline-edit`}
+          className={`inline-edit ${sourceClass}`}
           onClick={() => setIsEditing(true)}
         >
           {shown}
@@ -98,13 +120,28 @@ export function WorkbenchCalculationWorkingTerm({
     );
   }
 
+  if (node.source === 'calculation') {
+    return framed(
+      <Tooltip content={isFollowed ? 'Hide how this is worked out' : 'Show how this is worked out'}>
+        <button
+          type="button"
+          aria-expanded={isFollowed}
+          className={`${sourceClass} hover:underline hover:decoration-dotted ${isFollowed ? FOLLOWED : ''}`}
+          onClick={() => onFollow(node.name)}
+        >
+          {shown}
+        </button>
+      </Tooltip>
+    );
+  }
+
   const origin = entry?.origin;
-  if (!origin) return <span className={stackClass}>{shown}</span>;
-  return (
+  if (!origin) return framed(<span className={sourceClass}>{shown}</span>);
+  return framed(
     <Tooltip content="Go to where this is set">
       <button
         type="button"
-        className={`${stackClass} hover:underline hover:decoration-dotted`}
+        className={`${sourceClass} hover:underline hover:decoration-dotted`}
         onClick={() => showTarget(origin)}
       >
         {shown}

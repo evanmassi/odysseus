@@ -60,7 +60,7 @@ import {
   type WorkedOutSettings,
 } from './WorkbenchCalculationWorkedOutGroup';
 
-import type { CalculationTableRowView } from './WorkbenchCalculationTable';
+import type { CalculationTableRowView } from './WorkbenchCalculationTableRow';
 import type { CardTarget } from '../../../../utils/cards/createCard';
 import type {
   MaterialItem,

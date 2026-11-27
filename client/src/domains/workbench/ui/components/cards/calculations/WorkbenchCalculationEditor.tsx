@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 
 import { Button, Select, Tooltip } from '@shared/ui';
 
+import { useFollowedNames } from '../../../../hooks/useFollowedNames';
 import { usePlacedBeside } from '../../../../hooks/usePlacedBeside';
 import { APP_ROOT_ID } from '../../../../utils/dom/appRoot';
 import {
@@ -26,7 +27,7 @@ import { POPOUT_PANEL } from '../../board/popoutPanelClass';
 import { useInsertTarget } from '../../tray/useInsertTarget';
 import { WorkbenchTrayToggleButton } from '../../tray/WorkbenchTrayToggleButton';
 
-import { WorkbenchCalculationWorking } from './WorkbenchCalculationWorking';
+import { WorkbenchCalculationWorkingChain } from './WorkbenchCalculationWorkingChain';
 import { WorkbenchFormulaCompletionList } from './WorkbenchFormulaCompletionList';
 
 import type { SolvedBoard } from '../../../../utils/formulas/boardCalculation';
@@ -69,6 +70,7 @@ export function WorkbenchCalculationEditor({
   );
   const [completions, setCompletions] = useState<FormulaCompletion[]>([]);
   const [highlighted, setHighlighted] = useState(0);
+  const { followed, toggleFollowed } = useFollowedNames();
   const isNameTaken =
     board.takenNameIds.has(calculation.id) || board.takenKindIds.has(calculation.id);
   const result = board.results.get(calculation.id);
@@ -260,11 +262,12 @@ export function WorkbenchCalculationEditor({
           }}
         />
       </div>
-      <WorkbenchCalculationWorking
+      <WorkbenchCalculationWorkingChain
         name={fullName}
         result={result}
-        isCompact={false}
         shortName={full => nameWithin(full, material)}
+        followed={followed}
+        onFollow={toggleFollowed}
         onAddMissing={onAddMissing}
       />
       <div className="flex items-center gap-1">
