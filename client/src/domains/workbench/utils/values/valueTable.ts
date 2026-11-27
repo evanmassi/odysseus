@@ -430,7 +430,7 @@ export function buildValueTable(
   const { values } = protocol;
   const plates = protocol.plateMaps;
   const matches = donorsIn(protocol);
-  const subjects = countSubjects(protocol);
+  const subjects = countSubjects(protocol, board);
   const countedIds = new Set(subjects.map(subject => subject.material.id));
   const unsorted = new Set(unsortedNames.map(normalizeMaterialKey));
   const allMaterials = [...materials.values()].filter(material => material.name.trim());

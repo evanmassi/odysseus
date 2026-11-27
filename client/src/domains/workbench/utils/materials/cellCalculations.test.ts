@@ -355,3 +355,34 @@ describe('cell math from the counts', () => {
     expect(answer(board, 'left-over')).toBe('1.27E+6 cells');
   });
 });
+
+describe('cells plated through a series', () => {
+  it('counts a series whose top is a named value', () => {
+    const protocol = produce(
+      protocolWith({ 'total-cells': '1e7', viability: '90' }, [
+        ...PLATING,
+        ['Donor seeding', '2e5', 'cells'],
+      ]),
+      draft => {
+        draft.diluent = '';
+        const [plateMap] = draft.plateMaps;
+        plateMap.series = {
+          s1: {
+            top: '{Donor seeding|Donor seeding}',
+            unit: 'cells',
+            dilutionFactor: '2',
+            direction: 'right',
+          },
+        };
+        ['A1', 'A2', 'A3'].forEach((well, point) => {
+          plateMap.samples[`p:${well}`] = {
+            d: { valueId: 'v1', seriesId: 's1', seriesPoint: point },
+          };
+        });
+      }
+    );
+    const board = calculate(protocol);
+    expect(answer(board, 'needed')).toBe('3.85E+5 cells');
+    expect(board.names.get('donor 1 wells')).toMatchObject({ kind: 'count', count: 3 });
+  });
+});

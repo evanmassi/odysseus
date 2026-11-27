@@ -5,15 +5,13 @@ import {
   type Protocol,
 } from '@odysseus/shared-schemas';
 
-import { calculateBoard, nameKey } from '../formulas/boardCalculation';
+import { nameKey, type SolvedBoard } from '../formulas/boardCalculation';
 import { cellCount } from '../plateMap/cellRatios';
 import { labwareOf, labwareTypeAt } from '../plateMap/labwareCatalog';
 import { SAMPLE_NOUNS, type SampleNoun } from '../terms/termList';
 
 import { nameWithoutNotes } from './materialLookup';
 import { namedTarget } from './plateLinks';
-
-const NO_NAMES = calculateBoard([]);
 
 export interface CellPlacement {
   noun: SampleNoun;
@@ -29,7 +27,10 @@ export interface PlatedCells {
   placements: CellPlacement[];
 }
 
-export function platedCells(protocol: Pick<Protocol, 'materials' | 'plateMaps'>): PlatedCells[] {
+export function platedCells(
+  protocol: Pick<Protocol, 'materials' | 'plateMaps'>,
+  board: SolvedBoard
+): PlatedCells[] {
   const plated = new Map<string, PlatedCells>();
   const plates = protocol.plateMaps;
   for (const plateMap of plates) {
@@ -37,7 +38,7 @@ export function platedCells(protocol: Pick<Protocol, 'materials' | 'plateMaps'>)
       for (const line of plateMap.lines) {
         const value = lineValueOf(line, lines[line.id]);
         const target = value && namedTarget(protocol, value, value.text);
-        const count = target ? cellCount(plateMap, key, line, NO_NAMES) : undefined;
+        const count = target ? cellCount(plateMap, key, line, board) : undefined;
         if (!target || count === undefined) continue;
         const { material, donor } = target;
         const subject = donor ? donor.name.trim() : nameWithoutNotes(material.name);

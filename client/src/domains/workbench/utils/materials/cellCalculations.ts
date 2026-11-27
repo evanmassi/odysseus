@@ -292,10 +292,14 @@ function subjectNames(
     .map(({ need: _need, ...entry }) => ({ ...entry, problem }));
 }
 
-export function cellCalculationNames(protocol: Protocol, taken: readonly BoardName[]): BoardName[] {
+export function cellCalculationNames(
+  protocol: Protocol,
+  taken: readonly BoardName[],
+  board: SolvedBoard
+): BoardName[] {
   const names = new Map(taken.map(entry => [nameKey(entry.name), entry]));
   const kinds = kindIndex(taken, false);
-  return platedCells(protocol).flatMap(plated => subjectNames(plated, names, kinds));
+  return platedCells(protocol, board).flatMap(plated => subjectNames(plated, names, kinds));
 }
 
 function shortfallOf(result: CalculationResult | undefined): string | undefined {

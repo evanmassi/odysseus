@@ -14,6 +14,7 @@ import {
 import { shortNameOf } from '../materials/materialLookup';
 import { recipeCalculationNames } from '../materials/materialRecipeCalculations';
 import { linkOwner, ownerNamed } from '../materials/plateLinks';
+import { hasNamedSeriesTop } from '../plateMap/cellRatios';
 import { materialSampleCounts, plateAmounts, plateMapCounts } from '../plateMap/plateMapNames';
 import { boardKind } from '../terms/savedTerms';
 import { perLabwareKind, WELLS } from '../terms/termList';
@@ -21,7 +22,7 @@ import { termOfName } from '../terms/termLookup';
 import { valueRowName } from '../values/valueEdits';
 import { GENERAL, joinValueName, lowerLead } from '../values/valueNames';
 
-import { nameKey, type BoardName } from './boardCalculation';
+import { calculateBoard, nameKey, type BoardName, type SolvedBoard } from './boardCalculation';
 import { calculationFullName } from './calculationEdits';
 
 import type { CardTarget } from '../cards/createCard';
@@ -173,10 +174,19 @@ function wellCountNames(
 const setIn = (entries: readonly BoardName[], origin: CardTarget) =>
   entries.map(entry => ({ ...entry, origin }));
 
+const NO_NAMES = calculateBoard([]);
+
 export function collectBoardNames(protocol: Protocol): BoardName[] {
+  const first = boardNamesReading(protocol, NO_NAMES);
+  return hasNamedSeriesTop(protocol.plateMaps)
+    ? boardNamesReading(protocol, calculateBoard(first))
+    : first;
+}
+
+function boardNamesReading(protocol: Protocol, board: SolvedBoard): BoardName[] {
   const materials = protocol.materials.items.filter(item => item.name.trim());
   const materialsById = new Map(materials.map(item => [item.id, item]));
-  const subjects = countSubjects(protocol);
+  const subjects = countSubjects(protocol, board);
   const cellMaterialIds = new Set(subjects.map(subject => subject.material.id));
   const cardNames = [
     ...setIn(materialNames(materials, cellMaterialIds), { type: 'materials' }),
@@ -197,7 +207,7 @@ export function collectBoardNames(protocol: Protocol): BoardName[] {
     ...ownNames,
     ...recipeCalculationNames(protocol, ownNames),
     ...dilutionCalculationNames(protocol, ownNames),
-    ...cellCalculationNames(protocol, ownNames),
+    ...cellCalculationNames(protocol, ownNames, board),
   ];
   return [...generated, ...flowCytometryCalculationNames(protocol, generated)];
 }

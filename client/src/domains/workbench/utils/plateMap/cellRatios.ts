@@ -6,6 +6,7 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { formatNumber, PAIR_NOTATION, readNumber, readPair } from '../formulas/quantities';
+import { readTypedAmount } from '../units/textAmounts';
 
 import { wellAmount } from './plateSeries';
 
@@ -14,6 +15,15 @@ import type { SolvedBoard } from '../formulas/boardCalculation';
 const isCellCountUnit = (unit: string) =>
   UNIT_REGISTRY.some(entry => entry.id === unit && entry.kind === 'cell-count');
 
+const STARTS_WITH_NUMBER = /^\s*[-+]?\.?\d/;
+
+export const hasNamedSeriesTop = (plateMaps: readonly PlateMap[]): boolean =>
+  plateMaps.some(plateMap =>
+    Object.values(plateMap.series).some(
+      series => 'top' in series && !STARTS_WITH_NUMBER.test(series.top)
+    )
+  );
+
 function typedCount(
   card: PlateMap,
   key: string,
@@ -21,7 +31,11 @@ function typedCount(
   board: SolvedBoard
 ): number | undefined {
   const point = wellAmount(card, key, line, board);
-  return point && isCellCountUnit(point.unit) ? readNumber(point.amount) : undefined;
+  if (!point) return undefined;
+  const typed = point.unit
+    ? { value: point.amount, unit: point.unit }
+    : readTypedAmount(point.amount);
+  return typed && isCellCountUnit(typed.unit) ? readNumber(typed.value) : undefined;
 }
 
 export function ratioPartner(

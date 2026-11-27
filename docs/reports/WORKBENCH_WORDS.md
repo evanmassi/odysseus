@@ -573,9 +573,9 @@ Status per concept: **to settle** (a real choice), **keep** (one word already, j
     becomes **Stains**. The plate's Stain side reads "Pick a stain for the selected wells".
   - **Cocktail:** each stain's Surface, ICS and Viability cocktails (e.g. a viability + Fc block
     cocktail), named "Full stain Surface cocktail".
-  - **Mix** stays only for Values rows that really are combined in one go (medium + IL-2), and
-    the Values button becomes "+ Mix". Evan floated **Mixture** instead; that is to discuss
-    separately.
+  - **Mix** stays only for Values rows that really are combined in one go (medium + IL-2).
+    **Settled 2026-11-26 (Evan): Mix, not Mixture**, and the Values button keeps the house add
+    pattern, "+ Add mix" (plus icon, sentence case, like "+ Add page" and "+ Add field").
   - Calculations names follow: "Full stain Surface cocktail wells", and "… antibodies" is checked
     at build time.
 

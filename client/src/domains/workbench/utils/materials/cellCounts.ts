@@ -1,4 +1,9 @@
-import { nameKey, type BoardName, type WorkedOutGroup } from '../formulas/boardCalculation';
+import {
+  nameKey,
+  type BoardName,
+  type SolvedBoard,
+  type WorkedOutGroup,
+} from '../formulas/boardCalculation';
 import { displayValue, formatNumber, readNumber } from '../formulas/quantities';
 import { boardKind } from '../terms/savedTerms';
 import { termOfName } from '../terms/termLookup';
@@ -161,8 +166,11 @@ export const countName = (subject: CountSubject, count: CellCount): string =>
 export const cellPartId = (subject: CellSubject, part: string): string =>
   `cells:${cellSubjectId(subject)}:${part}`;
 
-export function countSubjects(protocol: Pick<Protocol, 'materials' | 'plateMaps'>): CountSubject[] {
-  const plated = platedCells(protocol);
+export function countSubjects(
+  protocol: Pick<Protocol, 'materials' | 'plateMaps'>,
+  board: SolvedBoard
+): CountSubject[] {
+  const plated = platedCells(protocol, board);
   const platedSubjects = new Set(plated.map(entry => nameKey(entry.subject)));
   const platedMaterials = new Set(plated.map(entry => entry.material.id));
   return listedMaterials(protocol)
