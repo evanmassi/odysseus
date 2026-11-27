@@ -20,6 +20,12 @@ import { materialKnowledge } from '../../../../utils/materials/materialMemory';
 import { plateNameOffers } from '../../../../utils/materials/plateNameOffers';
 import { labwareTitleOf } from '../../../../utils/plateMap/plateMapTabs';
 import { acceptStepReadings, readStepReadings } from '../../../../utils/steps/stepReadings';
+import {
+  isTermUnsaid,
+  looseKindChoices,
+  setLooseTerm,
+  termWord,
+} from '../../../../utils/terms/savedTerms';
 import { TOTAL_WELL_VOLUME, VOLUME_PER_WELL } from '../../../../utils/terms/termList';
 import { isAssaySetting, unitMismatch } from '../../../../utils/terms/termLookup';
 import { removePlateRow, type PlateValueRow } from '../../../../utils/values/plateValueRows';
@@ -282,7 +288,7 @@ export function WorkbenchValuesPanel() {
                     cell,
                     usageText(cell.nameId),
                     namedIds.has(cell.nameId),
-                    board.takenNameIds.has(cell.nameId),
+                    board.takenNameIds.has(cell.nameId) || board.takenKindIds.has(cell.nameId),
                     protocol.plateMaps
                   ),
                 ])
@@ -290,7 +296,7 @@ export function WorkbenchValuesPanel() {
             ])
           )
         ),
-      [groups, usageText, namedIds, board.takenNameIds, protocol.plateMaps]
+      [groups, usageText, namedIds, board.takenNameIds, board.takenKindIds, protocol.plateMaps]
     )
   );
   const generalRows = useStructuralSharing(
@@ -306,9 +312,16 @@ export function WorkbenchValuesPanel() {
             isNameTaken: board.takenNameIds.has(item.id),
             usage: usageText(item.id),
             neededNote: item.value.trim() ? '' : neededNoteOf(blankNeeds.get(item.id) ?? []),
+            term: item.term,
+            kindTag: item.term && isTermUnsaid(item) ? termWord(item.term) : '',
+            kindNote:
+              item.term && board.takenKindIds.has(item.id)
+                ? `Another value is also ${termWord(item.term)}; the math waits until one changes`
+                : '',
+            kindChoices: looseKindChoices(protocol, item.id),
           })
         ),
-      [generalItems, usageText, board.takenNameIds, blankNeeds]
+      [generalItems, usageText, board.takenNameIds, board.takenKindIds, blankNeeds, protocol]
     )
   );
   const [setupRows, unsortedRows] = useMemo(() => {
@@ -551,6 +564,7 @@ export function WorkbenchValuesPanel() {
     onValueChange: (itemId, value) => edit(draft => setValueAmount(draft, itemId, value)),
     onUnitChange: (itemId, unit) => edit(draft => setValueUnit(draft, itemId, unit)),
     onRemove: itemId => remove(draft => removeValue(draft, itemId)),
+    onKind: (itemId, term) => edit(draft => setLooseTerm(draft, itemId, term)),
   });
 
   const hasUnsortedGroup = groups.some(group => group.key === UNSORTED_GROUP);

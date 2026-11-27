@@ -1,7 +1,7 @@
 # Workbench: Where the Data Lives
 
 Design for moving the workbench's saved data out of cards and into the protocol, so a card only
-shows and edits it. Started 2026-11-24 with Evan. Built: steps 0 to 5, 6a and 7; next 6b. Step 7 (painted
+shows and edits it. Started 2026-11-24 with Evan. Built: steps 0 to 7 (6 as 6a and 6b). Step 7 (painted
 wells point at their material) added 2026-11-25, built 2026-11-26.
 
 ## Why
@@ -578,6 +578,24 @@ Raised while weighing what of the workbench another lab could reuse. **Decided 2
     and Evan's two protocols converted through the app's own passes (v13 copies in
     `Old versions/Version 13`); the 122 answers identical, read and opened. Evan's typed values
     and his "Working concentration" formulas all took their kinds; none uses a front-part owner.
+
+- **6b built 2026-11-26 (no file change; Evan asked to go ahead without a mock and without
+  checking in the app, trusting the tests):**
+  - A loose value (Assay setup or unsorted) gets "This is…" beside "Move to…" on hover
+    (`WorkbenchValueItem.tsx`), listing the Assay setup kinds in each container the protocol uses
+    (`looseKindChoices`), each saying "this one" or "now on <value>" where another loose value has
+    it, and "None" when the value's kind came from the menu. Picking one moves it off a value
+    whose name doesn't say it (`setLooseTerm`); the pass never undoes a choice, since a name it
+    doesn't know leaves the kind alone.
+  - A square tag after the name shows the kind only when the name doesn't say it
+    (`isTermUnsaid`, `termWord`).
+  - Two of the scientist's own values or formulas with one kind and owner are both flagged red
+    (`SolvedBoard.takenKindIds`, `doubledKindIds`), in Values, the table and the Calculations
+    editor, with "Another value is also … ; the math waits until one changes" on a loose value;
+    `kindIndex` leaves that kind out, so the math waits.
+  - **Checked:** typecheck and lint clean; 883 client tests (`savedTerms.test.ts`: the tag, the
+    move with where it was, and two of one kind flagged with the math waiting); the 122 answers
+    identical, read and opened.
 
 - Then W114 step 5 resumes.
 

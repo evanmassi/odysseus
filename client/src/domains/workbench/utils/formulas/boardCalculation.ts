@@ -80,11 +80,29 @@ export interface KindIndex {
   byKind: ReadonlyMap<string, BoardName>;
 }
 
+const isNamedByScientist = (entry: BoardName) =>
+  entry.origin?.type === 'values' || entry.origin?.type === 'calculations';
+
+export function doubledKindIds(entries: readonly BoardName[]): ReadonlySet<string> {
+  const byKind = new Map<string, string[]>();
+  for (const entry of entries) {
+    if (!entry.kindOf || !isNamedByScientist(entry) || !nameKey(entry.name)) continue;
+    const key = kindKey(entry.kindOf);
+    byKind.set(key, [...(byKind.get(key) ?? []), entry.id]);
+  }
+  return new Set([...byKind.values()].filter(ids => ids.length > 1).flat());
+}
+
 export function kindIndex(entries: readonly BoardName[], isFirstKept: boolean): KindIndex {
+  const doubled = doubledKindIds(entries);
+  const waiting = new Set(
+    entries.flatMap(entry => (entry.kindOf && doubled.has(entry.id) ? [kindKey(entry.kindOf)] : []))
+  );
   const byKind = new Map<string, BoardName>();
   for (const entry of entries) {
     if (!entry.kindOf || !nameKey(entry.name)) continue;
     const key = kindKey(entry.kindOf);
+    if (waiting.has(key)) continue;
     if (!isFirstKept || !byKind.has(key)) byKind.set(key, { ...entry, name: entry.name.trim() });
   }
   return { byKind };
@@ -117,6 +135,7 @@ export interface SolvedBoard {
   kinds: KindIndex;
   ids: ReadonlyMap<string, BoardName>;
   takenNameIds: ReadonlySet<string>;
+  takenKindIds: ReadonlySet<string>;
   results: ReadonlyMap<string, CalculationResult>;
 }
 
@@ -386,5 +405,12 @@ export function calculateBoard(entries: readonly BoardName[]): SolvedBoard {
   };
 
   calculations.forEach(evaluate);
-  return { names, kinds: kindIndex(entries, true), ids, takenNameIds, results };
+  return {
+    names,
+    kinds: kindIndex(entries, true),
+    ids,
+    takenNameIds,
+    takenKindIds: doubledKindIds(entries),
+    results,
+  };
 }

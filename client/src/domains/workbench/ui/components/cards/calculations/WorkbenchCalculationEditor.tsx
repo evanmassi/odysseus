@@ -69,7 +69,8 @@ export function WorkbenchCalculationEditor({
   );
   const [completions, setCompletions] = useState<FormulaCompletion[]>([]);
   const [highlighted, setHighlighted] = useState(0);
-  const isNameTaken = board.takenNameIds.has(calculation.id);
+  const isNameTaken =
+    board.takenNameIds.has(calculation.id) || board.takenKindIds.has(calculation.id);
   const result = board.results.get(calculation.id);
   const shownAutoUnit = result?.status === 'ok' ? autoUnit(result.quantity) : undefined;
 
