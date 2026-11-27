@@ -41,23 +41,6 @@ export function workingFraction(node: WorkingNode): WorkingFraction | undefined 
   return fraction;
 }
 
-export function workingRefs(node: WorkingNode): WorkingRef[] {
-  switch (node.kind) {
-    case 'ref':
-      return [node];
-    case 'literal':
-      return [];
-    case 'group':
-      return workingRefs(node.inner);
-    case 'negate':
-      return workingRefs(node.operand);
-    case 'call':
-      return node.args.flatMap(workingRefs);
-    case 'binary':
-      return [...workingRefs(node.left), ...workingRefs(node.right)];
-  }
-}
-
 function workingTokens(node: WorkingNode): string[] {
   switch (node.kind) {
     case 'ref':

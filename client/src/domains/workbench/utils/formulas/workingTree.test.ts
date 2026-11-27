@@ -1,5 +1,5 @@
 import { calculateBoard, type BoardName } from './boardCalculation';
-import { workingFraction, workingRefs, workingText } from './workingTree';
+import { workingFraction, workingText } from './workingTree';
 
 const value = (name: string, amount: string, unit: string): BoardName => ({
   kind: 'value',
@@ -21,8 +21,6 @@ const workingOf = (expr: string) => {
   return result.working;
 };
 
-const names = (nodes: ReturnType<typeof workingRefs>) => nodes.map(node => node.name);
-
 describe('working tree', () => {
   it('gathers a run of × and ÷ into one fraction, multiplied names on top', () => {
     const fraction = workingFraction(workingOf('Volume made / Stock * Working'));
@@ -39,9 +37,8 @@ describe('working tree', () => {
     expect(fraction?.under).toHaveLength(1);
   });
 
-  it('lists the names it read and spells the working out as text', () => {
+  it('spells the working out as text', () => {
     const working = workingOf('Volume made / Stock * Working');
-    expect(names(workingRefs(working))).toEqual(['Volume made', 'Stock', 'Working']);
     expect(workingText(working)).toBe('8 mL ÷ 8000 × × 4 ×');
   });
 });

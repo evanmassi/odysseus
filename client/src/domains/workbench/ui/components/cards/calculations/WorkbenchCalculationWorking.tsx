@@ -2,19 +2,15 @@ import { Fragment } from 'react';
 
 import { Plus } from 'lucide-react';
 
-import { Tooltip } from '@shared/ui';
-
 import {
   calculationAnswerText,
   type CalculationResult,
 } from '../../../../utils/formulas/boardCalculation';
 import { OPERATOR_SYMBOLS } from '../../../../utils/formulas/formulaParser';
-import {
-  workingFraction,
-  type WorkingNode,
-  type WorkingRef,
-} from '../../../../utils/formulas/workingTree';
+import { workingFraction, type WorkingNode } from '../../../../utils/formulas/workingTree';
 import { withPerLabwareKind } from '../../../../utils/terms/termLookup';
+
+import { WorkbenchCalculationWorkingTerm } from './WorkbenchCalculationWorkingTerm';
 
 interface WorkbenchCalculationWorkingProps {
   name: string;
@@ -22,51 +18,26 @@ interface WorkbenchCalculationWorkingProps {
   isCompact: boolean;
   shortName: (name: string) => string;
   onAddMissing?: (name: string) => void;
-  linkFor?: (name: string) => (() => void) | undefined;
 }
-
-const TERM_SOURCE_CLASS: Record<WorkingRef['source'], string> = {
-  value: 'text-foreground',
-  count: 'text-info-text',
-  calculation: 'text-action',
-};
 
 const SYMBOL = 'px-1 font-mono text-data-sm text-muted-foreground';
 const TERM_LABEL = 'text-label-2xs text-muted-foreground';
-const BLANK_LABEL = '\u00a0';
+const BLANK_LABEL = ' ';
 
 interface WorkingViewProps {
   node: WorkingNode;
   shortName: (name: string) => string;
-  linkFor: WorkbenchCalculationWorkingProps['linkFor'];
 }
 
-function TermStack({ node, shortName, linkFor }: WorkingViewProps) {
-  if (node.kind !== 'ref' && node.kind !== 'literal') return null;
-  const isRef = node.kind === 'ref';
-  const stackClass = `inline-flex flex-col items-center ${isRef && node.isSetAside ? 'line-through' : ''}`;
-  const content = (
-    <>
-      <span className={TERM_LABEL}>{isRef ? shortName(node.name) : BLANK_LABEL}</span>
-      <span
-        className={`font-mono text-data-sm ${isRef ? TERM_SOURCE_CLASS[node.source] : 'text-foreground'}`}
-      >
-        {isRef ? withPerLabwareKind(node.text, node.name) : node.text}
-      </span>
-    </>
-  );
-  const link = isRef ? linkFor?.(node.name) : undefined;
-  if (!link) return <span className={stackClass}>{content}</span>;
+function TermStack({ node, shortName }: WorkingViewProps) {
+  if (node.kind === 'ref')
+    return <WorkbenchCalculationWorkingTerm node={node} label={shortName(node.name)} />;
+  if (node.kind !== 'literal') return null;
   return (
-    <Tooltip content="Go to where this is set">
-      <button
-        type="button"
-        className={`${stackClass} hover:underline hover:decoration-dotted`}
-        onClick={link}
-      >
-        {content}
-      </button>
-    </Tooltip>
+    <span className="inline-flex flex-col items-center">
+      <span className={TERM_LABEL}>{BLANK_LABEL}</span>
+      <span className="font-mono text-data-sm text-foreground">{node.text}</span>
+    </span>
   );
 }
 
@@ -158,7 +129,6 @@ export function WorkbenchCalculationWorking({
   isCompact,
   shortName,
   onAddMissing,
-  linkFor,
 }: WorkbenchCalculationWorkingProps) {
   if (!result) return null;
   if (result.status === 'empty')
@@ -185,7 +155,7 @@ export function WorkbenchCalculationWorking({
     return <p className="text-label-xs text-danger-text">{outputError}</p>;
   const working = result.showsWorking && (
     <div className="flex">
-      <WorkingView node={result.working} shortName={shortName} linkFor={linkFor} />
+      <WorkingView node={result.working} shortName={shortName} />
     </div>
   );
   if (isCompact) return working || null;

@@ -22,7 +22,6 @@ export interface WorkedOutLine {
   id: string;
   name: string;
   result: CalculationResult | undefined;
-  links: Readonly<Record<string, CardTarget>>;
   warnings: readonly string[];
   isIntermediate: boolean;
 }
@@ -70,7 +69,7 @@ export const WorkbenchCalculationWorkedOutGroup = memo(function WorkbenchCalcula
         {settings && <WorkbenchCalculationSettingsButton settings={settings} onShow={onShow} />}
       </div>
       {visibleLines.map(line => {
-        const { result, links, warnings } = line;
+        const { result, warnings } = line;
         return (
           <div
             key={line.id}
@@ -100,10 +99,6 @@ export const WorkbenchCalculationWorkedOutGroup = memo(function WorkbenchCalcula
                   result={result}
                   isCompact
                   shortName={shortName}
-                  linkFor={name => {
-                    const target = links[name];
-                    return target ? () => onShow(target) : undefined;
-                  }}
                 />
               </div>
             )}

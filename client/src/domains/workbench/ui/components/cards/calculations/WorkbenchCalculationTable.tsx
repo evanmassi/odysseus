@@ -122,11 +122,7 @@ export const WorkbenchCalculationTable = memo(function WorkbenchCalculationTable
                   {isOpen && (
                     <tr className={zebra}>
                       <td colSpan={columns.length} className="px-2 pb-2 pl-6">
-                        <WorkbenchCalculationWorkingLines
-                          lines={row.lines}
-                          shortName={shortName}
-                          onShow={onShow}
-                        />
+                        <WorkbenchCalculationWorkingLines lines={row.lines} shortName={shortName} />
                       </td>
                     </tr>
                   )}

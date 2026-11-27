@@ -14,7 +14,6 @@ import { prepLineId } from '../../../../utils/dilutions/dilutionCalculations';
 import { dilutionPrep } from '../../../../utils/dilutions/dilutionPrep';
 import { dilutionRuns } from '../../../../utils/dilutions/dilutionRuns';
 import {
-  nameKey,
   type SolvedBoard,
   type CalculationResult,
 } from '../../../../utils/formulas/boardCalculation';
@@ -41,7 +40,6 @@ import {
   uniqueName,
   type CalculationSuggestion,
 } from '../../../../utils/formulas/formulaScopes';
-import { workingRefs } from '../../../../utils/formulas/workingTree';
 import { cellWarnings } from '../../../../utils/materials/cellCalculations';
 import { displayNameOf } from '../../../../utils/materials/materialLookup';
 import { recipeWarnings } from '../../../../utils/materials/materialRecipeCalculations';
@@ -104,19 +102,6 @@ const SETTINGS_LABELS: Partial<Record<ProtocolCard['type'], string>> = {
   dilutions: 'Dilutions',
   materials: 'Materials',
 };
-
-function linksOf(
-  board: SolvedBoard,
-  result: CalculationResult | undefined
-): Readonly<Record<string, CardTarget>> {
-  if (result?.status !== 'ok') return {};
-  return Object.fromEntries(
-    workingRefs(result.working).flatMap(ref => {
-      const origin = board.names.get(nameKey(ref.name))?.origin;
-      return origin ? [[ref.name, origin]] : [];
-    })
-  );
-}
 
 function prepWarnings(
   protocol: Pick<Protocol, 'materials' | 'plateMaps' | 'values'>,
@@ -194,7 +179,6 @@ export function WorkbenchCalculationsPanel() {
         id: line.id,
         name: line.name,
         result: board.results.get(line.id),
-        links: linksOf(board, board.results.get(line.id)),
         warnings: warnings.get(line.id) ?? [],
         isIntermediate: !!line.isIntermediate,
       });
