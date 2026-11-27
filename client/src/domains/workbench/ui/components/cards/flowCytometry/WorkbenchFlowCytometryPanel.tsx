@@ -13,10 +13,13 @@ import {
 import {
   panelLayout,
   markerCandidates,
+  dosedRows,
   markerFluor,
   panelStainings,
+  secondaryCandidates,
+  secondaryRowId,
 } from '../../../../utils/flowCytometry/flowCytometryPanel';
-import { markerCandidatesOn } from '../../../../utils/flowCytometry/markerPlacement';
+import { bestDetector, markerCandidatesOn } from '../../../../utils/flowCytometry/markerPlacement';
 import { calculationAnswerText } from '../../../../utils/formulas/boardCalculation';
 import { listedMaterials } from '../../../../utils/materials/materialLookup';
 import { stainedPlaces, stainedSampleCounts } from '../../../../utils/plateMap/stainSide';
@@ -42,6 +45,7 @@ import { WorkbenchFlowCytometryDetectorPicker } from './WorkbenchFlowCytometryDe
 import { WorkbenchFlowCytometryLaserGroup } from './WorkbenchFlowCytometryLaserGroup';
 import {
   WorkbenchFlowCytometryMarkerRow,
+  type SecondaryPick,
   type StainAmount,
 } from './WorkbenchFlowCytometryMarkerRow';
 import { WorkbenchFlowCytometryPeakMap } from './WorkbenchFlowCytometryPeakMap';
@@ -69,7 +73,7 @@ export function WorkbenchFlowCytometryPanel({ panel }: WorkbenchFlowCytometryPan
   const samples = useMemo(() => stainedSampleCounts(plateMaps), [plateMaps]);
   const amountNouns = useMemo(() => stainSampleNouns(panel.stains, samples), [panel, samples]);
   const amountEntries = useWorkbenchData(state =>
-    panel.markers.map((row): [string, StainAmount[]] => [
+    dosedRows(panel).map((row): [string, StainAmount[]] => [
       row.id,
       amountNouns.map((noun): StainAmount => {
         const result = state.board.results.get(stainAmountId(row.id, noun));
@@ -80,6 +84,19 @@ export function WorkbenchFlowCytometryPanel({ panel }: WorkbenchFlowCytometryPan
     ])
   );
   const amounts = useMemo(() => new Map(amountEntries), [amountEntries]);
+  const secondaryPick = useMemo(
+    (): SecondaryPick => ({
+      options: secondaryCandidates(materials).map(item => ({
+        value: item.id,
+        label: item.name.trim(),
+      })),
+      detectorFor: material => {
+        const fluor = catalog.find(markerFluor(material));
+        return panel.cytometer && fluor && bestDetector(panel.cytometer, fluor)?.detector.id;
+      },
+    }),
+    [materials, catalog, panel.cytometer]
+  );
   const materialNames = useMemo(
     () => new Map(materials.map(item => [item.id, item.name.trim()])),
     [materials]
@@ -195,6 +212,7 @@ export function WorkbenchFlowCytometryPanel({ panel }: WorkbenchFlowCytometryPan
                   candidates={candidates}
                   stainings={stainings}
                   amounts={amounts}
+                  secondaryPick={secondaryPick}
                   amountColumnCount={amountNouns.length}
                   actions={actions}
                 />
@@ -234,6 +252,9 @@ export function WorkbenchFlowCytometryPanel({ panel }: WorkbenchFlowCytometryPan
                       }
                       stainings={stainings}
                       amounts={amounts.get(marker.row.id) ?? []}
+                      secondaryAmounts={amounts.get(secondaryRowId(marker.row.id)) ?? []}
+                      secondaryPick={secondaryPick}
+                      subLead={<td className={FLOW_CYTOMETRY_CELL} />}
                       actions={actions}
                     />
                   ))}

@@ -35,7 +35,9 @@ function ownerKeysOf(protocol: Protocol): ReadonlySet<string> {
     [
       ...materials.flatMap(item => [item.name, nameWithoutNotes(item.name), shortNameOf(item)]),
       ...donorsIn(protocol).map(({ donor }) => donor.name),
-      ...protocol.flowCytometryPanels.flatMap(panel => panel.markers.map(row => row.staining)),
+      ...protocol.flowCytometryPanels.flatMap(panel =>
+        panel.markers.flatMap(row => [row.staining, row.secondary?.staining ?? ''])
+      ),
       ...protocol.plateMaps.flatMap(plateMap =>
         plateMap.lines.flatMap(line => line.values.map(value => value.text))
       ),

@@ -75,3 +75,21 @@ describe('panelCocktails', () => {
     expect(surface.cocktails[0].rows.map(entry => entry.id)).toEqual(['cd3', 'cd4']);
   });
 });
+
+describe('a secondary in the cocktails', () => {
+  it('joins its own staining only in the stains that have its primary', () => {
+    const flowPanel = panel([stain('Full stain', ['cd3', 'cd19']), stain('FMO CD19', ['cd3'])]);
+    flowPanel.markers.push({
+      ...row('cd19', 'Surface'),
+      secondary: { materialId: 'm-sape', staining: 'Secondary' },
+    });
+    const secondary = panelCocktails(flowPanel).stainings.find(
+      entry => entry.staining === 'Secondary'
+    );
+    expect(secondary?.cocktails.map(cocktail => cocktail.stains.map(entry => entry.name))).toEqual([
+      ['Full stain'],
+    ]);
+    expect(secondary?.cocktails[0].rows.map(entry => entry.materialId)).toEqual(['m-sape']);
+    expect(secondary?.stainsWithout.map(entry => entry.name)).toEqual(['FMO CD19']);
+  });
+});

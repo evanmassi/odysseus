@@ -39,6 +39,17 @@ of truth; we iterate on it until it is right, then build.
     secondary (CD19-Fc-Biotin read through SA-PE) has no way in. The panel reads a row's fluor from
     its own Conjugate, so it shows Biotin and can't place it. The panel needs a marker that is
     "detected by" a secondary and takes its Fluor from that secondary (Evan 2026-11-20).
+    **Built 2026-11-26 (file version 15), picked by Evan from an interactive mock:** a marker row
+    saves `secondary` (the secondary's material and its own staining step, "Secondary" by
+    default). The row's Fluor is the secondary's conjugate (CD19 reads PE and places on the PE
+    detector by `bestDetector` when picked); the secondary shows as a sub row under it on the
+    shared tree line, with a pencil to change it ("No secondary" clears it), its staining, its
+    Dil. from Materials and its Vol./well. A row with no known fluor shows a "Secondary" pick
+    beside its Fluor (on hover for the rest), offering the Secondary reagents in Materials or
+    "New secondary…". `dosedRows` doses the secondary as its own reagent in its own staining,
+    joining a stain only when its primary does, so a CD19 FMO drops SA-PE; cocktails, per-well
+    amounts and the panel's amounts read it. Evan's wording: the pick says "Secondary", nothing
+    sits beside the fluor, and the change is a pencil on the sub row. The sub row is lit in its laser's tone one step softer than its marker (half the tint and edge), at Evan's ask. 890 client tests.
   - **Found in the code-names review (a Values feature, not a rename):** the Whole experiment row
     is a mixed bag under a vague name. Evan: "it's not very telling and too wordy. it's not
     intuitive as to what it denotes in the values table" (2026-11-21). It holds two kinds of thing:

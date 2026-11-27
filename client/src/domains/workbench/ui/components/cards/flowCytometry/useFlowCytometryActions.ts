@@ -3,7 +3,11 @@ import { useMemo } from 'react';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
 import { BUILT_IN_CYTOMETERS } from '../../../../utils/flowCytometry/cytometerCatalog';
-import { newMarkerMaterial } from '../../../../utils/flowCytometry/flowCytometryPanel';
+import {
+  newMarkerMaterial,
+  newSecondaryMaterial,
+  SECONDARY_STAINING,
+} from '../../../../utils/flowCytometry/flowCytometryPanel';
 import { keepFluorsUsedBy } from '../../../../utils/fluors/fileFluors';
 import { createId } from '../../../../utils/ids/createId';
 import { materialFields } from '../../../../utils/materials/materialCatalog';
@@ -27,6 +31,17 @@ export interface FlowCytometryActions {
   createMarker: (text: string, detectorId: string) => void;
   changeRow: (rowId: string, change: Partial<Omit<PanelRow, 'id' | 'materialId'>>) => void;
   removeMarker: (rowId: string) => void;
+  setSecondary: (
+    rowId: string,
+    materialId: string | undefined,
+    detectorFor: (material: MaterialItem) => string | undefined
+  ) => void;
+  createSecondary: (
+    rowId: string,
+    text: string,
+    detectorFor: (material: MaterialItem) => string | undefined
+  ) => void;
+  setSecondaryStaining: (rowId: string, staining: string) => void;
   writeMaterial: (materialId: string, key: string, value: string) => void;
   addStains: (stains: Stain[]) => void;
   renameStain: (stainId: string, name: string) => void;
@@ -97,6 +112,41 @@ export function useFlowCytometryActions(panelId: string): FlowCytometryActions {
           });
         }),
       changeRow: (rowId, change) => updateRow(rowId, row => Object.assign(row, change)),
+      setSecondary: (rowId, materialId, detectorFor) =>
+        updateProtocol(draft => {
+          const panel = draft.flowCytometryPanels.find(candidate => candidate.id === panelId);
+          const row = panel?.markers.find(candidate => candidate.id === rowId);
+          if (!row) return;
+          const material = draft.materials.items.find(item => item.id === materialId);
+          if (!material) {
+            delete row.secondary;
+            return;
+          }
+          row.secondary = {
+            materialId: material.id,
+            staining: row.secondary?.staining ?? SECONDARY_STAINING,
+          };
+          row.detectorId = detectorFor(material) ?? row.detectorId;
+        }),
+      createSecondary: (rowId, text, detectorFor) =>
+        updateProtocol(draft => {
+          const known = materialKnowledge(memory, draft);
+          const created = newSecondaryMaterial(text, known, memory);
+          const material = ensureMaterial(draft, created.name, () => created);
+          keepFluorsUsedBy(draft, [material], known.fluors);
+          const panel = draft.flowCytometryPanels.find(candidate => candidate.id === panelId);
+          const row = panel?.markers.find(candidate => candidate.id === rowId);
+          if (!row) return;
+          row.secondary = {
+            materialId: material.id,
+            staining: row.secondary?.staining ?? SECONDARY_STAINING,
+          };
+          row.detectorId = detectorFor(material) ?? row.detectorId;
+        }),
+      setSecondaryStaining: (rowId, staining) =>
+        updateRow(rowId, row => {
+          if (row.secondary) row.secondary.staining = staining;
+        }),
       removeMarker: rowId =>
         updatePanel(draft => {
           draft.markers = draft.markers.filter(row => row.id !== rowId);

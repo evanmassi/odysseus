@@ -2,7 +2,10 @@ import type { CSSProperties, ReactNode } from 'react';
 
 import { type SelectOption } from '@shared/ui';
 
-import { firstOpenDetector } from '../../../../utils/flowCytometry/flowCytometryPanel';
+import {
+  firstOpenDetector,
+  secondaryRowId,
+} from '../../../../utils/flowCytometry/flowCytometryPanel';
 
 import {
   FLOW_CYTOMETRY_CELL,
@@ -15,6 +18,7 @@ import { WorkbenchFlowCytometryDetectorCells } from './WorkbenchFlowCytometryDet
 import { WorkbenchFlowCytometryDetectorPicker } from './WorkbenchFlowCytometryDetectorPicker';
 import {
   WorkbenchFlowCytometryMarkerRow,
+  type SecondaryPick,
   type StainAmount,
 } from './WorkbenchFlowCytometryMarkerRow';
 
@@ -30,6 +34,7 @@ interface WorkbenchFlowCytometryLaserGroupProps {
   stainings: readonly string[];
   amounts: ReadonlyMap<string, readonly StainAmount[]>;
   amountColumnCount: number;
+  secondaryPick: SecondaryPick;
   actions: FlowCytometryActions;
 }
 
@@ -66,13 +71,19 @@ export function WorkbenchFlowCytometryLaserGroup({
   stainings,
   amounts,
   amountColumnCount,
+  secondaryPick,
   actions,
 }: WorkbenchFlowCytometryLaserGroupProps) {
   const markers = laser.slots.flatMap(slot => slot.markers);
   const shownSlots = isSpectral ? laser.slots.filter(slot => slot.markers.length) : laser.slots;
   const rowCount =
-    shownSlots.reduce((count, slot) => count + Math.max(1, slot.markers.length), 0) +
-    (isSpectral ? 1 : 0);
+    shownSlots.reduce(
+      (count, slot) =>
+        count +
+        Math.max(1, slot.markers.length) +
+        slot.markers.filter(marker => marker.secondary).length,
+      0
+    ) + (isSpectral ? 1 : 0);
   const usedCount = laser.slots.filter(slot => slot.markers.length).length;
   let hasLead = false;
   const leadOnce = (): ReactNode => {
@@ -107,6 +118,8 @@ export function WorkbenchFlowCytometryLaserGroup({
     detectorId && (
       <WorkbenchFlowCytometryAddMarker
         label={label}
+        newLabel="New marker…"
+        example="CD4 BV421 RPA-T4"
         markerOptions={options}
         onAdd={materialId => actions.addMarker(materialId, placeOf(materialId) ?? detectorId)}
         onCreate={text => actions.createMarker(text, detectorId)}
@@ -188,6 +201,8 @@ export function WorkbenchFlowCytometryLaserGroup({
             }
             stainings={stainings}
             amounts={amounts.get(marker.row.id) ?? NO_AMOUNTS}
+            secondaryAmounts={amounts.get(secondaryRowId(marker.row.id)) ?? NO_AMOUNTS}
+            secondaryPick={secondaryPick}
             actions={actions}
           />
         ));

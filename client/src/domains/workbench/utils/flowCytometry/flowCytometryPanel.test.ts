@@ -12,6 +12,8 @@ import {
   markerCandidates,
   panelStainings,
   removeFlowCytometryPanel,
+  dosedRows,
+  secondaryCandidates,
 } from './flowCytometryPanel';
 
 import type { FlowCytometryPanel, MaterialItem, PlateMap } from '@odysseus/shared-schemas';
@@ -201,5 +203,38 @@ describe('removeFlowCytometryPanel', () => {
     expect(draft.flowCytometryPanels).toEqual([other]);
     expect(draft.cards.map(card => card.id)).toEqual(['b']);
     expect(plateMap.stain).toEqual({ 'p:A2': 'fmo' });
+  });
+});
+
+describe('a marker detected through a secondary', () => {
+  const cd19 = material('Antibody', 'CD19-Fc-Biotin', { target: 'CD19', conjugate: 'Biotin' });
+  const saPe = material('Secondary reagent', 'SA-PE', { conjugate: 'PE' });
+  const withSecondary = (): FlowCytometryPanel => {
+    const flowPanel = panel([[cd19, '']]);
+    flowPanel.markers[0].secondary = { materialId: saPe.id, staining: 'Secondary' };
+    return flowPanel;
+  };
+
+  it('reads its fluor from the secondary and keeps its own marker name', () => {
+    const [marker] = panelLayout(withSecondary(), [cd19, saPe], BUILT_IN_CATALOG).unplaced;
+    expect(marker.fluor).toBe('PE');
+    expect(marker.markerName).toBe('CD19');
+    expect(marker.isFluorEditable).toBe(false);
+    expect(marker.secondary?.material).toBe(saPe);
+    expect(marker.secondary?.staining).toBe('Secondary');
+  });
+
+  it('offers only secondaries from Materials', () => {
+    expect(secondaryCandidates([cd4, cd19, saPe])).toEqual([saPe]);
+  });
+
+  it('doses the secondary as its own reagent in its own staining, stained with its primary', () => {
+    expect(
+      dosedRows(withSecondary()).map(row => [row.materialId, row.staining, row.stainedWith])
+    ).toEqual([
+      [cd19.id, 'Surface', 'row0'],
+      [saPe.id, 'Secondary', 'row0'],
+    ]);
+    expect(panelStainings(withSecondary())).toContain('Secondary');
   });
 });

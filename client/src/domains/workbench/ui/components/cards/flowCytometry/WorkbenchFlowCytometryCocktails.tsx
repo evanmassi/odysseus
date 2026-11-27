@@ -9,6 +9,10 @@ import {
   cocktailAntibodiesName,
   stainSampleNouns,
 } from '../../../../utils/flowCytometry/flowCytometryNames';
+import {
+  secondaryRowId,
+  type PanelLayout,
+} from '../../../../utils/flowCytometry/flowCytometryPanel';
 import { calculationAnswerText, nameKey } from '../../../../utils/formulas/boardCalculation';
 import { perLabwareKind, WELLS, type SampleNoun } from '../../../../utils/terms/termList';
 import { lowerLead } from '../../../../utils/values/valueNames';
@@ -16,7 +20,6 @@ import { SECTION_RULE } from '../../board/sectionRuleClass';
 
 import { FLUOR_SQUARE } from './flowCytometryTableStyles';
 
-import type { PanelLayout } from '../../../../utils/flowCytometry/flowCytometryPanel';
 import type { FlowCytometryPanel } from '@odysseus/shared-schemas';
 
 interface WorkbenchFlowCytometryCocktailsProps {
@@ -88,13 +91,27 @@ export function WorkbenchFlowCytometryCocktails({
       new Map(
         layout.lasers.flatMap(laser =>
           laser.slots.flatMap(slot =>
-            slot.markers.map(marker => [
-              marker.row.id,
-              {
-                color: marker.fluorColor ?? slot.color,
-                label: [marker.markerName, marker.fluor].filter(Boolean).join(' '),
-                amountText: marker.amount?.text ?? '',
-              },
+            slot.markers.flatMap(marker => [
+              [
+                marker.row.id,
+                {
+                  color: marker.fluorColor ?? slot.color,
+                  label: [marker.markerName, marker.fluor].filter(Boolean).join(' '),
+                  amountText: marker.amount?.text ?? '',
+                },
+              ] as const,
+              ...(marker.secondary
+                ? [
+                    [
+                      secondaryRowId(marker.row.id),
+                      {
+                        color: marker.fluorColor ?? slot.color,
+                        label: marker.secondary.material?.name.trim() ?? '',
+                        amountText: marker.secondary.amount?.text ?? '',
+                      },
+                    ] as const,
+                  ]
+                : []),
             ])
           )
         )

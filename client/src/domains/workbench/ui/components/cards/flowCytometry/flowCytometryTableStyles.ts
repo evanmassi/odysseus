@@ -44,6 +44,18 @@ export const LIT_ROW = `${LIT_LOOK} ${BRIGHTER_ON_HOVER} ${TEXT_ON_HOVER}`;
 
 export const LIT_ROW_EDGE = 'shadow-[inset_3px_0_0_0_hsl(var(--row-tone))]';
 
+const SUB_LIT_LOOK = [
+  'row-glow',
+  '[background-image:linear-gradient(0deg,hsl(var(--row-tone)/0.05),hsl(var(--row-tone)/0.05))]',
+  'dark:[background-image:linear-gradient(0deg,hsl(var(--row-tone)/0.07),hsl(var(--row-tone)/0.07))]',
+  'hover:[background-image:linear-gradient(0deg,hsl(var(--row-tone)/0.16),hsl(var(--row-tone)/0.16))]',
+  'dark:hover:[background-image:var(--row-selected-hover-bg),linear-gradient(0deg,hsl(var(--row-tone)/0.12),hsl(var(--row-tone)/0.12))]',
+].join(' ');
+
+export const SUB_LIT_ROW = `group ${SUB_LIT_LOOK} ${TEXT_ON_HOVER}`;
+
+export const SUB_LIT_ROW_EDGE = 'shadow-[inset_3px_0_0_0_hsl(var(--row-tone)/0.45)]';
+
 export const HOVER_ROW_EDGE = 'group-hover:shadow-[inset_3px_0_0_0_hsl(var(--row-tone))]';
 
 export const HOVER_ROW = `group ${ROW_HOVER_GLOW.primary} ${TEXT_ON_HOVER}`;

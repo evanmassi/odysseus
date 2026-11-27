@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 14,
+  "version": 15,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "Cell viability dose response",

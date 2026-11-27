@@ -21,6 +21,7 @@ import { findTerm, findTermOn } from '../terms/termLookup';
 import { GENERAL, joinValueName, lowerLead } from '../values/valueNames';
 
 import { panelCocktails } from './flowCytometryCocktails';
+import { dosedRows } from './flowCytometryPanel';
 import { markerDose, type MarkerDose } from './markerAmount';
 
 import type { FlowCytometryPanel, MaterialItem, Protocol, Stain } from '@odysseus/shared-schemas';
@@ -98,7 +99,7 @@ function panelNames(
     return `Needs "${joinValueName(staining, word)}" or "${word}" in Values`;
   };
   const doses = new Map(
-    panel.markers.flatMap(row => {
+    dosedRows(panel).flatMap(row => {
       const material = materials.get(row.materialId);
       const staining = row.staining.trim();
       if (!material) return [];
@@ -168,7 +169,7 @@ function panelNames(
       });
     });
   });
-  const perWell = panel.markers.flatMap(row => {
+  const perWell = dosedRows(panel).flatMap(row => {
     const material = materials.get(row.materialId);
     const byNoun = doses.get(row.id);
     if (!material || !byNoun) return [];

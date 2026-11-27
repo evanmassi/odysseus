@@ -275,3 +275,40 @@ describe('flow panel names', () => {
     expect(answer(board, 'FMO CD3 Surface cocktail antibodies')).toBe('error');
   });
 });
+
+describe('a secondary on the flow panel', () => {
+  it('takes its vol./well from its own staining’s cocktail, in the stains with its primary', () => {
+    const cd19 = antibody('CD19-Fc-Biotin', { amount: '50' }, { amount: '1:N' });
+    const saPe = antibody('SA-PE', { amount: '200' }, { amount: '1:N' });
+    const withSecondary = produce(
+      protocol(
+        {
+          values: {
+            items: [
+              { id: 'surface', name: 'Surface cocktail vol./well', value: '50', unit: 'µL' },
+              { id: 'second', name: 'Secondary cocktail vol./well', value: '100', unit: 'µL' },
+            ],
+            rows: [],
+          },
+        },
+        [cd3, cd4, cd19, saPe]
+      ),
+      draft => {
+        const [flowPanel] = draft.flowCytometryPanels;
+        flowPanel.markers.push({
+          id: 'cd19',
+          materialId: cd19.id,
+          detectorId: 'YL1',
+          staining: 'Surface',
+          secondary: { materialId: saPe.id, staining: 'Secondary' },
+        });
+        flowPanel.stains[0].markerIds.push('cd19');
+        keepRecognizedTerms(draft);
+      }
+    );
+    const board = calculateBoard(collectBoardNames(withSecondary));
+    expect(answer(board, 'SA-PE vol./well')).toBe('0.5 µL');
+    expect(board.names.has(nameKey('Full stain Secondary cocktail wells'))).toBe(true);
+    expect(board.names.has(nameKey('FMO CD3 Secondary cocktail wells'))).toBe(false);
+  });
+});

@@ -38,7 +38,41 @@ export interface PanelMarker {
   sharesDetectorWith: string[];
   misplacement: Misplacement | undefined;
   fluorColor: string | undefined;
+  secondary: PanelSecondary | undefined;
 }
+
+export interface PanelSecondary {
+  material: MaterialItem | undefined;
+  staining: string;
+  amount: MarkerAmount | undefined;
+}
+
+export interface DosedRow {
+  id: string;
+  materialId: string;
+  staining: string;
+  stainedWith: string;
+}
+
+export const SECONDARY_STAINING = 'Secondary';
+const SECONDARY_TYPE = 'Secondary reagent';
+
+export const secondaryRowId = (rowId: string): string => `${rowId}:secondary`;
+
+export const dosedRows = (panel: FlowCytometryPanel): DosedRow[] =>
+  panel.markers.flatMap(row => [
+    { id: row.id, materialId: row.materialId, staining: row.staining, stainedWith: row.id },
+    ...(row.secondary
+      ? [
+          {
+            id: secondaryRowId(row.id),
+            materialId: row.secondary.materialId,
+            staining: row.secondary.staining,
+            stainedWith: row.id,
+          },
+        ]
+      : []),
+  ]);
 
 export interface DetectorSlot {
   detector: Detector;
@@ -79,15 +113,23 @@ export const markerFluor = (item: MaterialItem): string =>
 
 function readMarker(
   row: PanelRow,
-  material: MaterialItem | undefined,
+  byId: ReadonlyMap<string, MaterialItem>,
   cytometer: Cytometer | undefined,
   catalog: FluorCatalog
 ): PanelMarker {
+  const material = byId.get(row.materialId);
+  const secondaryMaterial = row.secondary && byId.get(row.secondary.materialId);
+  const secondary = row.secondary && {
+    material: secondaryMaterial,
+    staining: row.secondary.staining,
+    amount: secondaryMaterial && markerAmount(secondaryMaterial),
+  };
   const value = (key: string) => (material?.values[key] ?? '').trim();
   const markerKey =
     (material && MARKER_KEYS.find(key => hasField(material, key))) ?? MARKER_KEYS[0];
-  const isFluorEditable = !material || hasField(material, CONJUGATE_FIELD);
-  const fluor = material ? markerFluor(material) : '';
+  const isFluorEditable = !secondary && (!material || hasField(material, CONJUGATE_FIELD));
+  const fluorSource = secondary ? secondaryMaterial : material;
+  const fluor = fluorSource ? markerFluor(fluorSource) : '';
   return {
     row,
     material,
@@ -101,6 +143,7 @@ function readMarker(
     sharesDetectorWith: [],
     misplacement: cytometer && misplacementText(cytometer, catalog, fluor, row.detectorId),
     fluorColor: fluorEmissionColor(catalog, fluor),
+    secondary,
   };
 }
 
@@ -131,9 +174,7 @@ export function panelLayout(
   catalog: FluorCatalog
 ): PanelLayout {
   const byId = new Map(materials.map(item => [item.id, item]));
-  const markers = panel.markers.map(row =>
-    readMarker(row, byId.get(row.materialId), panel.cytometer, catalog)
-  );
+  const markers = panel.markers.map(row => readMarker(row, byId, panel.cytometer, catalog));
   const placed = new Set<PanelMarker>();
   const lasers = (panel.cytometer?.lasers ?? []).map(laser => ({
     name: laser.name,
@@ -174,9 +215,16 @@ export const markerCandidates = (
   );
 };
 
+export const secondaryCandidates = (materials: readonly MaterialItem[]): MaterialItem[] =>
+  materials.filter(
+    item =>
+      item.group === ANTIBODY_GROUP && item.type === SECONDARY_TYPE && Boolean(markerFluor(item))
+  );
+
 export function panelStainings(panel: FlowCytometryPanel): string[] {
   const byKey = new Map<string, string>();
-  for (const staining of [...panel.markers.map(row => row.staining), ...STARTING_STAININGS]) {
+  const used = dosedRows(panel).map(row => row.staining);
+  for (const staining of [...used, ...STARTING_STAININGS]) {
     const key = normalizeMaterialKey(staining);
     if (key && !byKey.has(key)) byKey.set(key, staining.trim());
   }
@@ -213,6 +261,18 @@ export function newMarkerMaterial(
   const item = materialFromGuess(guessMaterial(text, known), memory);
   if (item.group !== ANTIBODY_GROUP || NON_MARKER_TYPES.has(item.type)) {
     applyMaterialType(item, ANTIBODY_GROUP, MARKER_FALLBACK_TYPE, memory);
+  }
+  return item;
+}
+
+export function newSecondaryMaterial(
+  text: string,
+  known: MaterialKnowledge,
+  memory: LabMemory
+): MaterialItem {
+  const item = materialFromGuess(guessMaterial(text, known), memory);
+  if (item.group !== ANTIBODY_GROUP || item.type !== SECONDARY_TYPE) {
+    applyMaterialType(item, ANTIBODY_GROUP, SECONDARY_TYPE, memory);
   }
   return item;
 }
