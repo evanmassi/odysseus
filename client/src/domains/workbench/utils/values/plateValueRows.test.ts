@@ -31,6 +31,7 @@ function protocolWithPlate(): Protocol {
       },
       'p:A3': { drug: { valueId: 'v' }, stim: { valueId: 'cd3', amount: '1', unit: 'µg/mL' } },
     },
+    seriesDirections: {},
     counts: {},
     amountNames: {},
     stain: {},

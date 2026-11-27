@@ -681,7 +681,7 @@ plan's Resume here, with the sweep that found this and the rest).
   without them; two plates share one prep when their drug, top and factor read the same
   (`sameSourceKey`), a match by spelling.
 - **Decided 2026-11-27 (Evan, from `dilution-without-plate-mock.html`):**
-  - The Dilutions card starts a series: "+ New dilution", a material from Materials (or a new
+  - The Dilutions card starts a series: "+ Add dilution", a material from Materials (or a new
     one), then a **Series** row (Top conc., Dil. factor, Points, Replicates per point) above the
     prep settings it already shows. The tube strip and notes work with no plate.
   - The other way round: a series on the card gets "Put on a plate…"; on a plate, selecting wells
@@ -762,7 +762,7 @@ plan's Resume here, with the sweep that found this and the rest).
   moment it was painted); a run carries `seriesIds` and every write goes through them.
   `dropUnpaintedSeries` is gone: clearing a series' wells leaves it on the Dilutions card, "not on
   a plate". With no plate and no typed Points or Replicates the prep says "Type how many points and
-  replicates this series has, or paint it on a plate." The card: "+ New dilution" picks a material
+  replicates this series has, or paint it on a plate." The card: "+ Add dilution" picks a material
   or types a new one (the Flow panel's pick, moved to `board/WorkbenchMaterialPick`), starting a
   blank series (`startSeries`); each series gets a Series row (`WorkbenchDilutionSeriesRow`: Top
   conc. in Values' amount box, Dil. factor, Points, Replicates), a count read from the plate shown
@@ -773,6 +773,25 @@ plan's Resume here, with the sweep that found this and the rest).
   (`removeSeriesEverywhere`). The settings boxes moved into `WorkbenchDilutionSetting`, shared by
   both rows. The v17 converter also moves prep references to the series key; it was re-run from the
   v16 originals, moving 5 references in Evan's Nov 5 procedure step.
+- **8c as built (2026-11-27, file version 18):** plates share a prep by pointing at the same series:
+  `dilutionRuns` groups by series id and `sameSourceKey` is gone. The conversion merged the series
+  pooling had joined (each of Evan's Nov 5 drugs had a second series from duplicating the P1 tab;
+  P2's wells now point at the first) and moved direction off the series onto each plate
+  (`plateMap.seriesDirections`, pruned by `normalizePlateMap` with the plate's wells), so one series
+  can be painted different ways on different plates. Duplicating a plate tab now shares its series
+  instead of copying them. On the plate, the Dilution form for wells with no series offers "Use · A
+  dilution already made" listing every dilution (name · top, factor · points); picking one paints
+  only the selected wells (`paintSeries`, numbered on their own, in the direction the series already
+  has on that plate or the form's), puts the wells on the line that already holds this plate's dilutions (`dilutionLineOf`; found by Evan, whose picked Drug X landed on a line of its own and showed as an outline, or nothing when set to Fill), carrying the row's name or the series' material there, makes Replicates
+  the plate's rows, and paints no further than a typed Points; a selection narrower than a typed
+  Points asks "N of M fit" with Keep M or Use N (`seriesFit`). Painting keeps a series' typed counts
+  and material (`writeSeries`), and editing renumbers only the block the selection touches (the
+  selected wells and the series' wells joined to them), so a series in two blocks on one plate
+  keeps each block's points. Remove on the Dilutions card now clears the dilution's wells too, label and all (Evan: removing Drug X left "Drug X" flat on the plate), leaving whatever else those wells hold. The form's "Remove dilution" became "Clear from the plate" (the series
+  stays on the card). A series not on a plate gets "Put on a plate…" on the Dilutions card,
+  opening the plate map, its hover saying to select wells and use it. Converted by
+  `%TEMP%/data-home/convert-v18.tmp.test.ts` (v17 copies in `Old versions/Version 17`); 122
+  answers identical read, opened and linked.
 
 ## Code standards for this work
 

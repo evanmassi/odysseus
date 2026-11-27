@@ -20,6 +20,7 @@ export const newPlateMap = (): PlateMap => ({
   otherLabware: [],
   lines: [],
   samples: {},
+  seriesDirections: {},
   counts: {},
   amountNames: {},
   stain: {},
@@ -140,40 +141,14 @@ export const withoutPlate = (labware: Labware, plateId: string): Labware => ({
 });
 
 type Plate = PlateMap['plates'][number];
-type Series = Protocol['series'][string];
-
-const copyOfSeries = (series: Series): Series => ({
-  ...series,
-  ...('typedValues' in series && { typedValues: [...series.typedValues] }),
-  ...(series.prep && { prep: { ...series.prep } }),
-});
-
-export function duplicatePlateAsTab(
-  seriesById: Protocol['series'],
-  plateMap: PlateMap,
-  plate: Plate
-): number {
+export function duplicatePlateAsTab(plateMap: PlateMap, plate: Plate): number {
   const copy: Plate = { ...plate, id: createId(), name: plate.name ? `${plate.name} copy` : '' };
   plateMap.plates.splice(plateMap.plates.indexOf(plate) + 1, 0, copy);
-  const freshSeries = new Map<string, string>();
-  const seriesCopyOf = (seriesId: string) => {
-    const known = freshSeries.get(seriesId);
-    if (known) return known;
-    const fresh = createId();
-    freshSeries.set(seriesId, fresh);
-    seriesById[fresh] = copyOfSeries(seriesById[seriesId]);
-    return fresh;
-  };
   const prefix = `${plate.id}:`;
   for (const [key, lines] of Object.entries(plateMap.samples)) {
     if (!key.startsWith(prefix)) continue;
     const copied = Object.fromEntries(
-      Object.entries(lines).map(([lineId, entry]) => [
-        lineId,
-        entry.seriesId === undefined
-          ? { ...entry }
-          : { ...entry, seriesId: seriesCopyOf(entry.seriesId) },
-      ])
+      Object.entries(lines).map(([lineId, entry]) => [lineId, { ...entry }])
     );
     plateMap.samples[`${copy.id}:${key.slice(prefix.length)}`] = copied;
   }

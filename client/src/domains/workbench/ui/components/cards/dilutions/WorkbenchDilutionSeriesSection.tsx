@@ -42,6 +42,7 @@ interface WorkbenchDilutionSeriesSectionProps {
   onSeriesChange: (field: SeriesField, value: string) => void;
   onTopUnitChange: (unit: string) => void;
   onRemove: () => void;
+  onPutOnPlate: (() => void) | undefined;
 }
 
 const NO_EXTRA = 'none';
@@ -70,6 +71,7 @@ export function WorkbenchDilutionSeriesSection({
   onSeriesChange,
   onTopUnitChange,
   onRemove,
+  onPutOnPlate,
 }: WorkbenchDilutionSeriesSectionProps) {
   const rail = color ?? PLAIN_RAIL;
 
@@ -124,6 +126,18 @@ export function WorkbenchDilutionSeriesSection({
           <span className="text-body-sm text-muted-foreground">for {places.join(', ')}</span>
         )}
         {!isPainted && <span className="text-body-sm text-muted-foreground">not on a plate</span>}
+        {!isPainted && onPutOnPlate && (
+          <Tooltip content="Then select wells, open Dilution and use this one">
+            <Button
+              variant="ghost-primary"
+              size="xs"
+              className="self-center"
+              onClick={onPutOnPlate}
+            >
+              Put on a plate…
+            </Button>
+          </Tooltip>
+        )}
         <Button
           variant="ghost-danger"
           size="xs"

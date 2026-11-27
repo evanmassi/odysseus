@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 
 import { Plus } from 'lucide-react';
 import { createPortal } from 'react-dom';
@@ -8,6 +8,8 @@ import { Button } from '@shared/ui';
 import { usePlacedBeside } from '../../../../hooks/usePlacedBeside';
 import { useWorkbenchData } from '../../../../hooks/useWorkbenchSlice';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
+import { dilutionRuns } from '../../../../utils/dilutions/dilutionRuns';
+import { runCounts } from '../../../../utils/dilutions/seriesNumbers';
 import { focusOnMount } from '../../../../utils/dom/focusOnMount';
 import { createId } from '../../../../utils/ids/createId';
 import { nameChangeOf } from '../../../../utils/materials/renameFollowing';
@@ -15,11 +17,16 @@ import { ratioRow } from '../../../../utils/plateMap/cellRatios';
 import { MIXED_LABWARE_WORDS, wordsForTypes } from '../../../../utils/plateMap/labwareCatalog';
 import { seriesSummary } from '../../../../utils/plateMap/plateSeries';
 import {
+  dilutionLineOf,
   lineUnitOf,
+  paintSeries,
   removeSeries,
+  seriesFit,
   seriesFormFor,
   seriesPreview,
+  setSeriesNumber,
   writeSeries,
+  type SeriesFit,
   type SeriesForm,
 } from '../../../../utils/plateMap/seriesEdits';
 import {
@@ -129,6 +136,9 @@ export function WorkbenchWellEditorPanel({
   const [drafts, setDrafts] = useState<DraftLine[]>([]);
   const [freshLineId] = useState(createId);
   const [openSeries, setOpenSeries] = useState<SeriesForm>();
+  const [fit, setFit] = useState<SeriesFit>();
+  const protocol = useWorkbenchStore(state => state.protocol);
+  const runs = useMemo(() => dilutionRuns(protocol), [protocol]);
   const keyList = [...keys];
   const onWells = wellRows(card, keyList).flatMap(row =>
     row.line ? [{ row, lineId: row.line.id, draft: undefined }] : []
@@ -203,6 +213,69 @@ export function WorkbenchWellEditorPanel({
     setOpenSeries({ ...next, seriesId });
   };
 
+  const existingSeries = runs.map(run => {
+    const points = runCounts(run).points;
+    return {
+      value: run.key,
+      label: [
+        run.subject || 'Unnamed dilution',
+        seriesSummary(run.series, undefined, board),
+        points === undefined ? '' : `${points} points`,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    };
+  });
+
+  const pickExisting = (rowText: string, seriesId: string) => {
+    const series = seriesById[seriesId];
+    if (!openSeries || !series) return;
+    const direction = card.seriesDirections[seriesId] ?? openSeries.direction;
+    const rowLineId = openSeries.lineId;
+    const lineId = dilutionLineOf(card, seriesById, seriesId) ?? rowLineId;
+    const next = seriesFormFor(lineId, seriesId, series, direction, { amount: '', unit: '' });
+    const material =
+      'top' in series
+        ? protocol.materials.items.find(item => item.id === series.materialId)
+        : undefined;
+    const label = rowText.trim() ? rowText.trim() : (material?.name.trim() ?? '');
+    const write = (draft: PlateMap, protocolDraft: Protocol) => {
+      const isMoving = lineId !== rowLineId;
+      if (isMoving && draft.lines.some(line => line.id === rowLineId)) {
+        setWellsText(draft, keyList, rowLineId, '');
+      }
+      if (label) setWellsText(draft, keyList, lineId, label);
+      const target = protocolDraft.series[seriesId];
+      if (target && 'top' in target) delete target.replicates;
+      paintSeries(draft, protocolDraft.series, sheet, keys, lineId, seriesId, direction);
+    };
+    const row = rows.find(candidate => candidate.lineId === rowLineId);
+    if (row && lineId === rowLineId) writeRow(row, write);
+    else {
+      updatePlateMap(write);
+      if (row?.draft) setDrafts(shownDrafts.filter(draft => draft !== row.draft));
+    }
+    const painted = useWorkbenchStore
+      .getState()
+      .protocol.plateMaps.find(candidate => candidate.id === card.id);
+    const [firstKey] = keyList;
+    const landedOn = painted?.lines.find(
+      line => painted.samples[firstKey]?.[line.id]?.seriesId === seriesId
+    );
+    setOpenSeries({ ...next, lineId: landedOn?.id ?? next.lineId });
+    setFit(seriesFit(sheet, keys, direction, series));
+  };
+
+  const chooseFit = (keepsPlanned: boolean) => {
+    const seriesId = openSeries?.seriesId;
+    if (!keepsPlanned && seriesId) {
+      updatePlateMap((_draft, protocolDraft) =>
+        setSeriesNumber(protocolDraft, seriesId, 'points', '')
+      );
+    }
+    setFit(undefined);
+  };
+
   const removeOpenSeries = (seriesId: string) => {
     updatePlateMap(draft => removeSeries(draft, seriesId));
     setOpenSeries(undefined);
@@ -258,7 +331,9 @@ export function WorkbenchWellEditorPanel({
                   ? `What's in ${keys.size === 1 ? `this ${noun}` : `these ${plural}`}`
                   : 'Another line'
               }
-              seriesText={series && seriesSummary(series, board)}
+              seriesText={
+                series && seriesSummary(series, card.seriesDirections[row.seriesId ?? ''], board)
+              }
               autoRole={layers.find(layer => layer.line.id === lineId)?.role}
               showsRole={sheet.isPlate}
               canRemove={!draft && rows.length > 1}
@@ -295,10 +370,16 @@ export function WorkbenchWellEditorPanel({
               }}
               onOpenSeries={() =>
                 setOpenSeries(
-                  seriesFormFor(lineId, row.seriesId, series, {
-                    amount: row.amount,
-                    unit: row.unit || lineUnitOf(card, seriesById, lineId),
-                  })
+                  seriesFormFor(
+                    lineId,
+                    row.seriesId,
+                    series,
+                    card.seriesDirections[row.seriesId ?? ''] ?? 'right',
+                    {
+                      amount: row.amount,
+                      unit: row.unit || lineUnitOf(card, seriesById, lineId),
+                    }
+                  )
                 )
               }
             />
@@ -317,6 +398,10 @@ export function WorkbenchWellEditorPanel({
                     ? undefined
                     : () => form.seriesId && removeOpenSeries(form.seriesId)
                 }
+                existing={existingSeries}
+                onPickExisting={seriesId => pickExisting(row.text, seriesId)}
+                fit={fit}
+                onFitChoice={chooseFit}
               />
             )}
           </div>

@@ -50,6 +50,7 @@ const plateMap: PlateMap = {
   otherLabware: [],
   lines: [],
   samples: {},
+  seriesDirections: {},
   counts: {},
   amountNames: {},
   stain: { 'p1:A1': 'full', 'p1:A2': 'full', 'p1:A3': 'fmo' },

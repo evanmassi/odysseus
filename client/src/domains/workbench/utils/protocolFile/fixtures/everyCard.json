@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 17,
+  "version": 18,
   "savedAt": "2026-11-22T12:00:00.000Z",
   "protocol": {
     "title": "Safety net protocol",
@@ -358,15 +358,13 @@
         "top": "10",
         "unit": "µM",
         "dilutionFactor": "3",
-        "direction": "right",
         "prep": {
           "roundTo": "1",
           "diluent": "Medium A"
         }
       },
       "series-list": {
-        "typedValues": ["1", "5"],
-        "direction": "right"
+        "typedValues": ["1", "5"]
       }
     },
     "plateMaps": [
@@ -546,6 +544,10 @@
         "stainedIn": {
           "plate-1:A2": "plate-1:A1",
           "plate-1:A3": "plate-1:D3"
+        },
+        "seriesDirections": {
+          "series-factor": "right",
+          "series-list": "right"
         }
       }
     ],

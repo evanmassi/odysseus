@@ -72,6 +72,7 @@ const plateMap = (id: string, title: string, content: Partial<PlateMap>): PlateM
   otherLabware: [],
   lines: [],
   samples: {},
+  seriesDirections: {},
   counts: {},
   amountNames: {},
   stain: {},
@@ -96,9 +97,9 @@ const killingPlate = plateMap('map', 'Assay plate map', {
 });
 
 const SERIES: Protocol['series'] = {
-  s: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
-  s1: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
-  s2: { top: '1', unit: 'µM', dilutionFactor: '2', direction: 'right' },
+  s: { top: '10', unit: 'µM', dilutionFactor: '3' },
+  s1: { top: '10', unit: 'µM', dilutionFactor: '3' },
+  s2: { top: '1', unit: 'µM', dilutionFactor: '2' },
 };
 
 const valuesWith = (content: Partial<ProtocolValues>): ProtocolValues => ({

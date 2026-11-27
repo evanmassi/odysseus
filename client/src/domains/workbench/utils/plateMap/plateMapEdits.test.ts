@@ -11,7 +11,7 @@ import {
 } from './plateMapEdits';
 import { plateMapTabs } from './plateMapTabs';
 
-import type { PlateMap, PlateMapCard, Protocol } from '@odysseus/shared-schemas';
+import type { PlateMap, PlateMapCard } from '@odysseus/shared-schemas';
 
 const plateMap = (): PlateMap => ({
   id: 'map',
@@ -24,6 +24,7 @@ const plateMap = (): PlateMap => ({
     'p:A1': { l: { valueId: 'v' } },
     's#2:1': { l: { valueId: 'v' } },
   },
+  seriesDirections: {},
   counts: { v: '9' },
   amountNames: {},
   stain: {},
@@ -89,23 +90,18 @@ describe('plate map edits', () => {
     expect(copy.id).not.toBe('map');
   });
 
-  it('duplicates a plate into a new tab of the same card with series of its own', () => {
+  it('duplicates a plate into a new tab of the same card, sharing its series', () => {
     const card = plateMap();
     card.samples['p:B1'] = { l: { valueId: 'v', seriesId: 'ser', seriesPoint: 0 } };
-    const seriesById: Protocol['series'] = {
-      ser: { top: '10', unit: 'µM', dilutionFactor: '3', direction: 'right' },
-    };
     card.stain = { 'p:A1': 'full' };
-    const copyTab = duplicatePlateAsTab(seriesById, card, card.plates[0]);
+    const copyTab = duplicatePlateAsTab(card, card.plates[0]);
     const [original, copy] = card.plates;
     expect(original.id).toBe('p');
     expect(copy).toMatchObject({ labware: '96', name: 'Day 1 copy' });
     expect(copyTab).toBe(1);
     expect(card.samples[`${copy.id}:A1`]).toEqual({ l: { valueId: 'v' } });
     expect(card.stain).toEqual({ 'p:A1': 'full', [`${copy.id}:A1`]: 'full' });
-    const copiedSeriesId = card.samples[`${copy.id}:B1`]['l'].seriesId;
-    expect(copiedSeriesId).not.toBe('ser');
-    expect(seriesById[copiedSeriesId ?? '']).toEqual(seriesById['ser']);
+    expect(card.samples[`${copy.id}:B1`]['l'].seriesId).toBe('ser');
     expect(card.samples['s#2:1']).toEqual({ l: { valueId: 'v' } });
   });
 });

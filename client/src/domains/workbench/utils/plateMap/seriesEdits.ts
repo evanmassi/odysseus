@@ -1,20 +1,20 @@
 import { normalizePlateMap } from '@odysseus/shared-schemas';
 
 import { readReference } from '../formulas/nameReferences';
-import { displayValue } from '../formulas/quantities';
+import { displayValue, readNumber } from '../formulas/quantities';
 import { createId } from '../ids/createId';
 import { DILUTION_FACTOR, TOP_AMOUNT } from '../terms/termList';
 import { readTypedAmount } from '../units/textAmounts';
 import { lowerLead } from '../values/valueNames';
 
-import { pointAmount } from './plateSeries';
+import { pointAmount, type SeriesDirection } from './plateSeries';
 
 import type { PlateMapSheet } from './plateMapTabs';
 import type { SeriesField } from '../dilutions/seriesNumbers';
 import type { SolvedBoard } from '../formulas/boardCalculation';
 import type { ProtocolSeries, PlateMap, Protocol } from '@odysseus/shared-schemas';
 
-type Direction = ProtocolSeries['direction'];
+type Direction = SeriesDirection;
 
 type SeriesPrepKey = keyof NonNullable<ProtocolSeries['prep']>;
 
@@ -62,6 +62,13 @@ interface TypedAmount {
   unit: string;
 }
 
+const NEIGHBORS = [
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+] as const;
+
 const PREVIEW_HEAD = 4;
 const PREVIEW_ROOM = 6;
 
@@ -75,6 +82,7 @@ export function seriesFormFor(
   lineId: string,
   seriesId: string | undefined,
   series: ProtocolSeries | undefined,
+  direction: Direction,
   typed: TypedAmount
 ): SeriesForm {
   const blank = { lineId, seriesId, top: '', unit: '', dilutionFactor: '', typedValues: '' };
@@ -82,14 +90,9 @@ export function seriesFormFor(
     return { ...blank, isList: false, top: typed.amount, unit: typed.unit, direction: 'right' };
   }
   if ('typedValues' in series) {
-    return {
-      ...blank,
-      isList: true,
-      typedValues: series.typedValues.join(', '),
-      direction: series.direction,
-    };
+    return { ...blank, isList: true, typedValues: series.typedValues.join(', '), direction };
   }
-  const { top, unit, dilutionFactor, direction } = series;
+  const { top, unit, dilutionFactor } = series;
   return {
     ...blank,
     isList: false,
@@ -121,9 +124,20 @@ export function seriesTargets(
 ): string[] {
   const inSeries = (key: string) =>
     form.seriesId !== undefined && card.samples[key]?.[form.lineId]?.seriesId === form.seriesId;
-  return sheet.positions
-    .filter(position => keys.has(position.key) || inSeries(position.key))
-    .map(position => position.key);
+  const at = new Map(
+    sheet.positions.map(position => [`${position.row},${position.col}`, position])
+  );
+  const chosen = new Set(sheet.positions.filter(position => keys.has(position.key)));
+  const unvisited = [...chosen];
+  for (let position = unvisited.pop(); position; position = unvisited.pop()) {
+    for (const [rows, cols] of NEIGHBORS) {
+      const next = at.get(`${position.row + rows},${position.col + cols}`);
+      if (!next || chosen.has(next) || !inSeries(next.key)) continue;
+      chosen.add(next);
+      unvisited.push(next);
+    }
+  }
+  return sheet.positions.filter(position => chosen.has(position)).map(position => position.key);
 }
 
 export function wellPoints(
@@ -142,14 +156,83 @@ export function wellPoints(
 }
 
 function seriesShape(form: SeriesForm): ProtocolSeries {
-  if (form.isList) return { typedValues: splitPoints(form.typedValues), direction: form.direction };
+  if (form.isList) return { typedValues: splitPoints(form.typedValues) };
   const typed = readTypedAmount(form.top);
   return {
     top: typed?.value ?? form.top.trim(),
     unit: typed?.unit ?? form.unit,
     dilutionFactor: form.dilutionFactor.trim(),
-    direction: form.direction,
   };
+}
+
+const plannedPoints = (series: ProtocolSeries | undefined): number | undefined => {
+  const points = series && 'top' in series ? readNumber(series.points ?? '') : undefined;
+  return points !== undefined && points > 0 ? points : undefined;
+};
+
+export interface SeriesFit {
+  planned: number;
+  fits: number;
+}
+
+const selectedKeys = (sheet: PlateMapSheet, keys: ReadonlySet<string>) =>
+  sheet.positions.filter(position => keys.has(position.key)).map(position => position.key);
+
+export function seriesFit(
+  sheet: PlateMapSheet,
+  keys: ReadonlySet<string>,
+  direction: Direction,
+  series: ProtocolSeries | undefined
+): SeriesFit | undefined {
+  const planned = plannedPoints(series);
+  const fits = new Set(wellPoints(sheet, selectedKeys(sheet, keys), direction).values()).size;
+  return planned !== undefined && fits < planned ? { planned, fits } : undefined;
+}
+
+export function dilutionLineOf(
+  card: PlateMap,
+  seriesById: Protocol['series'],
+  seriesId: string
+): string | undefined {
+  const entries = Object.values(card.samples);
+  const holds = (lineId: string, matches: (id: string) => boolean) =>
+    entries.some(lines => {
+      const id = lines[lineId]?.seriesId;
+      return id !== undefined && matches(id);
+    });
+  const isDilution = (id: string) => {
+    const series = seriesById[id];
+    return !!series && 'top' in series;
+  };
+  return (
+    card.lines.find(line => holds(line.id, id => id === seriesId)) ??
+    card.lines.find(line => holds(line.id, isDilution))
+  )?.id;
+}
+
+export function paintSeries(
+  card: PlateMap,
+  seriesById: Protocol['series'],
+  sheet: PlateMapSheet,
+  keys: ReadonlySet<string>,
+  lineId: string,
+  seriesId: string,
+  direction: Direction
+): void {
+  if (!card.lines.some(line => line.id === lineId)) {
+    card.lines.push({ id: lineId, name: '', values: [], role: 'auto' });
+  }
+  const shownDirection = (card.seriesDirections[seriesId] ??= direction);
+  const targets = selectedKeys(sheet, keys);
+  const pointByWell = wellPoints(sheet, targets, shownDirection);
+  const planned = plannedPoints(seriesById[seriesId]);
+  for (const key of targets) {
+    const seriesPoint = pointByWell.get(key) ?? 0;
+    if (planned !== undefined && seriesPoint >= planned) continue;
+    const lines = (card.samples[key] ??= {});
+    const valueId = lines[lineId]?.valueId;
+    lines[lineId] = { ...(valueId && { valueId }), seriesId, seriesPoint };
+  }
 }
 
 export function writeSeries(
@@ -165,9 +248,25 @@ export function writeSeries(
   const targets = seriesTargets(card, sheet, keys, form);
   const pointByWell = wellPoints(sheet, targets, form.direction);
   const seriesId = form.seriesId ?? createId();
-  const prep = seriesById[seriesId]?.prep;
-  seriesById[seriesId] = { ...seriesShape(form), ...(prep && { prep }) };
+  const existing = seriesById[seriesId];
+  const planned = plannedPoints(existing);
+  const shape = seriesShape(form);
+  const kept =
+    existing && 'top' in existing && 'top' in shape
+      ? {
+          points: existing.points,
+          replicates: existing.replicates,
+          materialId: existing.materialId,
+        }
+      : {};
+  seriesById[seriesId] = {
+    ...shape,
+    ...Object.fromEntries(Object.entries(kept).filter(([, value]) => value !== undefined)),
+    ...(existing?.prep && { prep: existing.prep }),
+  };
+  card.seriesDirections[seriesId] = form.direction;
   for (const key of targets) {
+    if (planned !== undefined && (pointByWell.get(key) ?? 0) >= planned) continue;
     const lines = (card.samples[key] ??= {});
     const valueId = lines[form.lineId]?.valueId;
     lines[form.lineId] = {
@@ -185,6 +284,7 @@ export function removeSeries(card: PlateMap, seriesId: string): void {
     delete entry.seriesId;
     delete entry.seriesPoint;
   }
+  delete card.seriesDirections[seriesId];
 }
 
 export function startSeries(draft: Pick<Protocol, 'series'>, materialId: string): string {
@@ -193,7 +293,6 @@ export function startSeries(draft: Pick<Protocol, 'series'>, materialId: string)
     top: '',
     unit: '',
     dilutionFactor: '',
-    direction: 'right',
     materialId,
   };
   return seriesId;
@@ -203,13 +302,17 @@ export function removeSeriesEverywhere(
   draft: Pick<Protocol, 'plateMaps' | 'series'>,
   seriesIds: readonly string[]
 ): void {
-  for (const seriesId of seriesIds) {
-    for (const plateMap of draft.plateMaps) {
-      removeSeries(plateMap, seriesId);
-      normalizePlateMap(plateMap);
+  const removed = new Set(seriesIds);
+  for (const plateMap of draft.plateMaps) {
+    for (const lines of Object.values(plateMap.samples)) {
+      for (const [lineId, entry] of Object.entries(lines)) {
+        if (entry.seriesId !== undefined && removed.has(entry.seriesId)) delete lines[lineId];
+      }
     }
-    delete draft.series[seriesId];
+    for (const seriesId of seriesIds) delete plateMap.seriesDirections[seriesId];
+    normalizePlateMap(plateMap);
   }
+  for (const seriesId of seriesIds) delete draft.series[seriesId];
 }
 
 export function seriesPreview(

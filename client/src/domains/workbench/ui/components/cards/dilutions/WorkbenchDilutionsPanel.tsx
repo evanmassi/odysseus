@@ -6,6 +6,7 @@ import { HeaderStrip, Tab } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 
 import { usePlateSwatches } from '../../../../hooks/usePlateSwatches';
+import { useShowTarget } from '../../../../hooks/useShowTarget';
 import { useProtocolOutsidePages } from '../../../../hooks/useWorkbenchSlice';
 import { useMaterialMemoryStore } from '../../../../stores/materialMemoryStore';
 import { useWorkbenchStore } from '../../../../stores/workbenchStore';
@@ -76,6 +77,8 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
   );
   const [shownKey, setShownKey] = useState(ALL_SERIES);
   const [removing, setRemoving] = useState<DilutionRun>();
+  const showTarget = useShowTarget();
+  const firstPlateMapId = protocol.plateMaps[0]?.id;
   const materialOptions = useMemo(
     () =>
       listedMaterials(protocol).map(item => ({
@@ -107,7 +110,7 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
     <div className="flex items-center gap-2 text-muted-foreground">
       <Plus aria-hidden className="h-3.5 w-3.5 flex-none text-primary" />
       <WorkbenchMaterialPick
-        label="New dilution"
+        label="Add dilution"
         newLabel="New material…"
         example="Drug X"
         options={materialOptions}
@@ -133,7 +136,7 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
       isOpen={!!removing}
       variant="danger"
       title="Remove dilution"
-      message={`The ${removing?.subject.trim() ? removing.subject : 'unnamed'} dilution is permanently removed.${removing?.members.length ? ' Its wells on the plate keep their label.' : ''}`}
+      message={`The ${removing?.subject.trim() ? removing.subject : 'unnamed'} dilution is permanently removed${removing?.members.length ? ', along with its wells on the plate' : ''}.`}
       confirmText="Remove"
       onConfirm={() => {
         if (removing) updateProtocol(draft => removeSeriesEverywhere(draft, removing.seriesIds));
@@ -240,6 +243,11 @@ export function WorkbenchDilutionsPanel({ card }: WorkbenchDilutionsPanelProps) 
               )
             }
             onRemove={() => setRemoving(run)}
+            onPutOnPlate={
+              firstPlateMapId
+                ? () => showTarget({ type: 'plateMap', shows: firstPlateMapId })
+                : undefined
+            }
             onStockSave={(value, unit) => {
               if (prep.kind !== 'ready' || prep.stock.kind !== 'ask') return;
               const field = prep.stock.need === 'weight' ? WEIGHT_FIELD : STOCK_FIELD;

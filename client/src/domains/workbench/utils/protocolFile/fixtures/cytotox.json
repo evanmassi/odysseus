@@ -1,6 +1,6 @@
 {
   "format": "odysseus-workbench-protocol",
-  "version": 17,
+  "version": 18,
   "savedAt": "2026-11-24T00:00:00.000Z",
   "protocol": {
     "title": "T cell killing assay",
@@ -602,8 +602,7 @@
       "c61a7yx": {
         "top": "10",
         "unit": "µM",
-        "dilutionFactor": "3",
-        "direction": "right"
+        "dilutionFactor": "3"
       }
     },
     "plateMaps": [
@@ -1017,7 +1016,10 @@
         "counts": {},
         "amountNames": {},
         "stain": {},
-        "stainedIn": {}
+        "stainedIn": {},
+        "seriesDirections": {
+          "c61a7yx": "right"
+        }
       }
     ],
     "flowCytometryPanels": [],

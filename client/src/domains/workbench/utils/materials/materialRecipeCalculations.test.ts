@@ -101,6 +101,7 @@ describe('recipe finals in the well', () => {
       otherLabware: [{ id: 't', labware: 'facs', count: 1 }],
       lines: [{ id: 'l', name: '', role: 'auto', values: [{ id: 'th17', text: 'Th17 cocktail' }] }],
       samples: { 'p:A1': { l: mix }, 'p:A2': { l: mix }, 't#1:1': { l: mix } },
+      seriesDirections: {},
       counts: {},
       amountNames: {},
       stain: {},

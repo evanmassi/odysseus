@@ -112,7 +112,7 @@ describe('plate indicators', () => {
       [line('ratio', ['T donor A', 'T donor B'], 'stripe')]
     );
     const seriesById: Protocol['series'] = {
-      s: { top: '8:1', unit: 'N:N', dilutionFactor: '2', direction: 'right' },
+      s: { top: '8:1', unit: 'N:N', dilutionFactor: '2' },
     };
     for (const [key, step] of [
       ['p:A1', 0],

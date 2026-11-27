@@ -19,6 +19,7 @@ const plateMap = (content: Partial<PlateMap> = {}) =>
     lines: [],
     samples: {},
     series: {},
+    seriesDirections: {},
     counts: {},
     amountNames: {},
     side: 'assay',

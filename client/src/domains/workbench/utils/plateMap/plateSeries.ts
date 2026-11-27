@@ -53,7 +53,9 @@ export const readsSeriesAlike = (
       })
   );
 
-const DIRECTION_ARROWS: Readonly<Record<ProtocolSeries['direction'], string>> = {
+export type SeriesDirection = PlateMap['seriesDirections'][string];
+
+const DIRECTION_ARROWS: Readonly<Record<SeriesDirection, string>> = {
   right: '→',
   down: '↓',
   left: '←',
@@ -105,8 +107,12 @@ export function wellAmount(
     : { amount: entry.amount?.trim() ?? '', unit: entry.unit ?? '' };
 }
 
-export function seriesSummary(series: ProtocolSeries, board: SolvedBoard): string {
-  const arrow = DIRECTION_ARROWS[series.direction];
+export function seriesSummary(
+  series: ProtocolSeries,
+  direction: SeriesDirection | undefined,
+  board: SolvedBoard
+): string {
+  const arrow = direction ? DIRECTION_ARROWS[direction] : '';
   if ('typedValues' in series)
     return [series.typedValues.join(', '), arrow].filter(Boolean).join(' ');
   const top = pointAmount(series, 0, board);

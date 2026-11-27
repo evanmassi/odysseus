@@ -70,6 +70,7 @@ function protocolWith(
         lines: [{ id: 'drug', name: '', role: 'auto', values: [{ id: 'x', text: 'Drug X' }] }],
         samples: cells,
         otherLabware: [],
+        seriesDirections: {},
         counts: {},
         amountNames: {},
         stain: {},
@@ -110,7 +111,6 @@ const doseSeries: ProtocolSeries = {
   top: '300',
   unit: 'nM',
   dilutionFactor: '3',
-  direction: 'right',
 };
 const withDiluent = (diluent: string): ProtocolSeries => ({ ...doseSeries, prep: { diluent } });
 const valuesOf = (protocol: Protocol) => protocol.values.items;
@@ -128,14 +128,12 @@ const prepFor = (protocol: Protocol) =>
   );
 
 describe('dilution prep', () => {
-  it('pools identical series from copied plates into one prep sized for all their wells', () => {
+  it('pools the plates that point at one series into one prep sized for all their wells', () => {
     const protocol = protocolWith(doseSeries, []);
     const [plateMap] = protocol.plateMaps;
     const copy = structuredClone(plateMap);
     copy.id = 'copy';
     copy.title = 'Assay plate copy';
-    protocol.series['other'] = protocol.series['s'];
-    for (const lines of Object.values(copy.samples)) lines['drug'].seriesId = 'other';
     protocol.plateMaps.push(copy);
     const runs = dilutionRuns(protocol);
     expect(runs).toHaveLength(1);
@@ -145,6 +143,16 @@ describe('dilution prep', () => {
     expect(dilutionRuns(protocol)[0].replicatesByPoint.get(0)).toBe(6);
     const alone = { ...protocol, plateMaps: [plateMap] };
     expect(dilutionRuns(alone)[0].places).toEqual(['Plate 1']);
+  });
+
+  it('keeps a separate series its own prep, even with the same numbers', () => {
+    const protocol = protocolWith(doseSeries, []);
+    const copy = structuredClone(protocol.plateMaps[0]);
+    copy.id = 'copy';
+    protocol.series['other'] = { ...doseSeries };
+    for (const lines of Object.values(copy.samples)) lines['drug'].seriesId = 'other';
+    protocol.plateMaps.push(copy);
+    expect(dilutionRuns(protocol).map(run => run.key)).toEqual(['s', 'other']);
   });
 
   it('finds each dilution series on the plates with its most replicated point', () => {
@@ -304,7 +312,6 @@ describe('dilution prep', () => {
       top: '100',
       unit: '1:N',
       dilutionFactor: '2',
-      direction: 'right',
     };
     const result = prepFor(protocolWith(ratio, []));
     if (result.kind !== 'ready') throw new Error(result.problem);
@@ -542,6 +549,7 @@ describe('a dilution with no plate', () => {
     );
     expect(removed.series).toEqual({});
     expect(dilutionRuns(removed)).toEqual([]);
+    expect(removed.plateMaps[0].samples).toEqual({});
   });
 
   it('tells the tube strip how many points the plate paints', () => {

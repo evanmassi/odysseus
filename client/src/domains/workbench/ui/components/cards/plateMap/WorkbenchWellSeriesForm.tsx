@@ -1,6 +1,6 @@
 import type { Ref } from 'react';
 
-import { Button, Input, Select, Tooltip } from '@shared/ui';
+import { Button, Input, Select, Tooltip, type SelectOption } from '@shared/ui';
 
 import { nameKey, type SolvedBoard } from '../../../../utils/formulas/boardCalculation';
 import { describeName } from '../../../../utils/formulas/nameDisplay';
@@ -9,7 +9,7 @@ import { DILUTION_FACTOR } from '../../../../utils/terms/termList';
 import { VALUE_UNIT_OPTIONS } from '../../../../utils/values/valueUnits';
 
 import type { LabwareWords } from '../../../../utils/plateMap/labwareCatalog';
-import type { SeriesForm } from '../../../../utils/plateMap/seriesEdits';
+import type { SeriesFit, SeriesForm } from '../../../../utils/plateMap/seriesEdits';
 
 interface WorkbenchWellSeriesFormProps {
   form: SeriesForm;
@@ -21,6 +21,10 @@ interface WorkbenchWellSeriesFormProps {
   onDone: () => void;
   onRemove: (() => void) | undefined;
   words: LabwareWords;
+  existing: readonly SelectOption[];
+  onPickExisting: (seriesId: string) => void;
+  fit: SeriesFit | undefined;
+  onFitChoice: (keepsPlanned: boolean) => void;
 }
 
 const DIRECTIONS: ReadonlyArray<[SeriesForm['direction'], string, string]> = [
@@ -61,6 +65,10 @@ export function WorkbenchWellSeriesForm({
   onDone,
   onRemove,
   words,
+  existing,
+  onPickExisting,
+  fit,
+  onFitChoice,
 }: WorkbenchWellSeriesFormProps) {
   const topLink = linkedText(board, form.top);
   const topWord = seriesTopTerm(form.unit, form.unit).word;
@@ -93,6 +101,32 @@ export function WorkbenchWellSeriesForm({
         onDone();
       }}
     >
+      {form.seriesId === undefined && existing.length > 0 && (
+        <div className="flex items-center gap-2">
+          <span className={LABEL}>Use</span>
+          <Select
+            size="xs"
+            isQuiet
+            value={null}
+            placeholder="A dilution already made"
+            options={[...existing]}
+            aria-label="Use a dilution already made"
+            onChange={choice => choice !== null && onPickExisting(String(choice))}
+            className="min-w-0 flex-1"
+          />
+        </div>
+      )}
+      {fit && (
+        <div className="flex items-center gap-2 text-caption text-warning-text">
+          {`${fit.fits} of ${fit.planned} fit`}
+          <Button variant="ghost" size="xs" onClick={() => onFitChoice(true)}>
+            {`Keep ${fit.planned}`}
+          </Button>
+          <Button variant="ghost" size="xs" onClick={() => onFitChoice(false)}>
+            {`Use ${fit.fits}`}
+          </Button>
+        </div>
+      )}
       {form.isList ? (
         <>
           <div className="flex items-center gap-2">
@@ -208,7 +242,7 @@ export function WorkbenchWellSeriesForm({
         </Button>
         {onRemove && (
           <Button variant="ghost" size="sm" onClick={onRemove}>
-            Remove dilution
+            Clear from the plate
           </Button>
         )}
       </div>

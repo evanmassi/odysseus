@@ -26,6 +26,7 @@ const coCulture = (content: Partial<PlateMap> = {}) =>
         r: { valueId: 'rv', amount: '2e4', unit: 'cells' },
       },
     },
+    seriesDirections: {},
     counts: {},
     amountNames: {},
     side: 'assay',
@@ -66,7 +67,7 @@ describe('a ratio series', () => {
       '1:2',
       '1:4',
     ]);
-    expect(seriesSummary(series, empty)).toBe('8:1 ÷2 →');
+    expect(seriesSummary(series, 'right', empty)).toBe('8:1 ÷2 →');
   });
 });
 

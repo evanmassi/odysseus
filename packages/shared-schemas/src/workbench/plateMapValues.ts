@@ -176,6 +176,10 @@ export function pruneUnused(plateMap: PlateMap): void {
   const sampleEntries = Object.values(plateMap.samples).flatMap(lines => Object.entries(lines));
   const usedLines = new Set(sampleEntries.map(([lineId]) => lineId));
   const usedValues = new Set(sampleEntries.map(([, cell]) => cell.valueId));
+  const usedSeries = new Set(sampleEntries.map(([, cell]) => cell.seriesId));
+  for (const seriesId of Object.keys(plateMap.seriesDirections)) {
+    if (!usedSeries.has(seriesId)) delete plateMap.seriesDirections[seriesId];
+  }
   plateMap.lines = plateMap.lines.filter(line => usedLines.has(line.id));
   for (const line of plateMap.lines) {
     if (line.ratioTo && !usedLines.has(line.ratioTo)) delete line.ratioTo;

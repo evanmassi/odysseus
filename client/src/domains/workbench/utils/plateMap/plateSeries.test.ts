@@ -8,7 +8,7 @@ const points = (series: Parameters<typeof pointAmount>[0], board = empty) =>
 
 describe('series points', () => {
   it('divide a dose by the dilution factor at each point', () => {
-    expect(points({ top: '300', unit: 'nM', dilutionFactor: '3', direction: 'right' })).toEqual([
+    expect(points({ top: '300', unit: 'nM', dilutionFactor: '3' })).toEqual([
       { amount: '300', unit: 'nM' },
       { amount: '100', unit: 'nM' },
       { amount: '33.3', unit: 'nM' },
@@ -17,9 +17,7 @@ describe('series points', () => {
 
   it('dilute a 1:N top further at each point', () => {
     expect(
-      points({ top: '1:10', unit: '1:N', dilutionFactor: '3', direction: 'right' }).map(
-        point => point.amount
-      )
+      points({ top: '1:10', unit: '1:N', dilutionFactor: '3' }).map(point => point.amount)
     ).toEqual(['10', '30', '90']);
   });
 
@@ -28,9 +26,7 @@ describe('series points', () => {
       { kind: 'value', id: 'top', name: 'Top dose', value: '10', unit: 'µM' },
       { kind: 'value', id: 'fold', name: 'Fold', value: '2', unit: 'X' },
     ]);
-    expect(
-      points({ top: 'Top dose', unit: 'µM', dilutionFactor: 'fold', direction: 'down' }, board)
-    ).toEqual([
+    expect(points({ top: 'Top dose', unit: 'µM', dilutionFactor: 'fold' }, board)).toEqual([
       { amount: '10 µM', unit: '' },
       { amount: '5 µM', unit: '' },
       { amount: '2.5 µM', unit: '' },
@@ -38,7 +34,7 @@ describe('series points', () => {
   });
 
   it('list typed points as they are', () => {
-    expect(points({ typedValues: ['High', 'Low'], direction: 'right' })).toEqual([
+    expect(points({ typedValues: ['High', 'Low'] })).toEqual([
       { amount: 'High', unit: '' },
       { amount: 'Low', unit: '' },
       { amount: '', unit: '' },
@@ -46,9 +42,10 @@ describe('series points', () => {
   });
 
   it('keep the start when there is no usable fold', () => {
-    expect(
-      pointAmount({ top: '5', unit: 'nM', dilutionFactor: '', direction: 'right' }, 2, empty)
-    ).toEqual({ amount: '5', unit: 'nM' });
+    expect(pointAmount({ top: '5', unit: 'nM', dilutionFactor: '' }, 2, empty)).toEqual({
+      amount: '5',
+      unit: 'nM',
+    });
   });
 });
 

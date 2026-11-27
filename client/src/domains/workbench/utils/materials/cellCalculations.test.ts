@@ -371,7 +371,6 @@ describe('cells plated through a series', () => {
             top: '{Donor seeding|Donor seeding}',
             unit: 'cells',
             dilutionFactor: '2',
-            direction: 'right',
           },
         };
         ['A1', 'A2', 'A3'].forEach((well, point) => {

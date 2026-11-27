@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const PROTOCOL_FILE_FORMAT = 'odysseus-workbench-protocol';
-export const PROTOCOL_FILE_VERSION = 17;
+export const PROTOCOL_FILE_VERSION = 18;
 
 const id = z.string().min(1);
 const textMap = z.record(z.string(), z.string());
@@ -139,14 +139,12 @@ const seriesPrepSchema = z.object({
 const seriesSchema = z.union([
   z.object({
     typedValues: z.array(z.string()),
-    direction: z.enum(SERIES_DIRECTIONS),
     prep: seriesPrepSchema.optional(),
   }),
   z.object({
     top: z.string(),
     unit: z.string(),
     dilutionFactor: z.string(),
-    direction: z.enum(SERIES_DIRECTIONS),
     prep: seriesPrepSchema.optional(),
     points: z.string().optional(),
     replicates: z.string().optional(),
@@ -212,6 +210,7 @@ const plateMapSchema = z.object({
   ),
   lines: z.array(plateLineSchema),
   samples: z.record(z.string(), z.record(z.string(), sampleEntrySchema)),
+  seriesDirections: z.record(z.string(), z.enum(SERIES_DIRECTIONS)),
   otherLabwareTabName: z.string().optional(),
   counts: textMap,
   amountNames: textMap,

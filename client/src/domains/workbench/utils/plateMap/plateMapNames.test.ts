@@ -13,6 +13,7 @@ const plateMap = (content: Partial<PlateMap>): PlateMap => ({
   otherLabware: [],
   lines: [],
   samples: {},
+  seriesDirections: {},
   counts: {},
   amountNames: {},
   stain: {},

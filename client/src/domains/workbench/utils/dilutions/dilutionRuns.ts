@@ -7,9 +7,9 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { cachedPerCardWith } from '../cards/cachedPerCard';
-import { readReference } from '../formulas/nameReferences';
 import { plateNameOf, labwareTitle } from '../plateMap/plateMapTabs';
-import { dilutionFactorOf, type StepSeries } from '../plateMap/plateSeries';
+
+import type { StepSeries } from '../plateMap/plateSeries';
 
 export interface SeriesRef {
   plateId: string;
@@ -81,14 +81,6 @@ function placedRuns(plates: readonly PlateMap[], seriesById: Protocol['series'])
   );
 }
 
-const sameSourceKey = ({ subject, series }: PlacedRun) =>
-  [
-    normalizeMaterialKey(subject),
-    series.top.trim(),
-    series.unit,
-    readReference(series.dilutionFactor).id ?? dilutionFactorOf(series.dilutionFactor),
-  ].join('|');
-
 function unpaintedRuns(
   protocol: Pick<Protocol, 'materials' | 'series'>,
   painted: ReadonlySet<string>
@@ -119,7 +111,7 @@ export function dilutionRuns(
   const pooled = new Map<string, DilutionRun>();
   for (const placed of placedRuns(protocol.plateMaps, protocol.series)) {
     const { ref, place, ...run } = placed;
-    const key = sameSourceKey(placed);
+    const key = ref.seriesId;
     const existing = pooled.get(key);
     if (!existing) {
       pooled.set(key, {
@@ -133,7 +125,6 @@ export function dilutionRuns(
       continue;
     }
     existing.members.push(ref);
-    if (!existing.seriesIds.includes(ref.seriesId)) existing.seriesIds.push(ref.seriesId);
     if (!existing.places.includes(place)) existing.places.push(place);
     for (const [point, wells] of run.replicatesByPoint) {
       existing.replicatesByPoint.set(point, (existing.replicatesByPoint.get(point) ?? 0) + wells);

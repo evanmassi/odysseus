@@ -54,7 +54,7 @@ export function useLabwareChanges(
       const original = target?.plates.find(candidate => candidate.id === plateId);
       const shown = draft.cards.find(candidate => candidate.id === card.id);
       if (!target || !original || shown?.type !== 'plateMap') return;
-      shown.activeTab = duplicatePlateAsTab(draft.series, target, original);
+      shown.activeTab = duplicatePlateAsTab(target, original);
       normalizePlateMap(target);
     });
 
